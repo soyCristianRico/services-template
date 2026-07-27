@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
 #
-# Bootstrap a new services site from the service-template.
+# Bootstrap a new services site from the services-template.
 #
 #   scripts/new-site.sh "Site Name" ["Description"]
 #
 # Creates the repo on GitHub (private), clones the template WITH its full
 # history into a sibling directory, repoints the remotes (origin = the new repo,
-# template = service-template) and leaves the site installed —
+# template = services-template) and leaves the site installed —
 # ready for `composer run dev`.
 #
 # Keeping the template as a remote is deliberate: porting a later template
@@ -18,7 +18,7 @@ set -euo pipefail
 # ── Per-template configuration ───────────────────────────────────────────────
 # The only part that differs between directory-template, services-template and
 # rental-template. Keep the rest of the script identical across the three.
-TEMPLATE_REPO="git@github.com:soyCristianRico/service-template.git"
+TEMPLATE_REPO="git@github.com:soyCristianRico/services-template.git"
 ORG="soyCristianRico"
 DEFAULT_BRANCH="main"
 
