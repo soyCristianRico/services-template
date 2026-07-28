@@ -1,11 +1,13 @@
 ---
 name: design-system-from-brief
 description: Transform a brand direction brief (text, references, or both) into a structured DESIGN.md at the project root, plus optionally update the Tailwind @theme block in resources/css/app.css. Use when the user asks to create, generate or write a design system, a DESIGN.md, or to "turn this brand brief into a design contract". The brief is typically a markdown document with positioning, colors, typography and tone, but image references and competitor URLs are also accepted.
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch
+disable-model-invocation: true
 ---
 
 # Design system from brief
 
-Generate a `DESIGN.md` at the project root that acts as the visual contract every future "implement this view" prompt reads first. The input is a brand direction document (color palette, typography, positioning, photography direction, anti-patterns). The output is a structured Markdown file specifically wired to the project's actual stack — for rental-template clones that means Laravel 12 + Livewire 4 + Flux Pro 2 + Tailwind 4.
+Generate a `DESIGN.md` at the project root that acts as the visual contract every future "implement this view" prompt reads first. The input is a brand direction document (color palette, typography, positioning, photography direction, anti-patterns). The output is a structured Markdown file wired to this project's actual stack: Laravel 12 + Livewire 4 + Flux Pro 2 + Tailwind 4.
 
 ## When to invoke
 
@@ -18,7 +20,7 @@ Trigger this skill when the user says any of:
 
 Skip the skill (don't invoke) when:
 - The user just wants to tweak colors in `app.css` directly
-- There's no brief yet — in that case help them write one first (see §1)
+- There's no brief yet — in that case help them write one first
 - A `DESIGN.md` already exists and is current — propose updating it rather than overwriting blindly
 
 ## Inputs accepted
@@ -37,13 +39,26 @@ If only 1 is provided, that's enough. If the brief is missing critical fields (n
 Before writing anything, verify the project the DESIGN.md will live in:
 
 ```bash
-ls CLAUDE.md composer.json
+ls CLAUDE.md composer.json DESIGN.md
 ```
 
-- If `composer.json` mentions `livewire/flux-pro` → it's a rental-template clone or ruklab itself → use the Flux Pro + Tailwind 4 mapping.
-- If neither → ask the user what stack the project is on before assuming.
+- If `composer.json` mentions `livewire/flux-pro` → use the Flux Pro + Tailwind 4 mapping below.
+- If not → ask the user what stack the project is on before assuming.
 
 Also check if a `DESIGN.md` already exists. If yes, ask whether to overwrite or merge.
+
+**Read the current `resources/css/app.css` before writing anything.** The existing `@theme` block tells you the token names already in use. You are re-valuing an existing system, not inventing one.
+
+**Check the sibling repos.** These projects are clones of one another and live side by side. If a sibling has a `DESIGN.md` and an `app.css`, read them:
+
+```bash
+ls -d ../*/DESIGN.md 2>/dev/null
+grep -oE '^\s+--color-[a-z-]+' ../<sibling>/resources/css/app.css
+```
+
+The **token names are the house convention and stay stable across sites**; only the hex values and roles change per brand. Inventing a new naming scheme for this project is the single most expensive mistake this skill can make — it breaks every pattern copied between repos.
+
+Finally, confirm which token names actually resolve. A token that appears in DESIGN.md but not in `@theme` is a class that silently does nothing.
 
 ### Phase 2 — Parse the brief
 
@@ -65,15 +80,69 @@ When the brief uses a CSS variable block (like `@theme { --color-accent: #F5C400
 
 ### Phase 3 — Map to the stack
 
-For rental-template clones, every visual decision must map to a Flux Pro component or a Tailwind utility. Add a "Flux mapping" sub-section under each component category:
+Every visual decision must map to a Flux Pro component or a Tailwind utility.
 
-- Buttons → `<flux:button variant="primary|ghost|danger" />` with `accent` semantic class
+#### 3a. The Flux `accent` contract — get this right or the brand never applies
+
+This is the highest-leverage part of the whole skill. Flux declares its own `@theme` in `vendor/livewire/flux/dist/flux.css` with **three hardcoded variable names**, defaulting to zinc-800:
+
+```css
+--color-accent            /* primary button bg, active/checked fills */
+--color-accent-content    /* accent text & icon color (links, active tabs) */
+--color-accent-foreground /* text on top of the accent bg */
+```
+
+Overriding those three in the project's `@theme` is what tints the entire component library. Verify what they drive in the installed version rather than trusting this list:
+
+```bash
+grep -rln "accent" vendor/livewire/flux*/stubs/resources/views/flux/
+```
+
+Typically: `flux:button variant="primary"` · `flux:link` · `flux:tab` · `flux:navbar.item` / `flux:navlist.item` active · `flux:checkbox` · `flux:radio` · `flux:switch` · `flux:progress` · `flux:slider` · `flux:calendar` / `flux:date-picker` · `flux:accent` · `flux:timeline`.
+
+Rules that follow, and that **must be written into the generated DESIGN.md** (§3 and §11):
+
+- **The brand's action color goes in `accent`.** Not in `brand`, not in `primary`. If the brief's main color sits anywhere else, every Flux control stays zinc. The brief's *prose* often calls a secondary colour "the accent" — in the codebase `accent` means the action colour Flux reads, so translate rather than copy the word.
+- **Never rename the trio.** `--color-primary` or `--color-cta` = Flux ignores it entirely. An invented name is plausible, documented, and resolves to nothing.
+- **Always set all three.** Setting `--color-accent` but not `--color-accent-content` leaves links and active tabs zinc while buttons turn brand-colored — an easy-to-miss half-applied theme. Check the sibling repos for exactly this bug before copying their block.
+- **Don't document a manual hover** (`hover:bg-accent/90`) on `flux:button`. Flux already darkens the primary ~10% via `color-mix`. Manual hover only applies to custom Blade buttons.
+- **Don't pass `color=` to `variant="primary"`.** Each color (`zinc`, `slate`, `gray`, …) redefines the trio locally and overrides the brand.
+- **A second brand color needs its own namespace** (`--color-score`, `--color-highlight`, …). It must never occupy `accent`.
+- Flux ships a `.dark { --color-accent: white … }` block. In these templates `.dark` is never applied, so it's inert — say so once and forbid new `dark:` variants.
+
+#### 3b. Component mapping
+
+- Buttons → `<flux:button variant="primary|outline|subtle">`, colored by the `accent` trio (see 3a). Not `ghost` for a secondary button — it has no border. Sizes are `base|sm|xs`; **`lg` does not exist and 500s the page**
 - Inputs → `<flux:input>`, `<flux:select>`, `<flux:textarea>`
-- Cards → custom Blade component referencing `--color-surface` + `--color-primary-dark`
-- Headings → `<flux:heading size="...">` + brief-defined `font-weight` and `letter-spacing`
-- Form (lead capture) → references `resources/views/components/⚡lead-form`
+- Headings → `<flux:heading level="1|2|3">` — **`level=`, never `size=`** (see 3c)
+- Tables / comparisons → `<flux:table>`
+- Badges → `<flux:badge>`
+- Cards → no Flux equivalent; custom Blade using `bg-surface` + `border-border`
+- Lead capture → `resources/views/components/⚡lead-form` — never re-invent
 
-When the brief calls for something Flux doesn't ship (e.g. a custom Hero block), document it as "custom Blade component, no Flux equivalent" and propose a name (`<x-marketing.hero>`, etc.).
+When the brief calls for something Flux doesn't ship (a Hero block, a score badge), document it as "custom Blade component, no Flux equivalent" and propose a name (`<x-marketing.hero>`, `<x-score-badge>`).
+
+#### 3c. Headings: `level=` vs `size=`
+
+These templates drive the public type scale from `app.css`, keyed off the semantic tag:
+
+```css
+[data-public-site] h1[data-flux-heading] { … }
+```
+
+`<flux:heading level="1">` renders `<h1 data-flux-heading>` and **picks the scale up**. `<flux:heading size="2xl">` renders a `<div>` and **does not** — it stays at Flux's compact default, so the heading silently ends up tiny. So:
+
+- Public headings → `level=`, with no `text-*` / `font-*` utilities
+- Compact headings (modals, forms, banners) → `size=`
+- To change a size, edit `app.css`. Never add per-heading `text-*!` overrides.
+
+Check the project's own styling guideline (`.ai/styling` in CLAUDE.md, or `.ai/guidelines/styling.md`) — it usually states this rule, and the generated DESIGN.md must not contradict it.
+
+#### 3d. Icons
+
+Flux's built-in icons are Heroicons. Lucide is available too — `php artisan flux:icon <name>` vendors the SVG from lucide.dev into `resources/views/flux/icon/`. If the brief specifies an icon set, document the command, not just the intent. If the brief says "outline / linear only", forbid Heroicons' `solid` and `micro` variants explicitly.
+
+**Vendoring replaces the Heroicon project-wide, and Lucide has no `solid` variant.** So vendoring an icon that something already renders filled (a star in a rating, a heart in a favourite) breaks that component with *The "solid" variant is not supported in Lucide*. Before documenting a vendored icon, grep for `variant="solid"` on that name; if it's in use, the DESIGN.md must say the filled state comes from `fill-current` over the Lucide outline. Lucide names differ too: `menu`, `x`, `search` — not `bars-3`.
 
 ### Phase 4 — Write DESIGN.md
 
@@ -93,37 +162,68 @@ Use the structure below verbatim — every section is required, even if short. E
 
 ## 2. Stack
 
-- Laravel 12 + Livewire 4 (SFC under `resources/views/pages/`)
+- Laravel 12 + Livewire 4 (SFC under `resources/views/pages/`, `⚡` prefix)
 - Flux Pro v2 — use Flux first; drop to custom Blade only when no equivalent
 - Tailwind v4 (CSS-first config via `@theme` in `resources/css/app.css`)
-- Heroicons via `<flux:icon>`
+- Public layout: `resources/views/layouts/public.blade.php` (`<body data-public-site>`)
+- Icons: `<flux:icon>` (Heroicons built in; Lucide via `php artisan flux:icon <name>`)
 
 ## 3. Color tokens
+
+Token **names** are the house convention, shared with the sibling repos; only hex and role change per brand. State which Tailwind family the neutrals come from so derived tints stay in-hue.
 
 ### Palette
 
 | Token | Hex | Role | Class usage |
 |---|---|---|---|
-| `--color-accent` | `#XXXXXX` | <role> | `bg-accent`, `text-accent` |
-| `--color-accent-content` | `#XXXXXX` | hover, links, badges (slightly darker accent) | `text-accent-content` |
-| `--color-accent-foreground` | `#XXXXXX` | text ON accent backgrounds | `text-accent-foreground` |
-| `--color-primary-dark` | `#XXXXXX` | brand dark — main text + dark surfaces | `bg-primary-dark`, `text-primary-dark` |
-| `--color-secondary-gray` | `#XXXXXX` | secondary text, meta | `text-secondary-gray` |
-| `--color-surface` | `#XXXXXX` | cards, subtle bg | `bg-surface` |
+| `--color-brand` | `#XXXXXX` | identity color | `bg-brand`, `text-brand` |
+| `--color-brand-foreground` | `#XXXXXX` | text on `brand` | `text-brand-foreground` |
+| `--color-brand-muted` | `#XXXXXX` | soft brand wash — chips, hovers *(derived)* | `bg-brand-muted` |
+| `--color-accent` | `#XXXXXX` | **action color — the trio Flux reads** | `bg-accent`, `flux:button variant="primary"` |
+| `--color-accent-content` | `#XXXXXX` | accent text/links on light bg | `text-accent-content`, `flux:link` |
+| `--color-accent-foreground` | `#XXXXXX` | text ON the accent bg | `text-accent-foreground` |
+| `--color-accent-soft` | `#XXXXXX` | accent badge bg *(derived)* | `bg-accent-soft` |
+| `<third role>` | `#XXXXXX` | brand's second color, own namespace (`score`, `highlight`, …) | `text-<role>` |
+| `<third role>-foreground` | `#XXXXXX` | text on it — check contrast, light hues need dark text | |
+| `<third role>-soft` | `#XXXXXX` | its badge bg *(derived)* | |
 | `--color-background` | `#XXXXXX` | page bg | `bg-background` |
+| `--color-surface` | `#XXXXXX` | cards, header, panels | `bg-surface` |
+| `--color-surface-muted` | `#XXXXXX` | alt sections, table headers | `bg-surface-muted` |
+| `--color-foreground` | `#XXXXXX` | main text | `text-foreground` |
+| `--color-muted-foreground` | `#XXXXXX` | secondary text, meta | `text-muted-foreground` |
+| `--color-border` | `#XXXXXX` | default borders | `border-border` |
+| `--color-border-strong` | `#XXXXXX` | hover borders, inputs | `border-border-strong` |
 
-### How to use the accent
-- DO: CTAs, hover states, key links, badges, highlights
-- DON'T: large background blocks, full sections, layouts dominated by the accent
+If the brand has a single color doing both identity and action, point `brand` and `accent` at the same hex and **say so explicitly** — keeping both names alive means code ported between sibling repos still works.
 
-### `@theme` block to paste into `resources/css/app.css`
+### ⚠️ Flux: the `accent` trio is mandatory
+
+<Lift the rules from Phase 3a here: the three exact names, what they drive, don't rename,
+set all three, no manual hover on flux:button, no `color=` on primary, second color
+lives in its own namespace, the `.dark` block is inert.>
+
+### How to use each color
+- **`accent`** — DO: CTAs, links, focus rings, active nav. DON'T: large background blocks, full sections, gradients.
+- **`<third role>`** — DO: 1-2 elements per view. DON'T: as a second CTA color.
+- Golden rule: **one action color per view.**
+
+### `@theme` block (already applied to `resources/css/app.css`)
 
 ```css
 @theme {
+    /* NOTE: do not rename the accent trio — Flux looks for these exact names. */
     --color-accent: #XXXXXX;
-    /* ... full block from §3 above ... */
+    /* ... full block ... */
 }
 ```
+
+### Hygiene rule
+
+Public views use **semantic tokens only**. No raw `text-zinc-*` / `border-gray-*`. When editing a public view that still has raw palette classes, convert them.
+
+### Dark mode
+
+<State once whether `.dark` is ever applied. In these templates it is not — so forbid new `dark:` variants in public views.>
 
 ## 4. Typography
 
@@ -140,11 +240,16 @@ Use the structure below verbatim — every section is required, even if short. E
 | Body | | `font-weight: 400; line-height: 1.6;` |
 | Button | | `font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;` (only if brief says so) |
 
+The public type scale lives in **one place**: the `[data-public-site] h1|h2|h3[data-flux-heading]` rules in `app.css`. To change a size, edit that file — never add per-heading `text-*!` / `font-*!` utilities.
+
 ### Flux mapping
-- `<flux:heading size="2xl">` for H1
-- `<flux:heading size="xl">` for H2
-- `<flux:heading size="lg">` for H3
-- `<flux:text>` for body
+- `<flux:heading level="1">` → H1 hero (one per page)
+- `<flux:heading level="2">` → H2 section
+- `<flux:heading level="3">` → H3 card
+- `<flux:text>` → body
+- **`level=` not `size=`**: `size=` renders a `<div>`, skips the public scale, and stays compact. Reserve it for modals/forms/banners.
+
+Only declare font weights that are actually loaded in the `@import` — a heading asking for 800 when the font loads 400-700 gets faux-bolded by the browser.
 
 ## 5. Spacing, radius & elevation
 
@@ -155,44 +260,59 @@ Use the structure below verbatim — every section is required, even if short. E
 ## 6. Components
 
 ### Buttons
-- Primary: `<flux:button variant="primary">` — uses `bg-accent text-accent-foreground`
-- Secondary: `<flux:button variant="ghost">` — `border-primary-dark text-primary-dark`
-- Sizes: default `size="base"`; CTAs in hero use `size="lg"`
+- Primary: `<flux:button variant="primary">` — coloured by the `accent` trio, nothing to add
+- Secondary: `<flux:button variant="outline">` — `ghost` renders as bare text with no border
+- Sizes: Flux ships `base` / `sm` / `xs` only. **There is no `lg`** — it throws *Unhandled match case* and 500s the page. Size hero CTAs with classes: `class="h-12 px-6 text-base"`
+- Same for `<flux:input>`: `size="lg"` doesn't error, it just silently stays at 40px. Use `class="h-14! text-base!"` (the `!` is required — Flux doesn't wrap height in `:where()`)
+- No `color=` on primary, no manual `hover:bg-*`, no gradients or shadows (see §11)
+- Max one primary button per section
 
-### Inputs (lead form)
-- `<flux:input>` with `text-primary-dark` border `border-secondary-gray/30`
-- Lead form lives in `resources/views/components/⚡lead-form` — DON'T re-invent
+### Inputs (search / lead form)
+- `<flux:input>`, `<flux:select>`, `<flux:textarea>` with `border-border-strong`
+- Lead form lives in `resources/views/components/⚡lead-form` — DON'T re-invent; embed via `<livewire:lead-form … />`
 
 ### Cards
-- Background: `bg-background` or `bg-surface` depending on contrast needed
-- Padding: `p-6` or `p-8` (brief-driven)
-- Border: <"none, rely on bg contrast" / "border border-secondary-gray/20">
+- `bg-surface` over the page's `bg-background`; the contrast alone separates them
+- Padding: `p-6` (list) / `p-8` (featured)
+- Border: `border border-border`; hover shifts the border (`hover:border-border-strong`), not the fill
+- No Flux equivalent — custom Blade. Extract to `resources/views/components/` once it repeats ≥3 times
 
 ### Badges
-- `<flux:badge>` with `color="zinc"` for neutral, accent custom class for highlights
+- Neutral: `<flux:badge color="zinc">`
+- Brand highlight: `bg-accent-soft text-accent-content`
+- Second-colour signal: `bg-<role>-soft text-<role>-foreground` — 1-2 per view max
 
 ## 7. Layouts
 
 ### Hero
 - Full-width, `min-h-[60vh]` to `[80vh]`
 - H1 + subtitle + 1 primary CTA + 0-1 secondary CTA
-- Background: <photo-driven or solid `bg-primary-dark` with accent details>
+- Background: <photo-driven, `bg-background` editorial, or solid `bg-brand` with accent details>
 
 ### Section
 - `py-16 lg:py-24`
 - Container `max-w-6xl mx-auto px-6`
 
 ### Footer
-- `bg-primary-dark text-background`
+- <`bg-brand text-brand-foreground` (dark footer) or `bg-surface border-t border-border` (light, editorial) — brief-driven>
 - 3 columns desktop, 1 mobile
 
-## 8. Landing pattern (`/category-city`)
+## 8. Page archetypes
 
-The shared template `resources/views/pages/⚡landing.blade.php` renders every programmatic landing. Specific to this brand:
-- Hero with category + city in H1
-- Lead form embedded after the first scroll (`<livewire:lead-form :landing="$landing" />`)
-- <"Show product grid" / "No product grid — copy + form only"> (decided per brief)
-- Breadcrumb derived from the category tree
+<List the ACTUAL public pages of this project — read `routes/web.php` and
+`resources/views/pages/` first; do not assume filenames. Typically:
+`⚡home`, `⚡browse` (catch-all category / category×location), `⚡ranking`
+(`/mejores-…`), `listing/⚡show` (ficha), `blog/⚡index` + `blog/⚡show`.
+
+For each, give the layout recipe: breadcrumb, H1 shape, what sits above the
+fold, whether the lead form is embedded, grid vs list.>
+
+### Domain vocabulary
+
+<The template's models are generic. Map them to what they MEAN in this brand,
+as a table — e.g. `Category` → "herramienta", `Listing` → "escuela",
+`Offering` → "curso". Agents writing copy need this or the UI reads like the
+generic template.>
 
 ## 9. Imagery
 
@@ -202,14 +322,17 @@ The shared template `resources/views/pages/⚡landing.blade.php` renders every p
 ### DON'T
 - <list from brief — "no stock, no isolated white-bg renders, no fake people">
 
-### OG image (`og:image`)
-- 1200×630
-- <description of layout — "dark bg, logo top-left, claim large center, accent stripe">
-- Stored in `public/images/og-default.jpg` (env: `SEO_DEFAULT_IMAGE`)
+### Brand assets
 
-### Favicon
-- Isotype only (no wordmark) — sizes 32×32, 192×192, 512×512
-- Stored in `public/favicon.png`
+Logo, favicon and apple touch icon are produced by the **`brand-assets` skill**, which
+owns their paths and sizes. Record only what the brief decided:
+
+- Logo concept, and whether the header uses `logo.png` or `logo.svg`
+- Favicon direction: isotype only, no wordmark — it renders small
+
+### OG image (`og:image`)
+- 1200×630 at `public/og-default.png`, declared as `SEO_DEFAULT_IMAGE=og-default.png` in `.env` (path relative to `public/`)
+- <description of layout — "dark bg, logo top-left, claim large center, accent stripe">
 
 ## 10. Editorial tone
 
@@ -223,17 +346,31 @@ The shared template `resources/views/pages/⚡landing.blade.php` renders every p
 What this site explicitly is NOT:
 - <list from brief — "afiliación, directorio, SEO spam, low-cost industrial">
 
+Codebase anti-patterns (always include):
+- Raw `text-zinc-*` / `text-gray-*` instead of semantic tokens
+- `text-*!` / `font-*!` utilities on `flux:heading`
+- New `dark:` variants (if `.dark` is never applied)
+
+Flux-specific (breaks the brand silently — always include):
+- Renaming `--color-accent` / `--color-accent-content` / `--color-accent-foreground`
+- `color=` on `<flux:button variant="primary">`
+- `hover:bg-accent/90` on a `flux:button` (duplicates Flux's built-in hover)
+- Putting the secondary brand color in `accent`
+- `size="lg"` on `flux:button` (500s) or `flux:input` (silently ignored) — size with classes
+- `variant="ghost"` as a secondary button — no border; use `outline`
+- `solid` / `micro` icon variants when the brief says linear icons, or on any vendored Lucide icon
+
 ## 12. Logo
 
 - Concept: <"minimalist geometric monogram" / etc.>
 - DON'T use literal industry icons (rayos, enchufes, generators drawn) — those age badly
-- Monogram: <"AG" / etc.>, geometric, scalable
+- Monogram: <initials>, geometric, scalable
 - Wordmark: `<NAME>` separated from the isotype
 
 ## 13. References & resources
 
 - Brief source: <link/path>
-- Inspiration sites: <list from brief — "Stripe, Linear, Vercel pero industrializadas">
+- Inspiration sites: <list from brief>
 - Brand color console: <link to a generated palette page if any>
 ```
 
@@ -241,13 +378,23 @@ What this site explicitly is NOT:
 
 After writing DESIGN.md, ask:
 
-> "¿Aplico también el bloque `@theme` a `resources/css/app.css` para que las clases (`bg-accent`, `text-primary-dark`, etc.) funcionen ya? Sin esto, las clases del DESIGN.md son sólo documentación."
+> "¿Aplico también el bloque `@theme` a `resources/css/app.css` para que las clases (`bg-accent`, `text-muted-foreground`, la fuente display…) funcionen ya? Sin esto, las clases del DESIGN.md son sólo documentación y el sitio sigue con la identidad anterior."
 
 If yes:
 1. Read `resources/css/app.css`
-2. Replace the existing `@theme { ... }` block (or add one if missing) with the brief's CSS variables
-3. Preserve any imports above (`@import 'tailwindcss';`, `@import '...flux.css';`)
-4. Run `npm run build` (or tell the user to) to verify it compiles
+2. Replace the existing `@theme { ... }` block (or add one if missing) with the brief's CSS variables, **keeping the house token names** (Phase 1)
+3. Preserve the imports above (`@import 'tailwindcss';`, `@import '...flux.css';`) and the `@custom-variant dark`, `@source` lines below
+4. Update the font `@import` to the new families **and only the weights actually used**
+5. Update the `[data-public-site] h1|h2|h3[data-flux-heading]` weights if the brief's display font ships different ones
+6. Run `npm run build`
+
+**A green build is not proof the theme applied.** A renamed or misspelled token just produces a class that resolves to nothing — nothing errors. Verify the values actually landed:
+
+```bash
+grep -o "\-\-color-accent:[^;]*;\|--font-display:[^;]*;" public/build/assets/app-*.css | head
+```
+
+Expect the brand hex, not `var(--color-zinc-800)`. If Flux's derived `color-mix` values also show the brand hex, the trio propagated correctly through the component library.
 
 ### Phase 6 — Verify
 
@@ -261,26 +408,17 @@ After writing the file:
 - Write to `<project-root>/DESIGN.md` (overwrite if user confirmed earlier)
 - Use the project name (from `composer.json` or `APP_NAME` in `.env`) in the title
 - Date in the header (today's date, ISO format)
-- Spanish content for the actual brand decisions (since rental sites are ES); English for the agent-facing scaffolding comments
+- Spanish content for the actual brand decisions; English for the agent-facing scaffolding comments
 - Hex colors in lowercase (`#f5c400` not `#F5C400`) — matches Tailwind convention
 
 ## What NOT to do
 
 - **Don't invent palette decisions.** If the brief gives `#F5C400`, use `#f5c400`. Don't expand to "and a complementary purple". Stick to what's documented.
+- **But do derive the missing steps.** A brief rarely supplies every `*-soft` / `*-muted` / `*-strong` tint, and the system needs them. Derive from the same Tailwind family the brief's neutrals already belong to (match the hexes against gray/slate/zinc), mark those rows *(derived)* in the table, and note the family. That's filling in a scale, not inventing a color.
+- **Don't invent token names.** Reuse whatever the project and its siblings already declare in `@theme`. New names mean dead classes.
+- **Don't put the brand's action color anywhere but `accent`.** See Phase 3a — this is the most common way to ship a DESIGN.md that looks right and renders zinc.
+- **Don't assume the page filenames.** `ls` the pages directory and read `routes/web.php` before writing §8.
 - **Don't write code samples that aren't valid for the stack.** No `border-radius: 4px` when Tailwind 4 expects `rounded-sm`.
-- **Don't include the entire ruklab DESIGN.md.** That's for an internal app (workspace density, no hero). Marketing/public sites have different rules.
 - **Don't over-document the admin.** The skill produces a design contract for PUBLIC views. The admin uses Flux defaults — mention it once in §2 and move on.
+- **Don't specify logo, favicon or icon sizes.** Those belong to the `brand-assets` skill; duplicating them here guarantees the two drift apart.
 - **Don't dump rationale into the file.** Keep DESIGN.md operational: "use this, don't use that". Rationale lives in commit messages and PR descriptions.
-
-## Example of a good outcome
-
-Input: the brand brief Cristian pasted for alquilageneradores.com (yellow `#F5C400` + graphite `#1F1F1F`, Archivo, premium industrial, no obra barata).
-
-Output: `DESIGN.md` at the project root with:
-- §1 one-liner: "Operador nacional de soluciones energéticas temporales. NO afiliación, NO directorio, NO low-cost industrial."
-- §3 with the 7-token palette + the exact `@theme` block to paste
-- §4 Archivo with the 5 weights + the specific letter-spacings from the brief
-- §9 photography list with the 6 "DO" types and 3 "DON'T" types from the brief
-- §11 anti-patterns lifted verbatim from the brief's "NO parecer" section
-
-Then app.css updated, then a one-line summary: "DESIGN.md created with 7 color tokens, Archivo as primary font, premium industrial tone. Want me to rebuild ⚡home.blade.php with this now?"
