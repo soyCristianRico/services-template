@@ -55,6 +55,21 @@ campos vacíos u ocultos en las páginas muestreadas. Pero es un **acelerador
 oportunista, no un requisito**: lo normal es clonar sin acceso al código, y el mapa
 tiene que salir igual de completo por la vía de arriba más el paso 3.
 
+**Y si se puede pedir un volcado de la base de datos, pedirlo.** Es la vía definitiva:
+el código da el *esquema*, el volcado da los *valores por registro* y, sobre todo, lo
+que no viaja al navegador — páginas `noindex`, configuración de formularios, fechas y
+autorías reales. Qué pedir en WordPress: `posts`, `postmeta`, `terms`,
+`term_taxonomy`, `term_relationships`. Formato `.sql` (mysqldump) mejor que el export
+XML, que se deja campos. También sirve un `.wpress` (All-in-One WP Migration): es un
+concatenado con cabeceras de 4377 bytes del que se puede extraer solo `database.sql`
+sin descomprimir los gigas de imágenes.
+
+> **Datos personales.** Un volcado lleva usuarios, hashes de contraseña, leads y
+> comentarios. Pedir **solo las tablas necesarias**, nunca `users` completa, no copiar
+> el fichero dentro del repo y no volcar su contenido crudo por pantalla. Trabajar
+> sobre él en un directorio temporal y extraer únicamente los campos que documenta el
+> inventario.
+
 > Si hay código y documentación del propio origen y se contradicen, manda el código.
 > Un `.md` de diseño puede decir «8 campos» y la implementación tener 79.
 
@@ -62,6 +77,17 @@ tiene que salir igual de completo por la vía de arriba más el paso 3.
 Leer `origen/sitemap.xml` (y sub-sitemaps). Si no hay, rastrear desde la home por
 enlaces internos. HTML plano → `WebFetch` o `curl`. Ver paso 3 para cuándo hace falta
 Playwright (menos de lo que parece).
+
+> **El sitemap NO es el inventario completo.** Los plugins de SEO excluyen las páginas
+> `noindex`, y ahí viven justo las del embudo de conversión: gracias, confirmación de
+> compra, descarga protegida, páginas de campaña. Son imprescindibles para clonar,
+> porque sin ellas el formulario no tiene a dónde ir.
+>
+> Cómo encontrarlas, en orden de fiabilidad: **volcado de BD** (todas las de tipo
+> `page` publicadas), **configuración de los formularios** (su URL de redirección),
+> enlaces internos desde páginas ya rastreadas, y probar rutas típicas
+> (`/gracias/`, `/thank-you/`). Probar rutas a ciegas es lo último y lo peor: los
+> nombres reales pueden ser `/gracias-contacto/`, `/gracias-newsletter/`…
 
 ### 2 — Clasificar y detectar patrón
 Etiquetar cada URL con su entidad. Detectar el patrón de landing:
@@ -175,6 +201,10 @@ Encadenado, según lo que haya salido:
   con las respuestas, `/services-model-entities`. El mapeo **no espera** a las
   respuestas: se cierra aquí. Quien modela es quien las necesita.
 
+Después del esquema, y antes de clonar páginas, van `/services-navigation` (los menús
+de `chrome`) y `/services-scaffold-structure`. El admin de las entidades nuevas
+(`/services-admin-panel`) va más tarde, cuando ya se sepa qué campos se usan de verdad.
+
 ## Qué preguntar y qué no
 
 Preguntar poco, al final, y nunca a mitad del rastreo. La regla:
@@ -190,12 +220,25 @@ Preguntar poco, al final, y nunca a mitad del rastreo. La regla:
   - **Capacidades sin datos**: el origen soporta algo que ninguna página usa hoy
     (un segundo bloque de convocatoria, un estado que nadie tiene). Invisible por
     definición; solo el cliente sabe si piensa usarlo.
+  - **Qué pasa al enviar un formulario.** Se ven los campos; **no** se ve el efecto:
+    redirección o mensaje en línea, página de gracias, correo de aviso interno, correo
+    al usuario, alta en CRM. Nada de eso viaja al navegador y **enviar el formulario
+    para averiguarlo no es opción** — genera un registro real. Documentar los campos
+    y preguntar el efecto, uno por uno y por cada formulario.
   - **Lógica detrás de integraciones**: pasarelas de pago, CRM, descargas protegidas,
-    matriculación externa. Se ve el enlace, no la regla de negocio.
+    matriculación externa. Se ve el enlace, no la regla de negocio. Ojo: que exista una
+    integración no significa que mande todos los campos del formulario — verificar qué
+    se envía de verdad antes de darlo por hecho.
   - **Datos contradictorios en origen** — dos sitios que dicen cosas distintas del
     mismo hecho. No se elige por nuestra cuenta.
   - **Contenido que el origen no publica** — fechas, autorías, categorías vacías. El
     cliente puede tenerlo aunque la web no lo enseñe.
+  - **Qué hacer con las páginas fuera del sitemap.** Aparecen `noindex` y sin enlazar,
+    y su papel no se deduce del contenido: unas son del embudo y hay que clonarlas,
+    otras son destinos de campañas de pago que siguen recibiendo tráfico, y otras son
+    restos que conviene no arrastrar. Listarlas una a una con su URL y lo que se ve en
+    ellas, y preguntar cuáles entran. Nunca decidirlo por cuenta propia: una página de
+    campaña borrada rompe anuncios que están corriendo.
 
 ## Cuándo parar
 
@@ -211,5 +254,9 @@ contenido que copiar—; solo importan si el cliente va a usarlos, y eso se preg
 - Solo documenta. No crea tablas, ni modelos, ni registros, ni ficheros del proyecto
   fuera de `storage/app/clone/`.
 - No inventar: URL no extraída, dato no verificado o campo no visto → `null`, y se dice.
-- Ante discrepancia entre código fuente y HTML renderizado, manda el código; la
-  diferencia se anota como observación.
+- **Precedencia de fuentes, de más a menos autoritativa:** respuesta del cliente →
+  volcado de BD → código fuente → API pública → HTML renderizado. Ante discrepancia
+  manda la de más arriba, y la diferencia se anota como observación.
+- **No presentar una inferencia con tono de hecho verificado.** Lo deducido se marca
+  como deducido, con la fuente al lado. Es el error que más caro sale, porque una
+  inferencia bien redactada no se vuelve a comprobar.

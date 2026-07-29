@@ -97,7 +97,13 @@ casts, scopes. Enums con sus `label()`. Ejecutar solo los tests afectados
   queda con las entidades en `fuera_de_modelo` deja de describir el proyecto.
 
 Reportar: entidades creadas, tablas, tests en verde, y **lo aparcado por preguntas sin
-responder** (paso 1). Siguiente paso: `/services-scaffold-structure`.
+responder** (paso 1). Siguiente paso: `/services-navigation` y después
+`/services-scaffold-structure`.
+
+Toda entidad creada aquí genera trabajo de admin: el cliente tiene que poder
+gestionarla sin tocar código, igual que en su CMS de origen. Eso es
+`/services-admin-panel`, y se ejecuta más tarde — pero se anota ya, porque es la parte
+que más se olvida al modelar.
 
 ## Guardarraíles
 
