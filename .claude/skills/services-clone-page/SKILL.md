@@ -20,20 +20,36 @@ esa página clonada y verificada, lista para revisión.
 ## Proceso (para UNA página)
 
 ### 1 — Contenido
-Rellenar el registro esqueleto de esa página (servicio / landing / página estática /
-entrada de blog) con su copy real, meta title/description, atributos (`custom_fields`)
-e imágenes, tomados del origen. Reflejar el estado activo/inactivo del origen.
+Rellenar el registro esqueleto de esa página con su copy real, meta title/description,
+atributos (`custom_fields`) e imágenes, tomados del origen. Reflejar el estado
+activo/inactivo del origen.
 
-### 2 — Diseño
+El registro puede ser de una entidad del template (servicio, landing, página estática,
+entrada de blog) o de una entidad creada por `/services-model-entities` y listada en
+`entidades_nuevas`. En ese caso, los campos a rellenar son los del mapeo
+campo→columna que dejó esa skill en el inventario, no los del template.
+
+### 2 — Comportamiento (solo si la página es un listado)
+Si el mapa registró listado filtrable, buscador, paginación o calendario en esta
+página, implementarlo aquí: componente Livewire + consulta Eloquent. Las facetas, su
+orden y el tamaño de página salen del mapa; **los valores posibles de cada faceta
+salen del esquema** (enum o tabla), no de los valores que se vieron en el origen.
+
+No replicar la solución técnica del origen. Que allí lo resuelva una API interna es un
+detalle suyo: el requisito es el comportamiento, no el mecanismo.
+
+### 3 — Diseño
 Replicar en Blade las secciones concretas de esa página (según el mapa de
 `/services-map-source`), respetando el `DESIGN.md` y los componentes Flux del
 template. No copiar CSS crudo: traducir a los tokens `@theme`.
 
-### 3 — Verificar
+### 4 — Verificar
 `browser_take_screenshot` de la página origen y de la reconstruida y comparar lado a
 lado: secciones, jerarquía, copy clave, meta. Reportar coincidencias y desajustes.
+Si la página tiene listado, comprobar además que filtrar y paginar devuelven lo mismo
+que el origen para al menos una combinación de facetas.
 
-### 4 — Parar para revisión
+### 5 — Parar para revisión
 Presentar la página clonada (URL local + comparación) y **esperar validación** antes
 de pasar a la siguiente. Si hay que corregir, iterar sobre esta misma página.
 

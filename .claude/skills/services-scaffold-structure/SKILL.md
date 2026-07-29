@@ -15,6 +15,10 @@ Entrada: `storage/app/clone/inventory.json`. Salida: un seeder en
 `database/seeders/` (p. ej. `CloneStructureSeeder.php`) reproducible en local y en
 producción.
 
+Requisito previo: si el inventario trae `fuera_de_modelo`, ejecutar antes
+`/services-model-entities` — esta skill **no crea esquema**, solo inserta filas en
+tablas que ya existen.
+
 ## Qué crea (solo estructura)
 
 En orden de dependencias:
@@ -24,6 +28,8 @@ En orden de dependencias:
 3. **Ubicaciones** — árbol país → región → provincia → ciudad → distrito.
 4. **Landings** — categoría×ubicación (según el patrón A/B/C del mapa), sin copy.
 5. **Páginas** — estáticas (aviso legal, gracias, sobre nosotros, contacto), sin copy.
+6. **Entidades nuevas** — las del bloque `entidades_nuevas` del inventario (creadas por
+   `/services-model-entities`), con sus taxonomías y relaciones resueltas, sin copy.
 
 Slugs definitivos desde el inicio (los usa `/services-clone-page` para localizar
 cada registro). Nada de blog aquí: las entradas se crean con su contenido.
@@ -51,3 +57,5 @@ correr el mismo seeder allí. Siguiente paso: `/services-extract-design`.
 - Solo estructura: sin copy, sin meta final. El relleno es de `/services-clone-page`.
 - Seeder idempotente: re-ejecutar no duplica.
 - No fabricar entidades que no estén en el inventario.
+- No crear ni alterar esquema (migraciones/modelos): eso es `/services-model-entities`.
+  Si falta una tabla, parar y decirlo — no sembrar a medias en silencio.
