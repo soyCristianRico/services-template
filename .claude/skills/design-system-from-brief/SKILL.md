@@ -263,12 +263,12 @@ Only declare font weights that are actually loaded in the `@import` — a headin
 - Primary: `<flux:button variant="primary">` — coloured by the `accent` trio, nothing to add
 - Secondary: `<flux:button variant="outline">` — `ghost` renders as bare text with no border
 - Sizes: Flux ships `base` / `sm` / `xs` only. **There is no `lg`** — it throws *Unhandled match case* and 500s the page. Size hero CTAs with classes: `class="h-12 px-6 text-base"`
-- Same for `<flux:input>`: `size="lg"` doesn't error, it just silently stays at 40px. Use `class="h-14! text-base!"` (the `!` is required — Flux doesn't wrap height in `:where()`)
+- Same for `<flux:input>`: `size="lg"` doesn't error, it just silently stays at 40px. Use `class:input="h-14! text-base!"` — **`class` on a `flux:input` lands on the wrapper div, not the input**, so it leaves the height untouched and pushes a leading icon out of centre (the icon is `absolute inset-y-0` over the wrapper). The `!` is required too: Flux doesn't wrap height in `:where()`
 - No `color=` on primary, no manual `hover:bg-*`, no gradients or shadows (see §11)
 - Max one primary button per section
 
 ### Inputs (search / lead form)
-- `<flux:input>`, `<flux:select>`, `<flux:textarea>` with `border-border-strong`
+- `<flux:input>`, `<flux:select>`, `<flux:textarea>` with `class:input="border-border-strong"` — styling the field itself needs `class:input`; plain `class` only reaches the wrapper
 - Lead form lives in `resources/views/components/⚡lead-form` — DON'T re-invent; embed via `<livewire:lead-form … />`
 
 ### Cards
@@ -357,6 +357,7 @@ Flux-specific (breaks the brand silently — always include):
 - `hover:bg-accent/90` on a `flux:button` (duplicates Flux's built-in hover)
 - Putting the secondary brand color in `accent`
 - `size="lg"` on `flux:button` (500s) or `flux:input` (silently ignored) — size with classes
+- plain `class` on a `flux:input` when you meant to style the field — it hits the wrapper; use `class:input`
 - `variant="ghost"` as a secondary button — no border; use `outline`
 - `solid` / `micro` icon variants when the brief says linear icons, or on any vendored Lucide icon
 
