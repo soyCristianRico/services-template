@@ -62,6 +62,7 @@ PROJECTS_DIR="$(dirname "$SOURCE_ROOT")"
 
 INSTALL_DEPS=1
 SEED_DEMO=1
+DB_ENGINE="mysql"
 SLUG=""
 DESCRIPTION=""
 SITE_NAME=""
@@ -75,6 +76,9 @@ Usage: scripts/new-site.sh "Site Name" ["Description"] [options]
   [Description]     One-line repo description (the niche).
 
   --slug <slug>     Override the derived slug (repo + folder name).
+  --db <engine>     mysql (default, matches production) or sqlite. The database
+                    and its user are created for you; sudo may ask for your
+                    password. Falls back to SQLite if no server is reachable.
   --no-demo         Skip the demo content seeding.
   --no-deps         Skip composer install / npm install (and everything after).
 USAGE
@@ -111,15 +115,80 @@ set_env() {
 
     if grep -qE "^${key}=" .env; then
         sed -i -E "s|^${key}=.*|${key}=${value}|" .env
+    elif grep -qE "^# ?${key}=" .env; then
+        # .env.example ships the MySQL block commented out.
+        sed -i -E "s|^# ?${key}=.*|${key}=${value}|" .env
     else
         printf '%s=%s\n' "$key" "$value" >>.env
     fi
+}
+
+use_sqlite() {
+    DB_ENGINE="sqlite"
+    set_env DB_CONNECTION sqlite
+    touch database/database.sqlite
+}
+
+# Production runs MySQL. A site developed on SQLite only meets MySQL's rules on
+# the day it deploys — index key length, strict mode and collation all differ,
+# and each of those has already broken a release. So MySQL is the default and
+# SQLite the escape hatch, with a fallback so a missing server never blocks the
+# bootstrap.
+provision_database() {
+    if [[ "$DB_ENGINE" == "sqlite" ]]; then
+        log "Using SQLite (--db sqlite)"
+        use_sqlite
+        return
+    fi
+
+    local client
+    client="$(command -v mariadb || command -v mysql || true)"
+
+    if [[ -z "$client" ]]; then
+        warn "No mysql/mariadb client found — falling back to SQLite."
+        warn "Install one and re-run with --db mysql to match production."
+        use_sqlite
+        return
+    fi
+
+    local password
+    password="$(openssl rand -hex 16)"
+
+    log "Creating the '$SLUG' database and user (sudo may ask for your password)"
+
+    # ALTER USER as well as CREATE, so re-running against an existing database
+    # leaves .env holding a password that actually works.
+    if ! sudo "$client" <<SQL
+CREATE DATABASE IF NOT EXISTS \`$SLUG\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER IF NOT EXISTS '$SLUG'@'localhost' IDENTIFIED BY '$password';
+ALTER USER '$SLUG'@'localhost' IDENTIFIED BY '$password';
+GRANT ALL PRIVILEGES ON \`$SLUG\`.* TO '$SLUG'@'localhost';
+FLUSH PRIVILEGES;
+SQL
+    then
+        printf '\n'
+        warn "Could not create the database — falling back to SQLite so the bootstrap finishes."
+        warn "To move to MySQL later, create it by hand and fill DB_* in .env:"
+        warn "    sudo $client -e \"CREATE DATABASE \\\`$SLUG\\\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\""
+        printf '\n'
+        use_sqlite
+        return
+    fi
+
+    set_env DB_CONNECTION mysql
+    set_env DB_HOST 127.0.0.1
+    set_env DB_PORT 3306
+    set_env DB_DATABASE "$SLUG"
+    set_env DB_USERNAME "$SLUG"
+    set_env DB_PASSWORD "$password"
 }
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --slug)     SLUG="${2:-}"; shift 2 ;;
         --slug=*)   SLUG="${1#--slug=}"; shift ;;
+        --db)       DB_ENGINE="${2:-}"; shift 2 ;;
+        --db=*)     DB_ENGINE="${1#--db=}"; shift ;;
         --no-demo)  SEED_DEMO=0; shift ;;
         --no-deps)  INSTALL_DEPS=0; shift ;;
         -h|--help)  usage; exit 0 ;;
@@ -140,6 +209,9 @@ SLUG="${SLUG:-$(slugify "$SITE_NAME")}"
 [[ "$SLUG" =~ ^[a-z0-9]([a-z0-9-]*[a-z0-9])?$ ]] \
     || die "Could not derive a valid slug from '$SITE_NAME'. Pass one with --slug."
 
+[[ "$DB_ENGINE" == "mysql" || "$DB_ENGINE" == "sqlite" ]] \
+    || die "--db must be mysql or sqlite, got '$DB_ENGINE'."
+
 TARGET="$PROJECTS_DIR/$SLUG"
 
 [[ ! -e "$TARGET" ]] || die "$TARGET already exists."
@@ -152,6 +224,7 @@ log "Name:  $SITE_NAME"
 log "Slug:  $SLUG"
 log "Repo:  github.com/$ORG/$SLUG (private)"
 log "Local: $TARGET"
+log "DB:    $DB_ENGINE"
 printf '\n'
 
 if [[ -t 0 ]]; then
@@ -215,9 +288,7 @@ fi
 log "Preparing .env"
 cp .env.example .env
 
-if grep -qE '^DB_CONNECTION=sqlite' .env; then
-    touch database/database.sqlite
-fi
+provision_database
 
 # 5. Dependencies, then install the site.
 if [[ "$INSTALL_DEPS" == "1" ]]; then
