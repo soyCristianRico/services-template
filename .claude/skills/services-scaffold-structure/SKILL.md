@@ -38,8 +38,16 @@ cada registro). Nada de blog aquí: las entradas se crean con su contenido.
 
 ## Proceso
 
-### 1 — Leer inventario
+### 1 — Leer inventario y fijar la dimensión geográfica
 Cargar `inventory.json` y resolver el árbol (padres antes que hijos).
+
+Escribir `SITE_LOCATIONS` en el `.env` con el valor que dejó el mapeo en
+`site.locations` (ver `config/site.php`). En `false`, el sitio no registra la ruta
+`/{slug}`, oculta Ubicaciones y Landings del admin y no expone sus herramientas MCP —
+**sin borrar código**, para que los `cherry-pick` desde el template sigan aplicando.
+
+Con `false`, los pasos 3 y 4 (ubicaciones y landings) se saltan y se dice en el reporte.
+Es un cambio de `.env`: anunciarlo, nunca hacerlo en silencio.
 
 ### 2 — Generar el seeder
 Escribir el seeder idempotente (upsert por slug, re-ejecutable sin duplicar) que

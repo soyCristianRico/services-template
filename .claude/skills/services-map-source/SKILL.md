@@ -94,6 +94,11 @@ Etiquetar cada URL con su entidad. Detectar el patrón de landing:
 `A) carpetas /{categoría}/{ubicación}`, `B) slug plano /{categoría}-{ubicación}`,
 o `C) sin ubicaciones`. Anotar cuál aplica.
 
+**El patrón decide la dimensión geográfica del proyecto.** Anotar en el inventario
+`site.locations`: `true` en A y B, `false` en C. No es una pregunta para nadie — se
+deriva de las URLs del origen. Lo aplica `/services-scaffold-structure`; aquí solo se
+documenta, porque el mapeo no toca ficheros del proyecto.
+
 Cuidado con un patrón frecuente: una **taxonomía jerárquica que comparte base de
 rewrite con su CPT** hace que `/x/{término}/` y `/x/{ficha}/` convivan en la misma
 carpeta. Son entidades distintas aunque la URL se parezca.

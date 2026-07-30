@@ -22,8 +22,10 @@
                 <flux:navlist.item href="{{ url('/admin/services') }}">Servicios</flux:navlist.item>
             </flux:navlist.group>
             <flux:navlist.group expandable heading="SEO">
-                <flux:navlist.item href="{{ url('/admin/locations') }}">Ubicaciones</flux:navlist.item>
-                <flux:navlist.item href="{{ url('/admin/landings') }}">Landings</flux:navlist.item>
+                @if (config('site.locations'))
+                    <flux:navlist.item href="{{ url('/admin/locations') }}">Ubicaciones</flux:navlist.item>
+                    <flux:navlist.item href="{{ url('/admin/landings') }}">Landings</flux:navlist.item>
+                @endif
             </flux:navlist.group>
             <flux:navlist.group expandable heading="Contenido">
                 <flux:navlist.item href="{{ url('/admin/blog') }}">Blog</flux:navlist.item>

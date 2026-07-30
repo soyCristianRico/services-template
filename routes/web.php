@@ -15,9 +15,11 @@ Route::livewire('/blog/{slug}', 'pages::blog.show')
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::livewire('/', 'pages::admin.dashboard')->name('dashboard');
 
-    Route::livewire('/locations', 'pages::admin.locations.index')->name('locations.index');
-    Route::livewire('/locations/create', 'pages::admin.locations.edit')->name('locations.create');
-    Route::livewire('/locations/{location}/edit', 'pages::admin.locations.edit')->name('locations.edit');
+    if (config('site.locations')) {
+        Route::livewire('/locations', 'pages::admin.locations.index')->name('locations.index');
+        Route::livewire('/locations/create', 'pages::admin.locations.edit')->name('locations.create');
+        Route::livewire('/locations/{location}/edit', 'pages::admin.locations.edit')->name('locations.edit');
+    }
 
     Route::livewire('/categories', 'pages::admin.categories.index')->name('categories.index');
     Route::livewire('/categories/create', 'pages::admin.categories.edit')->name('categories.create');
@@ -27,10 +29,12 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::livewire('/services/create', 'pages::admin.services.edit')->name('services.create');
     Route::livewire('/services/{service}/edit', 'pages::admin.services.edit')->name('services.edit');
 
-    Route::livewire('/landings', 'pages::admin.landings.index')->name('landings.index');
-    Route::livewire('/landings/matrix', 'pages::admin.landings.matrix')->name('landings.matrix');
-    Route::livewire('/landings/create', 'pages::admin.landings.edit')->name('landings.create');
-    Route::livewire('/landings/{landing}/edit', 'pages::admin.landings.edit')->name('landings.edit');
+    if (config('site.locations')) {
+        Route::livewire('/landings', 'pages::admin.landings.index')->name('landings.index');
+        Route::livewire('/landings/matrix', 'pages::admin.landings.matrix')->name('landings.matrix');
+        Route::livewire('/landings/create', 'pages::admin.landings.edit')->name('landings.create');
+        Route::livewire('/landings/{landing}/edit', 'pages::admin.landings.edit')->name('landings.edit');
+    }
 
     Route::livewire('/blog', 'pages::admin.blog.index')->name('blog.index');
     Route::livewire('/blog/create', 'pages::admin.blog.edit')->name('blog.create');
@@ -46,11 +50,21 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/sitemap-pages.xml', [SitemapController::class, 'pages'])->name('sitemap.pages');
-Route::get('/sitemap-landings.xml', [SitemapController::class, 'landings'])->name('sitemap.landings');
 Route::get('/sitemap-blog.xml', [SitemapController::class, 'blog'])->name('sitemap.blog');
 
+// Landings only exist when the site has a geographic dimension. Without it the
+// `/{slug}` route below is never registered, so any landing URL in a sitemap
+// would resolve to a 404 — the sub-sitemap has to disappear with the dimension,
+// not merely come back empty.
+if (config('site.locations')) {
+    Route::get('/sitemap-landings.xml', [SitemapController::class, 'landings'])->name('sitemap.landings');
+}
+
 // Programmatic landings — must stay last so /, /admin, /blog, Fortify-named routes
-// and sitemap routes are matched first.
-Route::livewire('/{slug}', 'pages::landing')
-    ->where('slug', '[a-z0-9-]+')
-    ->name('landing');
+// and sitemap routes are matched first. Skipped entirely on sites with no
+// geographic dimension, where this catch-all would swallow every other slug.
+if (config('site.locations')) {
+    Route::livewire('/{slug}', 'pages::landing')
+        ->where('slug', '[a-z0-9-]+')
+        ->name('landing');
+}

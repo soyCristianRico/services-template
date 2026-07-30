@@ -23,6 +23,10 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
+        <!-- The suite always exercises the full template, including the geographic
+             dimension. Whether a given site enables it is a deployment choice in
+             .env; SiteLocationsTest covers the disabled state explicitly. -->
+        <env name="SITE_LOCATIONS" value="true"/>
         <env name="DB_URL" value=""/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>

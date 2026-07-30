@@ -104,4 +104,26 @@ class ServicesServer extends Server
     protected array $resources = [];
 
     protected array $prompts = [];
+
+    /**
+     * Drop the geographic tools on sites with no locations, so the agent is not
+     * offered tools for a dimension the site does not have.
+     */
+    protected function boot(): void
+    {
+        parent::boot();
+
+        if (! config('site.locations')) {
+            $this->tools = array_values(array_diff($this->tools, [
+                ListLocationsTool::class,
+                CreateLocationTool::class,
+                UpdateLocationTool::class,
+                ListLandingsTool::class,
+                GetLandingTool::class,
+                CreateLandingTool::class,
+                UpdateLandingTool::class,
+                BulkCreateLandingsTool::class,
+            ]));
+        }
+    }
 }
