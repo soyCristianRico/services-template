@@ -51,6 +51,27 @@ describe('Service', function () {
         });
     });
 
+    describe('seo meta', function () {
+        it('should store its own meta title and description', function () {
+            $service = Service::factory()->create([
+                'meta_title' => 'Oposición Administrativo DGA 2026 | Cierzo',
+                'meta_description' => 'Prepárate con temario propio y seguimiento semanal.',
+            ]);
+
+            $service->refresh();
+
+            expect($service->meta_title)->toBe('Oposición Administrativo DGA 2026 | Cierzo')
+                ->and($service->meta_description)->toBe('Prepárate con temario propio y seguimiento semanal.');
+        });
+
+        it('should allow a service with no meta of its own', function () {
+            $service = Service::factory()->create();
+
+            expect($service->meta_title)->toBeNull()
+                ->and($service->meta_description)->toBeNull();
+        });
+    });
+
     describe('casts', function () {
         it('should cast custom_fields to array', function () {
             $service = Service::factory()->create([

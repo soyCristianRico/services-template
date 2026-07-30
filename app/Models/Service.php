@@ -24,6 +24,8 @@ class Service extends Model implements HasMedia
         'slug',
         'short_description',
         'description',
+        'meta_title',
+        'meta_description',
         'custom_fields',
         'is_active',
         'position',
