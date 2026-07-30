@@ -76,3 +76,10 @@
     font-weight: 600;
     line-height: 1.4;
 }
+
+/* Alpine's FOUC guard. Without it x-cloak is inert and elements that start
+   hidden (the cookie banner) paint until Alpine boots — most visible on error
+   pages, which never get the style block Livewire auto-injects. */
+[x-cloak] {
+    display: none !important;
+}

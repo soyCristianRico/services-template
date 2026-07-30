@@ -33,6 +33,18 @@ describe('Cookie consent', function () {
                 ->and($consentPos)->toBeLessThan($gtmPos);
         });
 
+        /**
+         * The banner markup ships visible and is hidden by Alpine's x-show once it
+         * boots, so without the x-cloak rule it flashes on every page load — and
+         * stays up long enough to look like a bug on error pages, which never get
+         * the style block Livewire auto-injects.
+         */
+        it('should ship the x-cloak rule that keeps it hidden until Alpine boots', function () {
+            $css = file_get_contents(resource_path('css/app.css'));
+
+            expect($css)->toMatch('/\[x-cloak\]\s*\{[^}]*display:\s*none/');
+        });
+
         it('should expose the configured cookie name in the banner', function () {
             config()->set('services.cookie_consent.name', 'rental_cookie_consent');
 
