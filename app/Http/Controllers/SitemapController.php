@@ -22,7 +22,11 @@ class SitemapController
             now()->addHour(),
             fn (): array => array_values(array_filter([
                 ['loc' => route('sitemap.pages'), 'lastmod' => $this->latestLastmod($this->pageUrls())],
-                ['loc' => route('sitemap.landings'), 'lastmod' => $this->latestLastmod($this->landingUrls())],
+                // Only advertise the landings sub-sitemap on sites that have a
+                // geographic dimension; without it the route does not exist.
+                config('site.locations')
+                    ? ['loc' => route('sitemap.landings'), 'lastmod' => $this->latestLastmod($this->landingUrls())]
+                    : null,
                 // Only advertise the blog sub-sitemap once there is content.
                 BlogPost::hasPublished()
                     ? ['loc' => route('sitemap.blog'), 'lastmod' => $this->latestLastmod($this->blogUrls())]
