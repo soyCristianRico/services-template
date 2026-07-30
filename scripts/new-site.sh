@@ -111,22 +111,40 @@ slugify() {
 }
 
 set_env() {
-    local key="$1" value="$2"
+    local key="$1" value="$2" file="${3:-.env}"
 
-    if grep -qE "^${key}=" .env; then
-        sed -i -E "s|^${key}=.*|${key}=${value}|" .env
-    elif grep -qE "^# ?${key}=" .env; then
+    if grep -qE "^${key}=" "$file"; then
+        sed -i -E "s|^${key}=.*|${key}=${value}|" "$file"
+    elif grep -qE "^# ?${key}=" "$file"; then
         # .env.example ships the MySQL block commented out.
-        sed -i -E "s|^# ?${key}=.*|${key}=${value}|" .env
+        sed -i -E "s|^# ?${key}=.*|${key}=${value}|" "$file"
     else
-        printf '%s=%s\n' "$key" "$value" >>.env
+        printf '%s=%s\n' "$key" "$value" >>"$file"
     fi
+}
+
+# The suite reads .env.testing (phpunit.xml deliberately pins no connection),
+# so it has to point at the same engine as .env — on its own database, because
+# RefreshDatabase wipes it.
+write_testing_env() {
+    local connection="$1" database="$2" username="${3:-}" password="${4:-}"
+
+    {
+        printf 'APP_ENV=testing\n\n'
+        printf 'DB_CONNECTION=%s\n' "$connection"
+        printf 'DB_DATABASE=%s\n' "$database"
+        if [[ -n "$username" ]]; then
+            printf 'DB_HOST=127.0.0.1\nDB_PORT=3306\n'
+            printf 'DB_USERNAME=%s\nDB_PASSWORD=%s\n' "$username" "$password"
+        fi
+    } >.env.testing
 }
 
 use_sqlite() {
     DB_ENGINE="sqlite"
     set_env DB_CONNECTION sqlite
     touch database/database.sqlite
+    write_testing_env sqlite ":memory:"
 }
 
 # Production runs MySQL. A site developed on SQLite only meets MySQL's rules on
@@ -154,15 +172,18 @@ provision_database() {
     local password
     password="$(openssl rand -hex 16)"
 
-    log "Creating the '$SLUG' database and user (sudo may ask for your password)"
+    log "Creating the '$SLUG' and '${SLUG}_test' databases (sudo may ask for your password)"
 
+    # Two databases: the site's and the one the suite wipes on every run.
     # ALTER USER as well as CREATE, so re-running against an existing database
     # leaves .env holding a password that actually works.
     if ! sudo "$client" <<SQL
 CREATE DATABASE IF NOT EXISTS \`$SLUG\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE DATABASE IF NOT EXISTS \`${SLUG}_test\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '$SLUG'@'localhost' IDENTIFIED BY '$password';
 ALTER USER '$SLUG'@'localhost' IDENTIFIED BY '$password';
 GRANT ALL PRIVILEGES ON \`$SLUG\`.* TO '$SLUG'@'localhost';
+GRANT ALL PRIVILEGES ON \`${SLUG}_test\`.* TO '$SLUG'@'localhost';
 FLUSH PRIVILEGES;
 SQL
     then
@@ -181,6 +202,8 @@ SQL
     set_env DB_DATABASE "$SLUG"
     set_env DB_USERNAME "$SLUG"
     set_env DB_PASSWORD "$password"
+
+    write_testing_env mysql "${SLUG}_test" "$SLUG" "$password"
 }
 
 while [[ $# -gt 0 ]]; do
@@ -224,7 +247,7 @@ log "Name:  $SITE_NAME"
 log "Slug:  $SLUG"
 log "Repo:  github.com/$ORG/$SLUG (private)"
 log "Local: $TARGET"
-log "DB:    $DB_ENGINE"
+log "DB:    $DB_ENGINE (plus a ${SLUG}_test database for the suite)"
 printf '\n'
 
 if [[ -t 0 ]]; then
