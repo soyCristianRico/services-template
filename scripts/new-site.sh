@@ -27,6 +27,12 @@ post_install() {
     log "Setting APP_NAME to \"$SITE_NAME\""
     set_env APP_NAME "\"$SITE_NAME\""
 
+    # Geographic dimension. Left ON here because programmatic local SEO is the
+    # common case and it is the safe default. /services-map-source derives the
+    # real value from the source site (URL pattern C means no locations) and
+    # /services-scaffold-structure flips it — nobody has to guess at this point.
+    set_env SITE_LOCATIONS true
+
     if [[ "$SEED_DEMO" == "1" ]]; then
         log "php artisan migrate --seed"
         php artisan migrate --force --no-interaction --seed
@@ -49,9 +55,14 @@ next_steps() {
 
     php artisan services:mcp-token --email=you@domain.com
 
-  Before going live, review in .env: APP_NAME, APP_URL, the DB_* block (the
-  README recommends MySQL; .env.example ships with SQLite), LEAD_NOTIFY_EMAIL,
-  LEAD_WEBHOOK_URL / LEAD_WEBHOOK_SECRET and the MAIL_* / MAILGUN_* block.
+  Review in .env before launch: the SEO_* block and GOOGLE_TAG_MANAGER_ID.
+
+  Going live: paste .env.production.example into Forge, fill the blanks it
+  lists, deploy, and then over SSH run
+
+    php artisan env:check
+
+  which reports the misconfigurations that otherwise fail silently.
 NEXT
 }
 # ─────────────────────────────────────────────────────────────────────────────
@@ -64,6 +75,7 @@ INSTALL_DEPS=1
 SEED_DEMO=1
 DB_ENGINE="mysql"
 SLUG=""
+DOMAIN=""
 DESCRIPTION=""
 SITE_NAME=""
 
@@ -79,6 +91,9 @@ Usage: scripts/new-site.sh "Site Name" ["Description"] [options]
   --db <engine>     mysql (default, matches production) or sqlite. The database
                     and its user are created for you; sudo may ask for your
                     password. Falls back to SQLite if no server is reachable.
+  --domain <host>   Production domain (makerguia.com). Everything derivable from
+                    it is written into .env.production.example, ready to paste
+                    into Forge. Asked for if omitted.
   --no-demo         Skip the demo content seeding.
   --no-deps         Skip composer install / npm install (and everything after).
 USAGE
@@ -155,6 +170,66 @@ use_sqlite() {
     write_testing_env sqlite ":memory:"
 }
 
+# The env file to paste into Forge, with everything derivable from the domain
+# already filled in.
+#
+# It exists because three of the values that ship in .env.example are right for
+# local and silently wrong in production: MAIL_MAILER=log writes mail to a file,
+# the example MAIL_FROM_ADDRESS gets the message rejected, and a queue driver
+# that does not match the Forge worker leaves jobs queued forever. None of them
+# raises an error — the form thanks the user and the email never arrives.
+#
+# A complete file on purpose: Forge's environment editor holds the whole thing,
+# so a fragment would drop everything it does not mention. Local values are left
+# alone; this is a separate file.
+write_production_env() {
+    local target=".env.production.example"
+
+    cp .env.example "$target"
+
+    set_env APP_ENV production "$target"
+    set_env APP_DEBUG false "$target"
+    set_env APP_URL "https://$DOMAIN" "$target"
+
+    set_env MAIL_MAILER mailgun "$target"
+    set_env MAIL_FROM_ADDRESS "\"noreply@$DOMAIN\"" "$target"
+    set_env MAILGUN_DOMAIN "mg.$DOMAIN" "$target"
+    set_env MAILGUN_ENDPOINT api.eu.mailgun.net "$target"
+
+    set_env CACHE_STORE redis "$target"
+    set_env SESSION_DRIVER redis "$target"
+    set_env QUEUE_CONNECTION redis "$target"
+
+    set_env LEAD_NOTIFY_EMAIL "contacto@$DOMAIN" "$target"
+
+    # Secrets and per-server values stay empty: they are filled in Forge.
+    set_env APP_KEY "" "$target"
+    set_env MAILGUN_SECRET "" "$target"
+    set_env DB_CONNECTION mysql "$target"
+    set_env DB_HOST 127.0.0.1 "$target"
+    set_env DB_PORT 3306 "$target"
+    set_env DB_DATABASE "" "$target"
+    set_env DB_USERNAME "" "$target"
+    set_env DB_PASSWORD "" "$target"
+
+    {
+        printf '\n# ── Fill these in Forge ───────────────────────────────────────────\n'
+        printf '#   APP_KEY          php artisan key:generate --show\n'
+        printf '#   DB_DATABASE / DB_USERNAME / DB_PASSWORD\n'
+        printf '#   MAILGUN_SECRET\n'
+        printf '#   DISCORD_WEBHOOK_URL   (optional)\n'
+        printf '#   GOOGLE_TAG_MANAGER_ID (optional)\n'
+        printf '#\n'
+        printf '# QUEUE_CONNECTION above MUST match the connection the Forge worker\n'
+        printf '# listens on. That lives in Supervisor, outside this repo, so nothing\n'
+        printf '# here can verify it — check it by eye.\n'
+        printf '#\n'
+        printf '# Then, over SSH: php artisan env:check\n'
+    } >>"$target"
+
+    log "Wrote $target for $DOMAIN"
+}
+
 # Production runs MySQL. A site developed on SQLite only meets MySQL's rules on
 # the day it deploys — index key length, strict mode and collation all differ,
 # and each of those has already broken a release. So MySQL is the default and
@@ -220,6 +295,8 @@ while [[ $# -gt 0 ]]; do
         --slug=*)   SLUG="${1#--slug=}"; shift ;;
         --db)       DB_ENGINE="${2:-}"; shift 2 ;;
         --db=*)     DB_ENGINE="${1#--db=}"; shift ;;
+        --domain)   DOMAIN="${2:-}"; shift 2 ;;
+        --domain=*) DOMAIN="${1#--domain=}"; shift ;;
         --no-demo)  SEED_DEMO=0; shift ;;
         --no-deps)  INSTALL_DEPS=0; shift ;;
         -h|--help)  usage; exit 0 ;;
@@ -256,6 +333,20 @@ log "Slug:  $SLUG"
 log "Repo:  github.com/$ORG/$SLUG (private)"
 log "Local: $TARGET"
 log "DB:    $DB_ENGINE (plus a ${SLUG}_test database for the suite)"
+printf '\n'
+
+if [[ -z "$DOMAIN" ]]; then
+    if [[ -t 0 ]]; then
+        read -r -p "  Production domain [$SLUG.com]: " DOMAIN || true
+    fi
+    DOMAIN="${DOMAIN:-$SLUG.com}"
+fi
+
+DOMAIN="${DOMAIN#http://}"
+DOMAIN="${DOMAIN#https://}"
+DOMAIN="${DOMAIN%%/*}"
+
+log "Domain: $DOMAIN"
 printf '\n'
 
 if [[ -t 0 ]]; then
@@ -320,6 +411,7 @@ log "Preparing .env"
 cp .env.example .env
 
 provision_database
+write_production_env
 
 # 5. Dependencies, then install the site.
 if [[ "$INSTALL_DEPS" == "1" ]]; then
