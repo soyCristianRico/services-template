@@ -201,8 +201,8 @@ Encadenado, según lo que haya salido:
   con las respuestas, `/services-model-entities`. El mapeo **no espera** a las
   respuestas: se cierra aquí. Quien modela es quien las necesita.
 
-Después del esquema, y antes de clonar páginas, van `/services-navigation` (los menús
-de `chrome`) y `/services-scaffold-structure`. El admin de las entidades nuevas
+Después del esquema, y antes de clonar páginas, va `/services-scaffold-structure`, que
+siembra la estructura **y los menús** de `chrome`. El admin de las entidades nuevas
 (`/services-admin-panel`) va más tarde, cuando ya se sepa qué campos se usan de verdad.
 
 ## Qué preguntar y qué no

@@ -126,18 +126,26 @@ set_env() {
 # The suite reads .env.testing (phpunit.xml deliberately pins no connection),
 # so it has to point at the same engine as .env — on its own database, because
 # RefreshDatabase wipes it.
+#
+# Laravel REPLACES .env with this file when APP_ENV=testing; it does not merge
+# them. So it must be a COMPLETE env file, or the app boots without an APP_KEY.
+# It is built from .env.example, which is also why it carries no real
+# credentials and can stay in git.
 write_testing_env() {
     local connection="$1" database="$2" username="${3:-}" password="${4:-}"
 
-    {
-        printf 'APP_ENV=testing\n\n'
-        printf 'DB_CONNECTION=%s\n' "$connection"
-        printf 'DB_DATABASE=%s\n' "$database"
-        if [[ -n "$username" ]]; then
-            printf 'DB_HOST=127.0.0.1\nDB_PORT=3306\n'
-            printf 'DB_USERNAME=%s\nDB_PASSWORD=%s\n' "$username" "$password"
-        fi
-    } >.env.testing
+    cp .env.example .env.testing
+
+    set_env APP_ENV testing .env.testing
+    set_env DB_CONNECTION "$connection" .env.testing
+    set_env DB_DATABASE "$database" .env.testing
+
+    if [[ -n "$username" ]]; then
+        set_env DB_HOST 127.0.0.1 .env.testing
+        set_env DB_PORT 3306 .env.testing
+        set_env DB_USERNAME "$username" .env.testing
+        set_env DB_PASSWORD "$password" .env.testing
+    fi
 }
 
 use_sqlite() {
@@ -323,6 +331,9 @@ if [[ "$INSTALL_DEPS" == "1" ]]; then
 
     log "php artisan key:generate"
     php artisan key:generate
+
+    # .env.testing is a full env file, so it needs a key of its own.
+    set_env APP_KEY "$(php artisan key:generate --show)" .env.testing
 
     post_install
 else

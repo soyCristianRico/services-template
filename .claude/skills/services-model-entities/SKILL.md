@@ -84,9 +84,32 @@ Con la propuesta validada, y siguiendo las convenciones del proyecto:
 5. `php artisan migrate` en local.
 
 ### 5 — Tests
-Test por modelo en `tests/Feature/Models/` con `describe()` + `it()`: relaciones,
-casts, scopes. Enums con sus `label()`. Ejecutar solo los tests afectados
-(`php artisan test --compact --filter=...`), nunca la suite entera.
+Todo lo creado aquí se prueba. Nada de «ya lo cubre otro test de refilón».
+
+**Modelos → `tests/Feature/Models/{Modelo}Test.php`.** Relaciones (incluido qué pasa al
+borrar el padre: cascada vs desvincular), casts, scopes y unicidad de slug.
+
+**Enums → `tests/Unit/Enums/{Enum}Test.php`.** Son PHP puro: no necesitan base de datos
+ni arrancar el framework, así que **van en `Unit`, sin `RefreshDatabase`**. Corren en
+milisegundos frente a segundos. Cada uno comprueba:
+
+- la etiqueta exacta de cada caso (no que «devuelva algo no vacío», eso no prueba nada),
+- el valor almacenado de cada caso,
+- **el tamaño del dominio, con un comentario del porqué** — es lo que impide que alguien
+  recorte más adelante un valor que hoy no se usa pero el origen sí declara.
+
+**Un fichero de test por clase.** Si la clase ya tiene el suyo, se le añaden `describe()`
+nuevos; **no se crea un segundo fichero** (`XFacetsTest` junto a `XTest` está mal).
+
+**Al tocar una tabla o modelo existente, actualizar su test.** Añadir una columna o una
+relación a `services` o `leads` obliga a ampliar `ServiceTest` / `LeadTest`; si no, el
+cambio queda sin cubrir y nadie se entera.
+
+**Factories**: una por modelo, todas ejercitadas por algún test. Una factory que ningún
+test usa es una factory sin verificar.
+
+Ejecutar solo lo afectado (`php artisan test --compact tests/Unit tests/Feature/Models`),
+nunca la suite entera.
 
 ### 6 — Cerrar
 `composer run format`. Actualizar **las dos salidas del mapeo, no solo una**:
@@ -97,8 +120,7 @@ casts, scopes. Enums con sus `label()`. Ejecutar solo los tests afectados
   queda con las entidades en `fuera_de_modelo` deja de describir el proyecto.
 
 Reportar: entidades creadas, tablas, tests en verde, y **lo aparcado por preguntas sin
-responder** (paso 1). Siguiente paso: `/services-navigation` y después
-`/services-scaffold-structure`.
+responder** (paso 1). Siguiente paso: `/services-scaffold-structure`.
 
 Toda entidad creada aquí genera trabajo de admin: el cliente tiene que poder
 gestionarla sin tocar código, igual que en su CMS de origen. Eso es

@@ -1,6 +1,6 @@
 ---
 name: services-scaffold-structure
-description: Generar un seeder de Laravel que replica la estructura base de la web origen (árbol de categorías y ubicaciones + registros vacíos de servicios, landings y páginas) para migrarla a producción. Segundo paso (global) del clonado.
+description: Generar un seeder de Laravel que replica la estructura base de la web origen — árbol de categorías y ubicaciones, registros vacíos de servicios, landings y páginas, y los menús de navegación — para migrarla a producción. Segundo paso (global) del clonado.
 disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Bash
 ---
@@ -30,6 +30,8 @@ En orden de dependencias:
 5. **Páginas** — estáticas (aviso legal, gracias, sobre nosotros, contacto), sin copy.
 6. **Entidades nuevas** — las del bloque `entidades_nuevas` del inventario (creadas por
    `/services-model-entities`), con sus taxonomías y relaciones resueltas, sin copy.
+7. **Menús** — los ítems de cabecera, footer y legales desde `chrome` del inventario.
+   Va al final porque los enlaces apuntan a lo sembrado en los pasos anteriores.
 
 Slugs definitivos desde el inicio (los usa `/services-clone-page` para localizar
 cada registro). Nada de blog aquí: las entradas se crean con su contenido.
@@ -41,16 +43,31 @@ Cargar `inventory.json` y resolver el árbol (padres antes que hijos).
 
 ### 2 — Generar el seeder
 Escribir el seeder idempotente (upsert por slug, re-ejecutable sin duplicar) que
-inserta las 5 entidades como estructura vacía. Reflejar el estado activo/inactivo
+inserta las entidades como estructura vacía. Reflejar el estado activo/inactivo
 del origen.
+
+### 2b — Sembrar los menús
+`MenuItem` ya existe en el template; aquí solo se siembran sus filas desde
+`chrome.header` / `chrome.footer` del inventario. Reglas:
+
+- Usar el **`href` extraído** por el mapeo, nunca deducirlo del texto del enlace.
+  Enlaces externos, subdominios y anclas se conservan tal cual.
+- **Distinguir enlace de bloque dinámico.** Un mega-menú que agrupa fichas por su
+  categoría no son N enlaces sueltos: es un ítem `dynamic_block` con su `source`. Si se
+  siembra plano, cada ficha nueva obliga a tocar el menú a mano y acaba desincronizado.
+- Respetar jerarquía (`parent_id`), columnas del footer y orden (`position`).
+- Sembrar **siempre** lo del origen: un menú vacío tras migrar es una regresión.
+
+El CRUD para que el cliente los edite es de `/services-admin-panel`.
 
 ### 3 — Sembrar y comprobar en local
 `php artisan db:seed --class=CloneStructureSeeder`. Verificar conteos por entidad
 contra el inventario y que el árbol quede bien enlazado.
 
 ### 4 — Reportar
-Conteo creado por entidad y ruta del seeder. Recordar que migrar a producción =
-correr el mismo seeder allí. Siguiente paso: `/services-extract-design`.
+Conteo creado por entidad (incluidos los ítems de menú por ubicación) y ruta del
+seeder. Recordar que migrar a producción = correr el mismo seeder allí.
+Siguiente paso: `/services-extract-design`.
 
 ## Guardarraíles
 
