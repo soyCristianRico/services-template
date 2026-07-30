@@ -56,26 +56,17 @@ CRUD de las taxonomías propias (áreas, tipos), y en cada índice: buscador, fi
 las mismas facetas que el público, orden y paginación. El cliente busca como busca su
 visitante.
 
-### 5 — Menús
-Los ítems de navegación ya están sembrados por `/services-scaffold-structure`; lo que
-falta es que el cliente pueda tocarlos. CRUD con **reordenación por arrastre**, anidado
-a un nivel, activar y desactivar sin borrar, y validación de que un ítem de tipo enlace
-lleva URL y uno de tipo bloque dinámico lleva origen.
-
-Desactivar un padre oculta sus hijos, no los elimina. Nada de borrado en cascada
-silencioso.
-
-### 6 — Paridad MCP
+### 5 — Paridad MCP
 Las entidades nuevas necesitan sus herramientas MCP igual que las del template
 (`app/Mcp/Tools/`): listar, obtener, crear y actualizar, registradas en el servidor y
 autenticadas con el token por usuario que ya existe. Sin esto, unas entidades se
 gestionan por agente y otras no, que es peor que no tenerlo.
 
-### 7 — Permisos
+### 6 — Permisos
 Comprobar contra las policies en las rutas (`->can()`), nunca en `mount()`. Si hay
 perfiles distintos (equipo vs cliente), reflejarlos.
 
-### 8 — Tests
+### 7 — Tests
 Por cada componente: carga, validación, guardado, autorización. Form classes con su
 test propio y su componente anfitrión. Solo los tests afectados.
 

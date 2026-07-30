@@ -58,7 +58,8 @@ del origen.
 - Respetar jerarquía (`parent_id`), columnas del footer y orden (`position`).
 - Sembrar **siempre** lo del origen: un menú vacío tras migrar es una regresión.
 
-El CRUD para que el cliente los edite es de `/services-admin-panel`.
+La pantalla de admin para editarlos es código de plantilla, igual que la entidad. No
+se construye por proyecto.
 
 ### 3 — Sembrar y comprobar en local
 `php artisan db:seed --class=CloneStructureSeeder`. Verificar conteos por entidad
