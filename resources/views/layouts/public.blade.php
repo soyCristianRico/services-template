@@ -34,7 +34,13 @@
     <header class="border-b border-border bg-surface">
         <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
             <a href="{{ url('/') }}" class="flex items-center" aria-label="{{ config('app.name') }}">
-                <img src="{{ asset('images/logo-bricoteca.png') }}" alt="{{ config('app.name') }}" class="h-12 w-auto">
+                {{-- Each site drops its own logo at public/images/logo.png. Until it
+                     does, fall back to the site name rather than a broken image. --}}
+                @if (file_exists(public_path('images/logo.png')))
+                    <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" class="h-12 w-auto">
+                @else
+                    <span class="font-display text-xl font-semibold text-foreground">{{ config('app.name') }}</span>
+                @endif
             </a>
             <nav class="hidden gap-6 text-sm md:flex">
                 {{-- Each site overrides this nav --}}
