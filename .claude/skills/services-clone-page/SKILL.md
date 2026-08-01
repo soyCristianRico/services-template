@@ -43,19 +43,31 @@ Replicar en Blade las secciones concretas de esa página (según el mapa de
 `/services-map-source`), respetando el `DESIGN.md` y los componentes Flux del
 template. No copiar CSS crudo: traducir a los tokens `@theme`.
 
-### 4 — Verificar
+### 4 — Persistir la página en el seeder de contenido
+Añadir la entrada de esta página a `database/seeders/data/clone-content.json`, con el
+mismo copy, meta y atributos que se acaban de escribir en la base de datos, y volver a
+correr `php artisan db:seed --class=CloneContentSeeder` para comprobar que lo escrito
+en el fichero reproduce lo que hay en la BD.
+
+**Una página no está clonada hasta que está en ese fichero.** Lo que solo vive en la
+base de datos local no llega a producción: allí se corren los seeders, no se copia la
+BD. Saltarse esto no rompe nada visible hoy y deja la página en blanco el día del
+despliegue.
+
+### 5 — Verificar
 `browser_take_screenshot` de la página origen y de la reconstruida y comparar lado a
 lado: secciones, jerarquía, copy clave, meta. Reportar coincidencias y desajustes.
 Si la página tiene listado, comprobar además que filtrar y paginar devuelven lo mismo
 que el origen para al menos una combinación de facetas.
 
-### 5 — Parar para revisión
+### 6 — Parar para revisión
 Presentar la página clonada (URL local + comparación) y **esperar validación** antes
 de pasar a la siguiente. Si hay que corregir, iterar sobre esta misma página.
 
 ## Guardarraíles
 
 - Una página por ejecución. No encadenar páginas sin validación intermedia.
+- La página no se da por hecha si no está en `clone-content.json`.
 - No inventar copy: lo que no esté en el origen, no se pone.
 - Trabajar sobre el registro esqueleto existente; no recrear estructura.
 - Al terminar todas las páginas: verificación global con `/services-verify`.

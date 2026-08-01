@@ -29,25 +29,37 @@ Los tipos a muestrear son los del inventario, **incluidas las `entidades_nuevas`
 solo las entidades que trae el template. Una entidad creada para este clon se verifica
 igual que un servicio.
 
-### 3 — Listados y filtros
+### 3 — Reproducibilidad en producción
+Cruzar las páginas del mapa con las entradas de
+`database/seeders/data/clone-content.json`. Toda página clonada tiene que estar ahí:
+lo que solo esté en la base de datos local **no existe en producción**, porque allí se
+corren los seeders.
+
+Comprobar además que los seeders reproducen lo que se ve: sembrar sobre una base
+limpia y volver a contar. Es el único bloque que se verifica contra ficheros y no
+contra el sitio levantado, y por eso es el que más fácil se pasa por alto — un site
+local perfecto puede desplegar en blanco.
+
+### 4 — Listados y filtros
 Para cada página que el mapa marcó como listado: comprobar que están todas las facetas
 documentadas, que sus opciones cubren el dominio completo del campo (no solo los
 valores con datos) y que el conteo de resultados sin filtrar coincide con el origen.
 Es el bloque donde más se escapa, porque una faceta que falta no rompe nada visible.
 
-### 4 — Meta y SEO
+### 5 — Meta y SEO
 Comparar meta title, meta description y presencia de JSON-LD por tipo de página.
 Confirmar que las inactivas devuelven 404 y no salen en el sitemap.
 
-### 5 — Visual
+### 6 — Visual
 `browser_take_screenshot` de home y páginas tipo en ambos sitios y comparar layout,
 jerarquía y marca. Diferencias de píxel por fuentes/render no cuentan como fallo.
 
 ## Reportar
 
-Checklist por bloque (URLs, contenido, listados, SEO, visual) con estado y lista
-priorizada de desajustes. Adónde vuelve cada hueco:
+Checklist por bloque (URLs, contenido, reproducibilidad, listados, SEO, visual) con
+estado y lista priorizada de desajustes. Adónde vuelve cada hueco:
 
 - contenido, diseño o listado de una página → `/services-clone-page` sobre esa página
 - falta una página entera → `/services-map-source`
 - falta un campo o una opción de faceta en el esquema → `/services-model-entities`
+- una página no está en `clone-content.json` → `/services-clone-page` sobre esa página

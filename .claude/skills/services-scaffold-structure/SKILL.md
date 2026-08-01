@@ -49,10 +49,19 @@ Escribir `SITE_LOCATIONS` en el `.env` con el valor que dejó el mapeo en
 Con `false`, los pasos 3 y 4 (ubicaciones y landings) se saltan y se dice en el reporte.
 Es un cambio de `.env`: anunciarlo, nunca hacerlo en silencio.
 
-### 2 — Generar el seeder
-Escribir el seeder idempotente (upsert por slug, re-ejecutable sin duplicar) que
-inserta las entidades como estructura vacía. Reflejar el estado activo/inactivo
-del origen.
+### 2 — Generar los dos seeders
+**`CloneStructureSeeder`** — idempotente (upsert por slug, re-ejecutable sin duplicar),
+inserta las entidades como estructura vacía leyendo `database/seeders/data/clone-structure.json`.
+Reflejar el estado activo/inactivo del origen.
+
+**`CloneContentSeeder`** — se crea aquí **vacío**, leyendo
+`database/seeders/data/clone-content.json`, que arranca como `{}`. Lo va rellenando
+`/services-clone-page`, una entrada por página.
+
+Los dos, porque **producción se siembra, no se copia**. Si el contenido clonado vive
+solo en la base de datos local, desplegar deja el site con la estructura entera y
+todas las páginas en blanco, y no hay forma de reproducirlo. El seeder de contenido es
+lo que hace que el clon sea versionado y repetible.
 
 ### 2b — Sembrar los menús
 `MenuItem` ya existe en el template; aquí solo se siembran sus filas desde
@@ -74,8 +83,8 @@ se construye por proyecto.
 contra el inventario y que el árbol quede bien enlazado.
 
 ### 4 — Reportar
-Conteo creado por entidad (incluidos los ítems de menú por ubicación) y ruta del
-seeder. Recordar que migrar a producción = correr el mismo seeder allí.
+Conteo creado por entidad (incluidos los ítems de menú por ubicación) y ruta de los dos
+seeders. Migrar a producción = correr allí **los dos**, estructura y después contenido.
 Siguiente paso: `/services-extract-design`.
 
 ## Guardarraíles
