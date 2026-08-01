@@ -17,6 +17,26 @@ Requisitos previos: `/services-scaffold-structure` (registro esqueleto ya creado
 Entrada: la página a clonar (URL origen + su entrada en `inventory.json`). Salida:
 esa página clonada y verificada, lista para revisión.
 
+## Antes de empezar: ¿única o plantilla?
+
+No todas las páginas cuestan lo mismo. Antes de tocar nada, mirar el mapa y decidir
+cuál de las dos es:
+
+- **Única** — no comparte diseño con ninguna otra: la home, `/contacto/`,
+  `/quienes-somos/`, las de gracias. Se clona entera, una vez.
+- **De plantilla** — una maqueta que se reaprovecha para N registros: las 14
+  oposiciones, las 5 áreas, los cursos, los webinars, los artículos del blog. Aquí se
+  clona **la plantilla una sola vez**, contra un registro representativo, y se valida.
+  Las demás no son páginas nuevas: son contenido en `clone-content.json`.
+
+Elegir bien el registro representativo: el que tenga más campos rellenos, para que la
+plantilla se enfrente a todos los bloques. Después, revisar los casos raros que anotó
+el mapa (el que no publica precio, el que no tiene imagen) y comprobar que la
+plantilla aguanta con el campo vacío en vez de romperse o dejar un hueco.
+
+Anunciar de cuál se trata al empezar: cambia el alcance de la ejecución y lo que se
+valida al final.
+
 ## Proceso (para UNA página)
 
 ### 1 — Contenido
@@ -55,10 +75,20 @@ BD. Saltarse esto no rompe nada visible hoy y deja la página en blanco el día 
 despliegue.
 
 ### 5 — Verificar
-`browser_take_screenshot` de la página origen y de la reconstruida y comparar lado a
-lado: secciones, jerarquía, copy clave, meta. Reportar coincidencias y desajustes.
-Si la página tiene listado, comprobar además que filtrar y paginar devuelven lo mismo
-que el origen para al menos una combinación de facetas.
+Capturar origen y reconstrucción **por tramos** (una página larga entera se reduce a
+algo ilegible) y comparar secciones, jerarquía, copy clave y meta.
+
+Mirar no basta: **medir**. Con `browser_evaluate` sobre el origen, sacar los valores
+computados de lo que se está replicando —color, tamaño, peso, radio, familia— y
+compararlos con los de la reconstrucción. La mitad de los desajustes que el ojo
+perdona salen aquí. Comparar también la posición vertical de cada titular y su número
+de líneas: es lo que detecta un contenedor o una tipografía que no cuadran.
+
+Si la página tiene listado, **ejercitar los filtros en el origen antes de darlos por
+buenos**: puede parecer roto y estar filtrando por otro campo. Comprobar que la
+reconstrucción devuelve lo mismo para al menos una combinación de facetas.
+
+Y comprobar que no hay desbordamiento horizontal ni en escritorio ni en móvil.
 
 ### 6 — Parar para revisión
 Presentar la página clonada (URL local + comparación) y **esperar validación** antes
@@ -70,4 +100,9 @@ de pasar a la siguiente. Si hay que corregir, iterar sobre esta misma página.
 - La página no se da por hecha si no está en `clone-content.json`.
 - No inventar copy: lo que no esté en el origen, no se pone.
 - Trabajar sobre el registro esqueleto existente; no recrear estructura.
+- **La cabecera y el pie no son parte de una página.** Son chrome compartido: si están
+  mal, decirlo y seguir, no arreglarlos aquí.
+- **Cuando el origen contradiga a `DESIGN.md`, manda el origen** — el contrato se
+  extrajo del origen y puede estar equivocado. Corregir `DESIGN.md` en la misma pasada
+  y decir qué se cambió, o el siguiente clonado repetirá el error.
 - Al terminar todas las páginas: verificación global con `/services-verify`.
