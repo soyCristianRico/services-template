@@ -28,13 +28,19 @@ En orden de dependencias:
 3. **Ubicaciones** — árbol país → región → provincia → ciudad → distrito.
 4. **Landings** — categoría×ubicación (según el patrón A/B/C del mapa), sin copy.
 5. **Páginas** — estáticas (aviso legal, gracias, sobre nosotros, contacto), sin copy.
-6. **Entidades nuevas** — las del bloque `entidades_nuevas` del inventario (creadas por
+6. **Entradas de blog** — una por entrada, con slug y fecha de publicación, sin cuerpo.
+7. **Entidades nuevas** — las del bloque `entidades_nuevas` del inventario (creadas por
    `/services-model-entities`), con sus taxonomías y relaciones resueltas, sin copy.
-7. **Menús** — los ítems de cabecera, footer y legales desde `chrome` del inventario.
+8. **Menús** — los ítems de cabecera, footer y legales desde `chrome` del inventario.
    Va al final porque los enlaces apuntan a lo sembrado en los pasos anteriores.
 
-Slugs definitivos desde el inicio (los usa `/services-clone-page` para localizar
-cada registro). Nada de blog aquí: las entradas se crean con su contenido.
+Slugs definitivos desde el inicio: son la clave con la que
+`/services-clone-page` y el seeder de contenido localizan cada registro.
+
+**Sin excepciones por entidad.** Todo lo que tenga página en el mapa lleva su esqueleto
+aquí, aunque el registro vacío parezca no valer para nada —una entrada de blog sin
+cuerpo, por ejemplo—. El seeder de contenido **actualiza registros existentes**: lo que
+no se siembre aquí no lo crea nadie después, y desaparece del clon sin que nada falle.
 
 **Qué lleva registro y qué no**, según el `papel` que anotó el mapa:
 
@@ -72,6 +78,11 @@ y la añade a la colección de medios del registro, saltándose los que ya la ti
 ficheros originales van versionados; lo que genera la librería de medios es derivado y
 no se versiona. Así producción reconstruye las imágenes con el mismo seeder, sin
 copiar nada a mano.
+
+**Un slug del contenido que no encuentra registro es un error, no un salto.** Si el
+seeder sigue en silencio, un esqueleto que faltaba se convierte en una página en blanco
+que nadie detecta hasta producción. Acumular los que no casan y fallar al final con la
+lista entera, en vez de reventar en el primero.
 
 Los dos, porque **producción se siembra, no se copia**. Si el contenido clonado vive
 solo en la base de datos local, desplegar deja el site con la estructura entera y
