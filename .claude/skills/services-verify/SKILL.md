@@ -51,6 +51,10 @@ limpia y volver a contar. Es el único bloque que se verifica contra ficheros y 
 contra el sitio levantado, y por eso es el que más fácil se pasa por alto — un site
 local perfecto puede desplegar en blanco.
 
+Las **imágenes entran en esa prueba**: tras sembrar en limpio, cada registro que debía
+tener imagen la tiene. Si falta, es que el fichero no está versionado o su nombre no
+casa con el slug, y en producción saldría el hueco.
+
 ### 4 — Listados y filtros
 Para cada página que el mapa marcó como listado: comprobar que están todas las facetas
 documentadas, que sus opciones cubren el dominio completo del campo (no solo los

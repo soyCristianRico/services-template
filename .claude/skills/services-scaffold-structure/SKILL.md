@@ -67,6 +67,12 @@ Reflejar el estado activo/inactivo del origen.
 `database/seeders/data/clone-content.json`, que arranca como `{}`. Lo va rellenando
 `/services-clone-page`, una entrada por página.
 
+Este seeder también **engancha las imágenes**: busca `public/images/{colección}/{slug}`
+y la añade a la colección de medios del registro, saltándose los que ya la tienen. Los
+ficheros originales van versionados; lo que genera la librería de medios es derivado y
+no se versiona. Así producción reconstruye las imágenes con el mismo seeder, sin
+copiar nada a mano.
+
 Los dos, porque **producción se siembra, no se copia**. Si el contenido clonado vive
 solo en la base de datos local, desplegar deja el site con la estructura entera y
 todas las páginas en blanco, y no hay forma de reproducirlo. El seeder de contenido es

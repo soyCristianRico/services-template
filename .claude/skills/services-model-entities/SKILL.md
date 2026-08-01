@@ -60,6 +60,11 @@ Para cada entidad propuesta, resolver y dejar por escrito:
 - **Relaciones** — con métodos Eloquent tipados. Las relaciones opcionales al modelo
   del template (p. ej. → `Service`) van `nullable` + `nullOnDelete`.
 - **Estado y orden** — `is_active`, `position`, `published_at` si el origen los tiene.
+- **Imágenes** — nunca una columna de texto con la ruta. La entidad implementa
+  `HasMedia` y declara su colección (`cover`, `gallery`, `hero`…), como ya hacen las
+  del template. Una imagen así queda atada al registro, la sustituye el cliente desde
+  el admin y se reaprovecha en la ficha, en la tarjeta del listado y en el OG sin
+  duplicar el fichero. Una ruta en un `string` no da nada de eso.
 
 ### 3 — Presentar la propuesta y PARAR
 Mostrar el esquema propuesto (tabla de campos por entidad, enums, relaciones) y

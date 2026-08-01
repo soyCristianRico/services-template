@@ -68,6 +68,13 @@ entrada de blog) o de una entidad creada por `/services-model-entities` y listad
 `entidades_nuevas`. En ese caso, los campos a rellenar son los del mapeo
 campo→columna que dejó esa skill en el inventario, no los del template.
 
+**Imágenes.** Descargar las del origen a `public/images/{colección}/{slug}.{ext}` y
+**dejarlas versionadas**. El seeder de contenido las engancha a la colección de medios
+del registro; aquí solo se colocan con ese nombre. Nunca enlazar al dominio de origen
+—el día que se apague, el clon se queda sin imágenes— ni escribir la ruta en una
+columna de texto. Una imagen que el origen usa en varios sitios se descarga una vez:
+la ficha, la tarjeta del listado y el OG leen todos del mismo registro.
+
 ### 2 — Comportamiento (solo si la página es un listado)
 Si el mapa registró listado filtrable, buscador, paginación o calendario en esta
 página, implementarlo aquí: componente Livewire + consulta Eloquent. Las facetas, su
