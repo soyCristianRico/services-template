@@ -52,7 +52,7 @@ return [
 
     'cookie_consent' => [
         'name' => env('COOKIE_CONSENT_NAME', 'cookie_consent'),
-        'policy_url' => env('COOKIE_POLICY_URL'),
+        'policy_url' => env('COOKIE_POLICY_URL', '/legal#cookies'),
     ],
 
 ];
