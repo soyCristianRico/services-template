@@ -17,6 +17,25 @@ Requisitos previos: `/services-scaffold-structure` (registro esqueleto ya creado
 Entrada: la página a clonar (URL origen + su entrada en `inventory.json`). Salida:
 esa página clonada y verificada, lista para revisión.
 
+## Cómo se ejecuta
+
+**Una conversación por ejecución**, nombrando la página al invocar. Dentro de esa
+conversación se itera hasta darla por buena —la skill para y espera— y se cierra al
+validarla. La siguiente empieza en blanco.
+
+Se puede porque **el estado vive en ficheros, no en la conversación**: `mapa.md`,
+`inventory.json`, `DESIGN.md`, `clone-content.json` y el Blade ya escrito. Una
+conversación nueva los lee y sabe todo lo que necesita. Encadenar páginas en el mismo
+hilo llena el contexto de capturas y la comparación pierde precisión justo cuando hace
+falta medir al píxel.
+
+Lo único que sí es aprendizaje —una contradicción entre el origen y `DESIGN.md`— se
+escribe en `DESIGN.md`, así que la siguiente ejecución lo hereda. Por eso ese
+guardarraíl no es opcional.
+
+**Qué queda por clonar:** las páginas del mapa que aún no están en
+`clone-content.json`. Ese fichero es el registro de avance, no una lista aparte.
+
 ## Antes de empezar: ¿única o plantilla?
 
 No todas las páginas cuestan lo mismo. Antes de tocar nada, mirar el mapa y decidir
