@@ -33,6 +33,14 @@ post_install() {
     # /services-scaffold-structure flips it — nobody has to guess at this point.
     set_env SITE_LOCATIONS true
 
+    # MCP servers. .mcp.json is gitignored because it can carry per-machine
+    # tokens, so the committed example is what seeds it. Playwright is in there:
+    # /services-extract-design and /services-clone-page need a real browser.
+    if [[ -f .mcp.json.example && ! -f .mcp.json ]]; then
+        log "Seeding .mcp.json from .mcp.json.example"
+        cp .mcp.json.example .mcp.json
+    fi
+
     if [[ "$SEED_DEMO" == "1" ]]; then
         log "php artisan migrate --seed"
         php artisan migrate --force --no-interaction --seed

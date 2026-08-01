@@ -24,5 +24,7 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 
-# MCP server config (local, per-machine tokens)
+# MCP server config: stays local because it can carry per-machine tokens.
+# .mcp.json.example IS committed — it is the shared baseline every site starts
+# from, and new-site.sh copies it into place. Add secrets only to .mcp.json.
 .mcp.json
