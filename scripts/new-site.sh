@@ -33,14 +33,6 @@ post_install() {
     # /services-scaffold-structure flips it — nobody has to guess at this point.
     set_env SITE_LOCATIONS true
 
-    # MCP servers. .mcp.json is gitignored because it can carry per-machine
-    # tokens, so the committed example is what seeds it. Playwright is in there:
-    # /services-extract-design and /services-clone-page need a real browser.
-    if [[ -f .mcp.json.example && ! -f .mcp.json ]]; then
-        log "Seeding .mcp.json from .mcp.json.example"
-        cp .mcp.json.example .mcp.json
-    fi
-
     if [[ "$SEED_DEMO" == "1" ]]; then
         log "php artisan migrate --seed"
         php artisan migrate --force --no-interaction --seed
@@ -62,6 +54,10 @@ next_steps() {
   Only when you actually need it:
 
     php artisan services:mcp-token --email=you@domain.com
+
+  That token goes in .mcp.json: paste the `services` block from
+  .mcp.json.example, with the real domain and the token. It is left out of the
+  generated .mcp.json because the domain is not live yet.
 
   Review in .env before launch: the SEO_* block and GOOGLE_TAG_MANAGER_ID.
 
@@ -236,6 +232,79 @@ write_production_env() {
     } >>"$target"
 
     log "Wrote $target for $DOMAIN"
+}
+
+# Claude Code reads .mcp.json, which is gitignored because it holds tokens — so a
+# fresh clone starts without one and the editor comes up with no MCP servers at
+# all. The versioned .mcp.json.example is the source.
+#
+# Two jobs, and the second is the one that bites:
+#
+#   1. Seed .mcp.json from the example when there is none.
+#   2. Repoint laravel-boost at THIS checkout, whether the file was just seeded
+#      or was carried over by hand from another site. A copied .mcp.json keeps
+#      the OLD project's artisan path, and Boost then answers every question
+#      about the wrong application — silently, because the server starts fine.
+#      That has already happened. So the path is rewritten every run.
+#
+# Seeding also drops every `"type": "http"` server: those are the site's own MCP
+# servers, served from the production domain, which does not exist on day one,
+# and a server that cannot connect is an error on every Claude Code start. Paste
+# the block back from .mcp.json.example once the site is live and the
+# `*:mcp-token` command has issued a token.
+#
+# An existing .mcp.json keeps its http servers untouched — tokens included.
+write_mcp_config() {
+    local source=".mcp.json"
+
+    if [[ ! -f .mcp.json ]]; then
+        if [[ ! -f .mcp.json.example ]]; then
+            warn "No .mcp.json.example in the template — skipping the MCP config."
+            return
+        fi
+
+        source=".mcp.json.example"
+    fi
+
+    local result
+    result="$(php -r '
+        [, $source, $root] = $argv;
+
+        $config = json_decode(file_get_contents($source), true);
+        $before = $config;
+
+        if ($source !== ".mcp.json") {
+            $config["mcpServers"] = array_filter(
+                $config["mcpServers"] ?? [],
+                fn (array $server): bool => ($server["type"] ?? "stdio") !== "http"
+            );
+        }
+
+        foreach (($config["mcpServers"]["laravel-boost"]["args"] ?? []) as $i => $arg) {
+            if (str_ends_with((string) $arg, "/artisan")) {
+                $config["mcpServers"]["laravel-boost"]["args"][$i] = $root . "/artisan";
+            }
+        }
+
+        if ($source === ".mcp.json" && $config === $before) {
+            echo "unchanged";
+
+            exit;
+        }
+
+        file_put_contents(".mcp.json", json_encode(
+            $config,
+            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES
+        ) . "\n");
+
+        echo $source === ".mcp.json" ? "repointed" : "seeded";
+    ' "$source" "$TARGET")"
+
+    case "$result" in
+        seeded)    log "Wrote .mcp.json from .mcp.json.example, pointing laravel-boost at $TARGET" ;;
+        repointed) log "Repointed laravel-boost in the existing .mcp.json at $TARGET" ;;
+        *)         log "Keeping the existing .mcp.json — laravel-boost already points here" ;;
+    esac
 }
 
 # Production runs MySQL. A site developed on SQLite only meets MySQL's rules on
@@ -420,6 +489,7 @@ cp .env.example .env
 
 provision_database
 write_production_env
+write_mcp_config
 
 # 5. Dependencies, then install the site.
 if [[ "$INSTALL_DEPS" == "1" ]]; then

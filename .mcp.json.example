@@ -4,6 +4,22 @@
             "type": "stdio",
             "command": "npx",
             "args": ["-y", "@playwright/mcp@latest"]
+        },
+        "laravel-boost": {
+            "type": "stdio",
+            "command": "wsl.exe",
+            "args": [
+                "/usr/bin/php8.3",
+                "/home/cristian/proyectos/CHANGE-ME/artisan",
+                "boost:mcp"
+            ]
+        },
+        "services": {
+            "type": "http",
+            "url": "https://CHANGE-ME.com/mcp/services",
+            "headers": {
+                "Authorization": "Bearer PASTE-TOKEN-FROM-services:mcp-token"
+            }
         }
     }
 }
