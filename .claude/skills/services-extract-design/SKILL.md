@@ -12,8 +12,8 @@ no de un brief nuevo. Es la base visual global; la réplica de secciones página
 página la hace `/services-clone-page`.
 
 Entrada: URL de la web origen (+ capturas de `/services-map-source`). Salidas:
-`DESIGN.md` y el bloque `@theme` de `resources/css/app.css`, más logo/favicon/OG en
-`public/`.
+`DESIGN.md`, el bloque `@theme` de `resources/css/app.css`, la cabecera y el pie, y
+logo/favicon/OG en `public/`.
 
 ## Dos fuentes, y hacen falta las dos
 
@@ -78,7 +78,18 @@ Dos comprobaciones que **no son opcionales**, porque fallan en silencio:
   devuelve las familias y los pesos pedidos. Si el nombre no existe, el `@import`
   no falla: los titulares caen a la fuente del sistema y nada avisa.
 
-### 4 — Comprobar la base
+### 4 — Montar el chrome
+
+Cabecera y pie se construyen **aquí y una sola vez**: son el marco compartido dentro
+del que se renderiza cada página, no parte de ninguna. `/services-clone-page` los da
+por hechos.
+
+Los enlaces salen de los ítems de menú ya sembrados, nunca escritos a mano en el Blade
+— si no, el CRUD del admin no cambia nada y la navegación se desincroniza en cuanto el
+cliente añade contenido. Del origen se replican las piezas de la cabecera (logo, menú,
+CTA, cualquier barra superior) y las columnas del pie con sus tipografías.
+
+### 5 — Comprobar la base
 
 Levantar el proyecto en local, capturar la home y compararla con la del origen.
 
@@ -89,14 +100,14 @@ eso es lo que confirma que el trío `accent` propagó a toda la librería.
 
 Aún sin replicar secciones: eso es página a página.
 
-### 5 — Reportar
+### 6 — Reportar
 
-Tokens definidos, assets colocados, ratios de contraste medidos y desviaciones
-respecto al origen (si se ha cambiado algún valor, decir cuál y por qué). Siguiente
-paso: `/services-clone-page` (bucle página a página).
+Tokens definidos, chrome montado, assets colocados, ratios de contraste medidos y
+desviaciones respecto al origen (si se ha cambiado algún valor, decir cuál y por
+qué). Siguiente paso: `/services-clone-page` (bucle página a página).
 
 ## Cuándo parar
 
-Cuando color, tipografía y assets del template reflejen los del origen, y los
-patrones de composición del hero y de las tarjetas estén documentados. El detalle de
-cada sección se ajusta después, página a página.
+Cuando color, tipografía, chrome y assets del template reflejen los del origen, y
+los patrones de composición del hero y de las tarjetas estén documentados. El detalle
+de cada sección se ajusta después, página a página.

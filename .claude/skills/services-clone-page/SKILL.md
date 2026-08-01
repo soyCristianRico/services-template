@@ -22,12 +22,15 @@ esa página clonada y verificada, lista para revisión.
 No todas las páginas cuestan lo mismo. Antes de tocar nada, mirar el mapa y decidir
 cuál de las dos es:
 
-- **Única** — no comparte diseño con ninguna otra: la home, `/contacto/`,
-  `/quienes-somos/`, las de gracias. Se clona entera, una vez.
-- **De plantilla** — una maqueta que se reaprovecha para N registros: las 14
-  oposiciones, las 5 áreas, los cursos, los webinars, los artículos del blog. Aquí se
-  clona **la plantilla una sola vez**, contra un registro representativo, y se valida.
-  Las demás no son páginas nuevas: son contenido en `clone-content.json`.
+- **Única** — no comparte diseño con ninguna otra: la home, contacto, quiénes somos,
+  las de gracias. Se clona entera, una vez.
+- **De plantilla** — una maqueta que se reaprovecha para N registros: las fichas de una
+  entidad, las páginas de categoría, las entradas del blog. Aquí se clona **la
+  plantilla una sola vez**, contra un registro representativo, y se valida. Las demás
+  no son páginas nuevas: son contenido en `clone-content.json`.
+
+El mapa ya dice cuántas páginas cuelgan de cada tipo: ahí se ve de un vistazo cuáles
+son plantilla.
 
 Elegir bien el registro representativo: el que tenga más campos rellenos, para que la
 plantilla se enfrente a todos los bloques. Después, revisar los casos raros que anotó
