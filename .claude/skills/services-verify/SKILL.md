@@ -17,6 +17,17 @@ Entrada: URL del origen, URL del reconstruido (local o staging) y
 
 ## Qué verificar
 
+### 0 — Cobertura por papel
+Una plantilla no está hecha por tener su maqueta: lo está cuando **sus N fichas**
+existen y tienen contenido. Contra el mapa, comprobar por cada `papel`:
+
+- `plantilla` → maqueta escrita **y** las N fichas con su copy, no solo la de referencia
+- `unica` → su página propia
+- `indice` → su ruta responde y lista lo que debe
+
+Es el bloque que caza el fallo más caro del bucle 1-a-1: dar por cerrada una plantilla
+validada contra un solo registro.
+
 ### 1 — Paridad de URLs
 Cruzar el sitemap del origen con el del reconstruido. Reportar URLs del origen sin
 equivalente y URLs nuevas que no existían en el origen.
@@ -56,10 +67,10 @@ jerarquía y marca. Diferencias de píxel por fuentes/render no cuentan como fal
 
 ## Reportar
 
-Checklist por bloque (URLs, contenido, reproducibilidad, listados, SEO, visual) con
-estado y lista priorizada de desajustes. Adónde vuelve cada hueco:
+Checklist por bloque (cobertura, URLs, contenido, reproducibilidad, listados, SEO,
+visual) con estado y lista priorizada de desajustes. Adónde vuelve cada hueco:
 
 - contenido, diseño o listado de una página → `/services-clone-page` sobre esa página
-- falta una página entera → `/services-map-source`
+- falta una página entera, o el mapa no trae `papel` → `/services-map-source`
 - falta un campo o una opción de faceta en el esquema → `/services-model-entities`
 - una página no está en `clone-content.json` → `/services-clone-page` sobre esa página

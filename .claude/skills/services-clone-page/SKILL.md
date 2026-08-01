@@ -36,28 +36,25 @@ guardarraíl no es opcional.
 **Qué queda por clonar:** las páginas del mapa que aún no están en
 `clone-content.json`. Ese fichero es el registro de avance, no una lista aparte.
 
-## Antes de empezar: ¿única o plantilla?
+## Antes de empezar: leer el papel de la página
 
-No todas las páginas cuestan lo mismo. Antes de tocar nada, mirar el mapa y decidir
-cuál de las dos es:
+El mapa ya clasificó cada página, y su `papel` decide el alcance de esta ejecución. No
+se vuelve a decidir aquí; se lee y se anuncia al empezar.
 
-- **Única** — no comparte diseño con ninguna otra: la home, contacto, quiénes somos,
-  las de gracias. Se clona entera, una vez.
-- **De plantilla** — una maqueta que se reaprovecha para N registros: las fichas de una
-  entidad, las páginas de categoría, las entradas del blog. Aquí se clona **la
-  plantilla una sola vez**, contra un registro representativo, y se valida. Las demás
-  no son páginas nuevas: son contenido en `clone-content.json`.
+- **`unica`** — se clona entera, una vez.
+- **`plantilla`** — se clona **la maqueta una sola vez**, contra el registro de
+  referencia que señaló el mapa (el que más campos rellenos tiene, para enfrentarla a
+  todos los bloques). Las demás fichas no son páginas nuevas: son contenido en
+  `clone-content.json`.
+- **`indice`** — su contenido no es copy sino una consulta. El peso está en el paso 2.
 
-El mapa ya dice cuántas páginas cuelgan de cada tipo: ahí se ve de un vistazo cuáles
-son plantilla.
+En las de plantilla, antes de darla por buena hay que pasarle **los casos raros que
+anotó el mapa** —la ficha sin precio, la que no tiene imagen— y comprobar que aguanta
+el campo vacío en vez de romperse o dejar un hueco. Validar solo contra el registro más
+completo es validar contra el caso feliz.
 
-Elegir bien el registro representativo: el que tenga más campos rellenos, para que la
-plantilla se enfrente a todos los bloques. Después, revisar los casos raros que anotó
-el mapa (el que no publica precio, el que no tiene imagen) y comprobar que la
-plantilla aguanta con el campo vacío en vez de romperse o dejar un hueco.
-
-Anunciar de cuál se trata al empezar: cambia el alcance de la ejecución y lo que se
-valida al final.
+Si el mapa no trae `papel`, no inventarlo aquí: volver a `/services-map-source`. Es un
+dato del mapa, y decidirlo página a página termina clonando N veces la misma maqueta.
 
 ## Proceso (para UNA página)
 

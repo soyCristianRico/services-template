@@ -90,7 +90,23 @@ Playwright (menos de lo que parece).
 > nombres reales pueden ser `/gracias-contacto/`, `/gracias-newsletter/`…
 
 ### 2 — Clasificar y detectar patrón
-Etiquetar cada URL con su entidad. Detectar el patrón de landing:
+Etiquetar cada URL con su entidad **y con su papel**, que es lo que decide cuánto
+cuesta clonarla y qué hay que sembrar:
+
+| Papel | Qué es | Blade | Registros |
+|---|---|---|---|
+| `unica` | No comparte diseño con ninguna otra | 1 propio | 1, o ninguno si es Blade en git |
+| `plantilla` | Una maqueta que sirve a N fichas | 1 para las N | N |
+| `indice` | Listado de fichas, con o sin filtros | 1 propio | ninguno: es ruta + consulta |
+
+Anotar en cada página su `papel` y, en las de plantilla, **cuántas comparten maqueta y
+cuál es el registro con más campos rellenos** — ese es contra el que se clonará, para
+que la maqueta se enfrente a todos los bloques.
+
+Es lo que convierte «70 páginas» en el número real de unidades de trabajo. Sin este
+dato, cada clonado vuelve a decidirlo y acaba clonando N veces la misma maqueta.
+
+Detectar el patrón de landing:
 `A) carpetas /{categoría}/{ubicación}`, `B) slug plano /{categoría}-{ubicación}`,
 o `C) sin ubicaciones`. Anotar cuál aplica.
 
@@ -196,6 +212,11 @@ Con acceso al código, el dominio se lee y la pregunta se convierte en confirmac
 ### 8 — Reportar y encadenar
 Conteo por entidad, patrón de landing (A/B/C), páginas sin clasificar y el bloque
 `fuera_de_modelo`. La suma de entidades tiene que cuadrar con el total de URLs.
+
+Dar además el **conteo por papel**: cuántas plantillas, cuántos índices y cuántas
+únicas, y el total de unidades de clonado que sale de ahí frente al total de URLs. Es
+la cifra que dimensiona el trabajo real, y suele ser una fracción de la otra.
+
 Cerrar diciendo cuántas preguntas abiertas hay y a quién van dirigidas.
 
 Encadenado, según lo que haya salido:

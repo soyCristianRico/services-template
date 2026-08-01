@@ -36,6 +36,14 @@ En orden de dependencias:
 Slugs definitivos desde el inicio (los usa `/services-clone-page` para localizar
 cada registro). Nada de blog aquí: las entradas se crean con su contenido.
 
+**Qué lleva registro y qué no**, según el `papel` que anotó el mapa:
+
+- `plantilla` → **N registros**, uno por ficha. Son los que después rellena el clonado.
+- `unica` → **un registro** si es contenido editable por el cliente; **ninguno** si es
+  Blade en git (la home y similares).
+- `indice` → **ninguno**. Es una ruta con su consulta, no una fila. Sembrar un registro
+  para un índice crea una página fantasma que compite con su propia ruta.
+
 ## Proceso
 
 ### 1 — Leer inventario y fijar la dimensión geográfica
@@ -51,7 +59,8 @@ Es un cambio de `.env`: anunciarlo, nunca hacerlo en silencio.
 
 ### 2 — Generar los dos seeders
 **`CloneStructureSeeder`** — idempotente (upsert por slug, re-ejecutable sin duplicar),
-inserta las entidades como estructura vacía leyendo `database/seeders/data/clone-structure.json`.
+inserta las entidades como estructura vacía leyendo
+`database/seeders/data/clone-structure.json`.
 Reflejar el estado activo/inactivo del origen.
 
 **`CloneContentSeeder`** — se crea aquí **vacío**, leyendo
