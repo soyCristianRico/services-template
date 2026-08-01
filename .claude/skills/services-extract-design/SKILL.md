@@ -61,6 +61,13 @@ está en el CSS**:
 Descargar logo, favicon y OG. **Comprobar las dimensiones del OG**: si no es
 1200×630 se recorta en redes, y hay que decirlo aunque venga así del origen.
 
+**Sin navegador disponible**, este paso no se salta en silencio. Se hace lo que se
+pueda con el HTML —descargar home y una página tipo y leer el marcado: cuántos CTA
+cuelgan del hero, si el H1 parte el color con un `span`, si los iconos son `svg` o
+fuente de iconos— y se **declara en el reporte qué quedó sin comprobar visualmente**.
+Esos puntos se cierran al clonar la home con `/services-clone-page`, que sí compara
+capturas. Los tokens del paso 1 no dependen del navegador; los patrones sí.
+
 ### 3 — Generar el sistema de diseño
 
 Pasar todo lo anterior a `/design-system-from-brief`, que escribe `DESIGN.md` y los
