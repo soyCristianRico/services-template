@@ -28,3 +28,6 @@ Thumbs.db
 # .mcp.json.example IS committed — it is the shared baseline every site starts
 # from, and new-site.sh copies it into place. Add secrets only to .mcp.json.
 .mcp.json
+
+# Playwright MCP output (screenshots, snapshots, console logs)
+.playwright-mcp
