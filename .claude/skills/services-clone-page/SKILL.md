@@ -75,6 +75,17 @@ del registro; aquí solo se colocan con ese nombre. Nunca enlazar al dominio de 
 columna de texto. Una imagen que el origen usa en varios sitios se descarga una vez:
 la ficha, la tarjeta del listado y el OG leen todos del mismo registro.
 
+**El original no se sirve tal cual.** Lo que trae el origen suele ser una OG de
+1200×630, y pintarla en una tarjeta de 350px es peso de más y un reescalado que se
+nota. Registrar una conversión en el modelo (`registerMediaConversions`, `nonQueued`)
+al doble del tamaño de pintado y leerla con `getFirstMediaUrl('col', 'card')`. Añadir
+`width`, `height` y `loading="lazy"` al `<img>`: sin ellos el listado da saltos
+mientras cargan. Al terminar, `php artisan media-library:regenerate` para las que ya
+estuvieran enganchadas.
+
+Comprobarlo midiendo, no mirando: `naturalWidth` frente al ancho pintado. Si la
+proporción pasa de ~2×, sobra imagen.
+
 ### 2 — Comportamiento (solo si la página es un listado)
 Si el mapa registró listado filtrable, buscador, paginación o calendario en esta
 página, implementarlo aquí: componente Livewire + consulta Eloquent. Las facetas, su
