@@ -63,6 +63,17 @@ Rellenar el registro esqueleto de esa página con su copy real, meta title/descr
 atributos (`custom_fields`) e imágenes, tomados del origen. Reflejar el estado
 activo/inactivo del origen.
 
+**El inventario se queda corto más veces de las que parece.** Suele traer los titulares
+y las listas, y faltarle la prosa: la entradilla del hero, el texto que acompaña a cada
+epígrafe, el cuerpo del artículo. Cuando falte, se saca del origen —que es la fuente—,
+no se inventa ni se deja el hueco.
+
+**Y lo que trae puede venir dañado.** Un volcado de base de datos pierde el escapado por
+el camino: saltos de línea convertidos en `rn` literal a mitad de frase, unidades
+escritas en unos registros y ausentes en otros. Se limpia al guardarlo, y **sólo cuando
+el patrón es inequívoco** — partir por `rn` doble reconstruye párrafos, pero partir por
+uno suelto rompe «gobierno» e «invierno».
+
 El registro puede ser de una entidad del template (servicio, landing, página estática,
 entrada de blog) o de una entidad creada por `/services-model-entities` y listada en
 `entidades_nuevas`. En ese caso, los campos a rellenar son los del mapeo
@@ -99,6 +110,15 @@ detalle suyo: el requisito es el comportamiento, no el mecanismo.
 Replicar en Blade las secciones concretas de esa página (según el mapa de
 `/services-map-source`), respetando el `DESIGN.md` y los componentes Flux del
 template. No copiar CSS crudo: traducir a los tokens `@theme`.
+
+**Antes de crear ruta o componente, mirar qué resuelve ya el template.** Suele haber un
+catch-all `/{slug}` y un componente detrás que ya cubre este caso; lo normal es
+ajustarlo, no escribir uno en paralelo. Un componente nuevo que hace lo mismo se lleva
+por delante lo que el template ya tenía resuelto.
+
+Y **dos rutas con el mismo método y URI no conviven**: Laravel las indexa por esa clave,
+la última gana y la primera desaparece sin avisar. Si hace falta un catch-all y ya hay
+otro, se toca el que existe.
 
 ### 4 — Persistir la página en el seeder de contenido
 Añadir la entrada de esta página a `database/seeders/data/clone-content.json`, con el
@@ -142,4 +162,11 @@ de pasar a la siguiente. Si hay que corregir, iterar sobre esta misma página.
 - **Cuando el origen contradiga a `DESIGN.md`, manda el origen** — el contrato se
   extrajo del origen y puede estar equivocado. Corregir `DESIGN.md` en la misma pasada
   y decir qué se cambió, o el siguiente clonado repetirá el error.
+- **El origen sirve una sola versión de las páginas con estado.** Una ficha que cambia
+  según esté próxima, agotada o disponible resuelve esa condición en servidor: los otros
+  estados **no aparecen en su HTML** y no hay forma de scrapearlos. Se pregunta al
+  cliente y se anota en el mapa junto al que sí se pudo observar.
+- **Lo que no está en el sitemap también es la web.** La 404, las páginas de gracias y
+  las de descarga no salen en ningún listado y se olvidan. Están en el mapa: hay que
+  mirarlo, no fiarse del sitemap.
 - Al terminar todas las páginas: verificación global con `/services-verify`.
