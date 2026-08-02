@@ -254,8 +254,13 @@ describe('ClassName', function () {
 ```
 
 ## Execution
-- **NEVER run the full test suite** — it causes memory errors
-- Always run specific files or filters: `php artisan test tests/Feature/ExampleTest.php` or `--filter=testName`
+- The suite runs on MySQL, from `.env.testing` (see `.ai/guidelines/database.md`).
+  `php artisan test` runs all of it in well under a minute — the old "never run
+  the full suite, it runs out of memory" rule was an artefact of SQLite
+  `:memory:` and no longer applies.
+- While working, still run the narrowest thing that proves the change:
+  `php artisan test --compact tests/Feature/ExampleTest.php` or `--filter=testName`.
+  Run the whole suite before calling a task done.
 
 ## Rules
 - One test file per class; add `describe()` blocks to existing files
