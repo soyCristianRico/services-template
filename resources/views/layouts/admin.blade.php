@@ -26,6 +26,8 @@
                     <flux:navlist.item href="{{ url('/admin/locations') }}">Ubicaciones</flux:navlist.item>
                     <flux:navlist.item href="{{ url('/admin/landings') }}">Landings</flux:navlist.item>
                 @endif
+                <flux:navlist.item href="{{ url('/admin/redirects') }}">Redirecciones</flux:navlist.item>
+                <flux:navlist.item href="{{ url('/admin/redirects/404') }}">Direcciones rotas</flux:navlist.item>
             </flux:navlist.group>
             <flux:navlist.group expandable heading="Contenido">
                 <flux:navlist.item href="{{ url('/admin/blog') }}">Blog</flux:navlist.item>

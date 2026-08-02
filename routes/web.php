@@ -36,6 +36,15 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
         Route::livewire('/landings/{landing}/edit', 'pages::admin.landings.edit')->name('landings.edit');
     }
 
+    // `/redirects/404` e `/import` van antes que `/{redirect}/edit` sólo por
+    // claridad: no comparten forma, pero leerlas juntas evita que la próxima
+    // ruta con nombre fijo se cuele debajo del parámetro.
+    Route::livewire('/redirects', 'pages::admin.redirects.index')->name('redirects.index');
+    Route::livewire('/redirects/create', 'pages::admin.redirects.edit')->name('redirects.create');
+    Route::livewire('/redirects/import', 'pages::admin.redirects.import')->name('redirects.import');
+    Route::livewire('/redirects/404', 'pages::admin.redirects.not-found')->name('redirects.not-found');
+    Route::livewire('/redirects/{redirect}/edit', 'pages::admin.redirects.edit')->name('redirects.edit');
+
     Route::livewire('/blog', 'pages::admin.blog.index')->name('blog.index');
     Route::livewire('/blog/create', 'pages::admin.blog.edit')->name('blog.create');
     Route::livewire('/blog/{post}/edit', 'pages::admin.blog.edit')->name('blog.edit');
