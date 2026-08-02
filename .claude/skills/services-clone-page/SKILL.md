@@ -113,6 +113,21 @@ Y **dos rutas con el mismo método y URI no conviven**: Laravel las indexa por e
 la última gana y la primera desaparece sin avisar. Si hace falta un catch-all y ya hay
 otro, se toca el que existe.
 
+**Los titulares van siempre por el componente del sistema, nunca en HTML crudo.** La
+tentación llega con las etiquetas de región —«Filtros», «Tabla de contenidos», las
+columnas del pie—: se quiere el `h2` semántico sin la escala de sección y se escribe a
+mano con utilidades de tamaño. Eso saca el titular del sistema y lo deja atrás en el
+próximo cambio de escala. Si hace falta otro tamaño, se añade **una variante con
+nombre** a la hoja de estilos —por papel, no por página— y se usa desde el componente.
+
+**Y ojo con meter una sección estructurada dentro de un campo de texto.** Si la página
+tiene cifras destacadas, tarjetas o un equipo, eso son secciones con su maqueta: guardar
+su copy como HTML plano en el cuerpo del registro parece que funciona —se ve el texto—
+pero deja el bloque sin forma y sin poder darle estilo, porque un mismo tamaño no puede
+servir a una cifra de 40px y al título de una tarjeta de 20px. Si el cuerpo del registro
+ya viene así del volcado, **es señal de que falta trabajo de maqueta aquí**, no de que
+haya que forzar las reglas de prosa.
+
 ### 4 — Persistir la página en el seeder de contenido
 Añadir la entrada de esta página a `database/seeders/data/clone-content.json`, con el
 mismo copy, meta y atributos que se acaban de escribir en la base de datos, y volver a

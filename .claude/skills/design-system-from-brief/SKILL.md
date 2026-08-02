@@ -242,6 +242,8 @@ Public views use **semantic tokens only**. No raw `text-zinc-*` / `border-gray-*
 
 The public type scale lives in **one place**: the `[data-public-site]` rules in `app.css` — `h1|h2|h3[data-flux-heading]` for headings, `[data-flux-text]` for body and `[data-flux-button]` for buttons. To change a size, edit that file — never add per-element `text-*!` / `font-*!` utilities.
 
+**When a heading needs a size the three levels don't give, add a named variant — don't opt out of the system.** The case shows up with region labels: a "Filters" or "Table of contents" heading wants the semantic `h2` without the section scale. Writing it as raw HTML with size utilities gets the look and silently drops that heading out of the scale, so the next change to the type system leaves it behind. Add the variant to the same `app.css` block instead, **named by role and not by page** (`[data-public-site] [data-flux-heading].heading-label`), and use it from the component. One variant serving every region label is a system; one class per page is the utilities problem with extra steps.
+
 **Body and buttons need the same override as the headings, and it is the one that gets forgotten.** Flux ships `flux:text` and `flux:button` at `text-sm` (14px): right for a dense admin UI, too small for a public page, where 16px is the web's default. And it cannot be fixed from the Blade call — Flux prints its own `text-sm` into the element's class list, so `<flux:text class="text-base">` loses to it. The template ships the 16px baseline; a brief that measured something else at the source overrides it in the same block.
 
 ### Flux mapping
