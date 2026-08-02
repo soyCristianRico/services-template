@@ -54,8 +54,11 @@
     </main>
 
     <footer class="mt-24 border-t border-border">
-        <div class="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground">
+        <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground">
             <span>&copy; {{ date('Y') }} {{ config('app.name') }}</span>
+            <a href="{{ route('legal') }}#aviso-legal" wire:navigate class="transition hover:text-foreground">Aviso legal</a>
+            <a href="{{ route('legal') }}#privacidad" wire:navigate class="transition hover:text-foreground">Política de privacidad</a>
+            <a href="{{ route('legal') }}#cookies" wire:navigate class="transition hover:text-foreground">Política de cookies</a>
             @if (config('services.google_tag_manager.id') && auth()->guest())
                 <button type="button"
                     x-data

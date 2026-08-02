@@ -60,6 +60,10 @@ if (config('site.locations')) {
     Route::get('/sitemap-landings.xml', [SitemapController::class, 'landings'])->name('sitemap.landings');
 }
 
+// Legal — one page carrying the four blocks as #anchors. Declared before the
+// catch-all so it wins over a CMS Page that happens to be slugged "legal".
+Route::livewire('/legal', 'pages::legal')->name('legal');
+
 // Programmatic landings — must stay last so /, /admin, /blog, Fortify-named routes
 // and sitemap routes are matched first. Skipped entirely on sites with no
 // geographic dimension, where this catch-all would swallow every other slug.
