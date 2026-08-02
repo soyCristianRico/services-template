@@ -204,7 +204,8 @@ write_production_env() {
     set_env SESSION_DRIVER redis "$target"
     set_env QUEUE_CONNECTION redis "$target"
 
-    set_env LEAD_NOTIFY_EMAIL "contacto@$DOMAIN" "$target"
+    set_env LEAD_NOTIFY_EMAIL "hola@$DOMAIN" "$target"
+    set_env LEGAL_EMAIL "hola@$DOMAIN" "$target"
 
     # Secrets and per-server values stay empty: they are filled in Forge.
     set_env APP_KEY "" "$target"
