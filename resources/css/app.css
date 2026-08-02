@@ -2,6 +2,12 @@
 @import 'tailwindcss';
 @import '../../vendor/livewire/flux/dist/flux.css';
 
+/* Editor-authored HTML (blog bodies, landing copy) is echoed raw inside a
+   `.prose` wrapper, so those wrappers need the typography plugin to style tags
+   we never see. Tailwind v4 has no config file: the plugin has to be declared
+   here or every `prose` class in the views is silently inert. */
+@plugin '@tailwindcss/typography';
+
 /* Dark mode is class-based (`.dark`), never via the OS `prefers-color-scheme`.
    Since the `.dark` class is never applied, the UI always renders in light mode. */
 @custom-variant dark (&:where(.dark, .dark *));
