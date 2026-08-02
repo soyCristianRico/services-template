@@ -84,6 +84,19 @@
     line-height: 1.4;
 }
 
+/* Body copy and buttons. Flux ships both at text-sm (14px), which suits a dense
+   admin UI but reads small on a public page — the web's default is 16px. Same
+   unlayered trick as the headings: Flux prints its own text-sm into the
+   element's class list, so `text-base` passed from the Blade call loses. */
+[data-public-site] [data-flux-text] {
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+[data-public-site] [data-flux-button] {
+    font-size: 1rem;
+}
+
 /* Alpine's FOUC guard. Without it x-cloak is inert and elements that start
    hidden (the cookie banner) paint until Alpine boots — most visible on error
    pages, which never get the style block Livewire auto-injects. */

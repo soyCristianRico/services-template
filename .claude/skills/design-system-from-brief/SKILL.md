@@ -237,10 +237,12 @@ Public views use **semantic tokens only**. No raw `text-zinc-*` / `border-gray-*
 | H1 hero | One per page max | `font-weight: 700; line-height: 0.95; letter-spacing: -0.03em;` |
 | H2 section | | `font-weight: 600; letter-spacing: -0.02em;` |
 | H3 card | | `font-weight: 600;` |
-| Body | | `font-weight: 400; line-height: 1.6;` |
+| Body | 16px baseline, never Flux's 14px | `font-size: 1rem; font-weight: 400; line-height: 1.6;` |
 | Button | | `font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;` (only if brief says so) |
 
-The public type scale lives in **one place**: the `[data-public-site] h1|h2|h3[data-flux-heading]` rules in `app.css`. To change a size, edit that file — never add per-heading `text-*!` / `font-*!` utilities.
+The public type scale lives in **one place**: the `[data-public-site]` rules in `app.css` — `h1|h2|h3[data-flux-heading]` for headings, `[data-flux-text]` for body and `[data-flux-button]` for buttons. To change a size, edit that file — never add per-element `text-*!` / `font-*!` utilities.
+
+**Body and buttons need the same override as the headings, and it is the one that gets forgotten.** Flux ships `flux:text` and `flux:button` at `text-sm` (14px): right for a dense admin UI, too small for a public page, where 16px is the web's default. And it cannot be fixed from the Blade call — Flux prints its own `text-sm` into the element's class list, so `<flux:text class="text-base">` loses to it. The template ships the 16px baseline; a brief that measured something else at the source overrides it in the same block.
 
 ### Flux mapping
 - `<flux:heading level="1">` → H1 hero (one per page)
