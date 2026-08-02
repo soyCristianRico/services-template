@@ -66,6 +66,12 @@ Para cada entidad propuesta, resolver y dejar por escrito:
   el admin y se reaprovecha en la ficha, en la tarjeta del listado y en el OG sin
   duplicar el fichero. Una ruta en un `string` no da nada de eso.
 
+  Junto a la colección, **declarar sus conversiones** (`registerMediaConversions`,
+  `nonQueued`) al doble del tamaño al que se pinta cada uso. El original del origen
+  suele ser una imagen de compartir de 1200px de ancho, y servirla en una tarjeta de
+  350 es peso de más y un reescalado que se nota. Se declara una vez en el modelo, no
+  en cada vista.
+
 ### 3 — Presentar la propuesta y PARAR
 Mostrar el esquema propuesto (tabla de campos por entidad, enums, relaciones) y
 **esperar validación explícita** antes de escribir nada. Señalar de forma destacada:

@@ -63,16 +63,10 @@ Rellenar el registro esqueleto de esa página con su copy real, meta title/descr
 atributos (`custom_fields`) e imágenes, tomados del origen. Reflejar el estado
 activo/inactivo del origen.
 
-**El inventario se queda corto más veces de las que parece.** Suele traer los titulares
-y las listas, y faltarle la prosa: la entradilla del hero, el texto que acompaña a cada
-epígrafe, el cuerpo del artículo. Cuando falte, se saca del origen —que es la fuente—,
-no se inventa ni se deja el hueco.
-
-**Y lo que trae puede venir dañado.** Un volcado de base de datos pierde el escapado por
-el camino: saltos de línea convertidos en `rn` literal a mitad de frase, unidades
-escritas en unos registros y ausentes en otros. Se limpia al guardarlo, y **sólo cuando
-el patrón es inequívoco** — partir por `rn` doble reconstruye párrafos, pero partir por
-uno suelto rompe «gobierno» e «invierno».
+**El inventario puede quedarse corto.** Suele traer bien los titulares y las listas, y
+faltarle la prosa. Cuando falte, o venga con marcas de escapado a mitad de frase, se
+saca del origen —que es la fuente— y **se corrige también en el inventario**: si solo
+se arregla aquí, la siguiente página tropieza con lo mismo.
 
 El registro puede ser de una entidad del template (servicio, landing, página estática,
 entrada de blog) o de una entidad creada por `/services-model-entities` y listada en
@@ -86,13 +80,12 @@ del registro; aquí solo se colocan con ese nombre. Nunca enlazar al dominio de 
 columna de texto. Una imagen que el origen usa en varios sitios se descarga una vez:
 la ficha, la tarjeta del listado y el OG leen todos del mismo registro.
 
-**El original no se sirve tal cual.** Lo que trae el origen suele ser una OG de
-1200×630, y pintarla en una tarjeta de 350px es peso de más y un reescalado que se
-nota. Registrar una conversión en el modelo (`registerMediaConversions`, `nonQueued`)
-al doble del tamaño de pintado y leerla con `getFirstMediaUrl('col', 'card')`. Añadir
-`width`, `height` y `loading="lazy"` al `<img>`: sin ellos el listado da saltos
-mientras cargan. Al terminar, `php artisan media-library:regenerate` para las que ya
-estuvieran enganchadas.
+**El original no se pinta tal cual.** Leer la conversión que declara el modelo
+(`getFirstMediaUrl('col', 'card')`), no el fichero original. Al `<img>` le hacen falta
+`width`, `height` y `loading="lazy"`: sin los dos primeros el listado da saltos
+mientras cargan. Si la entidad aún no tiene la conversión que hace falta, se añade al
+modelo —es donde vive— y después `php artisan media-library:regenerate` para las
+imágenes ya enganchadas.
 
 Comprobarlo midiendo, no mirando: `naturalWidth` frente al ancho pintado. Si la
 proporción pasa de ~2×, sobra imagen.
@@ -162,11 +155,10 @@ de pasar a la siguiente. Si hay que corregir, iterar sobre esta misma página.
 - **Cuando el origen contradiga a `DESIGN.md`, manda el origen** — el contrato se
   extrajo del origen y puede estar equivocado. Corregir `DESIGN.md` en la misma pasada
   y decir qué se cambió, o el siguiente clonado repetirá el error.
-- **El origen sirve una sola versión de las páginas con estado.** Una ficha que cambia
-  según esté próxima, agotada o disponible resuelve esa condición en servidor: los otros
-  estados **no aparecen en su HTML** y no hay forma de scrapearlos. Se pregunta al
-  cliente y se anota en el mapa junto al que sí se pudo observar.
-- **Lo que no está en el sitemap también es la web.** La 404, las páginas de gracias y
-  las de descarga no salen en ningún listado y se olvidan. Están en el mapa: hay que
-  mirarlo, no fiarse del sitemap.
+- **La lista de páginas es el mapa, no el sitemap.** La 404, las de gracias y las de
+  descarga no salen en ningún listado del origen y se olvidan justo por eso.
+- **Una plantilla con estados solo se pudo observar en uno.** El origen resuelve la
+  condición en servidor, así que los demás estados no están en ningún HTML. El mapa
+  trae el observado y la respuesta del cliente sobre el resto: construir la maqueta
+  contra el único visible deja los otros sin plantilla.
 - Al terminar todas las páginas: verificación global con `/services-verify`.

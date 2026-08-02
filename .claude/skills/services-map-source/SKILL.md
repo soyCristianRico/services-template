@@ -125,6 +125,17 @@ bloques de servicios, prueba social, FAQ, CTA, footer…) con su copy y las imá
 Atributos de servicio (kVA, m³, dB…) → `custom_fields`. No inventar: sin verificar,
 `null`.
 
+**Copy es todo el texto, no solo los titulares.** Es fácil recoger encabezados y listas
+—que se extraen bien— y dejarse la prosa: la entradilla del hero, el párrafo que
+acompaña a cada epígrafe, el cuerpo del artículo. Si falta, el clonado tiene que
+volver al origen a buscarlo página por página, y ahí es donde se inventa.
+
+**Limpiar el texto al guardarlo, no después.** Un volcado de base de datos pierde el
+escapado por el camino y deja marcas literales a mitad de frase donde había un salto de
+línea. Se arregla aquí, una vez, y **solo cuando el patrón es inequívoco**: reconstruir
+párrafos por la marca doble es seguro, partir por una suelta destroza las palabras que
+la contienen. Ante la duda, se deja el texto crudo y se anota como observación.
+
 **Unión sobre todas las instancias, no una de muestra.** Descargar *todas* las páginas
 de un tipo y quedarse con la **unión** de secciones, campos y facetas observadas,
 anotando en cuántas aparece cada una (`11/14`). Es barato — un `curl` por URL — y es lo
@@ -246,6 +257,11 @@ Preguntar poco, al final, y nunca a mitad del rastreo. La regla:
   - **Capacidades sin datos**: el origen soporta algo que ninguna página usa hoy
     (un segundo bloque de convocatoria, un estado que nadie tiene). Invisible por
     definición; solo el cliente sabe si piensa usarlo.
+  - **Los otros estados de una página con estado.** Una ficha que se pinta distinta
+    según esté disponible, agotada o próxima resuelve esa condición **en el servidor**:
+    su HTML trae un solo estado y los demás no existen en ninguna URL. No es que no se
+    hayan encontrado — no se pueden encontrar. Anotar el estado observado y preguntar
+    cómo son los otros, o la plantilla se construye contra el único caso visible.
   - **Qué pasa al enviar un formulario.** Se ven los campos; **no** se ve el efecto:
     redirección o mensaje en línea, página de gracias, correo de aviso interno, correo
     al usuario, alta en CRM. Nada de eso viaja al navegador y **enviar el formulario
