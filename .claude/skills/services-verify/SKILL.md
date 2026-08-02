@@ -65,6 +65,10 @@ Es el bloque donde más se escapa, porque una faceta que falta no rompe nada vis
 Comparar meta title, meta description y presencia de JSON-LD por tipo de página.
 Confirmar que las inactivas devuelven 404 y no salen en el sitemap.
 
+Comprobar también las **redirecciones que el mapa recogió del origen**: una muestra
+tiene que responder con el mismo destino que allí. Es lo que impide que años de
+historial se conviertan en 404 el día que se migra el dominio.
+
 ### 6 — Visual
 `browser_take_screenshot` de home y páginas tipo en ambos sitios y comparar layout,
 jerarquía y marca. Diferencias de píxel por fuentes/render no cuentan como fallo.

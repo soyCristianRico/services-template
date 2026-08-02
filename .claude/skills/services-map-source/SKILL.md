@@ -162,6 +162,21 @@ Una sola página de muestra da la *forma* de la plantilla; solo la unión da su 
   y trae los datos de ahí. Playwright es el último recurso, no el primero — solo si no
   hay API ni fuente de datos alcanzable.
 
+### 3b — Recoger las redirecciones que ya tiene el origen
+Un sitio con años acumula redirecciones de URLs que cambiaron, secciones retiradas y
+campañas viejas. **No se ven en ninguna página** y son historial de posicionamiento: si
+no se recogen aquí, el día que se migre el dominio esas direcciones dejan de resolver
+y se pierde lo que valieran.
+
+Salen del volcado (cada plugin de redirecciones guarda las suyas en su tabla; el gestor
+además redirige por su cuenta los slugs que se cambiaron alguna vez, y eso vive en los
+metadatos de cada entrada) o del fichero de configuración del servidor, que **no está
+en la base de datos** y se pide aparte.
+
+Anotarlas en el inventario como `redirecciones`, con origen, destino y tipo, y marcar
+las que apuntan a una URL que el clon no va a tener: esas hay que redirigir a otro
+sitio o se convierten en 404 el día del cambio.
+
 ### 4 — Registrar comportamiento, no implementación
 Cuando una página tenga listado filtrable, paginación, buscador o calendario, documentar
 **qué hace y con qué facetas** (campos de filtro, valores posibles, orden, tamaño de
