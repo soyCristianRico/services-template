@@ -65,6 +65,24 @@ Es el bloque donde más se escapa, porque una faceta que falta no rompe nada vis
 Comparar meta title, meta description y presencia de JSON-LD por tipo de página.
 Confirmar que las inactivas devuelven 404 y no salen en el sitemap.
 
+**El sitemap se comprueba contra el inventario, no contra sí mismo.** Es el fallo caro
+de este bloque: un sitemap bien formado, con `lastmod` correcto y sin errores, puede
+dejarse fuera el catálogo entero si se construye recorriendo rutas sin parámetros —las
+fichas cuelgan de rutas con `{slug}` y ese barrido no las ve. Cruzar URL a URL contra
+las indexables del mapa y contar; que responda 200 y valide no dice nada del contenido.
+
+**Y las `noindex` no pueden estar en el sitemap.** Si una página emite `noindex` y
+aparece listada, la regla de indexabilidad vive duplicada en dos sitios que ya
+discrepan; el arreglo es unificarla, no quitarla del sitemap a mano.
+
+> **Del JSON-LD, aquí solo se verifica la paridad**, y contra el campo `jsonld` del
+> inventario. Si ese campo no está, **no se da por bueno**: se mide el origen y se
+> reporta que el mapa está incompleto. Dar «OK» porque el mapa no traía nada contra qué
+> comparar es el modo silencioso de fallar de este bloque.
+>
+> Que el grafo esté a la altura de lo que la página **es** —y no solo a la del origen—
+> no se juzga aquí: es `/services-structured-data`.
+
 Comprobar también las **redirecciones que el mapa recogió del origen**: una muestra
 tiene que responder con el mismo destino que allí. Es lo que impide que años de
 historial se conviertan en 404 el día que se migra el dominio.
@@ -82,3 +100,4 @@ visual) con estado y lista priorizada de desajustes. Adónde vuelve cada hueco:
 - falta una página entera, o el mapa no trae `papel` → `/services-map-source`
 - falta un campo o una opción de faceta en el esquema → `/services-model-entities`
 - una página no está en `clone-content.json` → `/services-clone-page` sobre esa página
+- el grafo JSON-LD no describe lo que la página es → `/services-structured-data`

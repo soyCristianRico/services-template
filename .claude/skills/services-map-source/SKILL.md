@@ -147,6 +147,21 @@ anotando en cuántas aparece cada una (`11/14`). Es barato — un `curl` por URL
 
 Una sola página de muestra da la *forma* de la plantilla; solo la unión da su *esquema*.
 
+**Anotar también los datos estructurados.** Por cada página, la lista de tipos de nodo
+que emite en `application/ld+json`:
+
+```
+jsonld: ["FAQPage"]          # una entrada por @type del @graph, [] si no emite nada
+```
+
+Es barato —un `querySelectorAll` por página— y sin él **nadie puede verificarlo
+después**: `/services-verify` compara contra este mapa, así que una página sin el campo
+le sale conforme por ausencia de dato, no por coincidir. Un `[]` explícito dice «medido,
+no emite»; que falte la clave no dice nada.
+
+No juzgar aquí si está bien o mal ni proponer mejoras: eso es `/services-structured-data`.
+Aquí solo se registra qué hay.
+
 **Tres reglas que evitan los errores habituales:**
 
 - **Enlaces: extraer el `href`, nunca deducir la URL del texto.** Del menú y del footer
