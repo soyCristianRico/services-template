@@ -40,7 +40,7 @@ return [
     'entity' => [
         'name' => env('LEGAL_ENTITY_NAME', 'RUK MAR, COOP. V.'),
         'address' => env('LEGAL_ENTITY_ADDRESS', 'Avenida Primado Reig 129 D, 46020 València, España'),
-        'email' => env('LEGAL_EMAIL', $host !== '' ? 'contacto@'.$host : null),
+        'email' => env('LEGAL_EMAIL', $host !== '' ? 'hola@'.$host : null),
     ],
 
     /*
