@@ -3,9 +3,6 @@
 declare(strict_types=1);
 
 use App\Models\Category;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Category', function () {
     describe('tree relationships', function () {

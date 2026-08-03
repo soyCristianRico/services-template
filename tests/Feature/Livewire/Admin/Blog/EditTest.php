@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 use App\Models\BlogPost;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create());

@@ -9,12 +9,9 @@ use App\Models\Lead;
 use App\Models\User;
 use App\Notifications\Lead\LeadCapturedNotification;
 use App\Services\Lead\LeadService;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
-
-uses(RefreshDatabase::class);
 
 describe('LeadService', function () {
     describe('capture', function () {

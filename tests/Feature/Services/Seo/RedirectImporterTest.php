@@ -5,9 +5,6 @@ declare(strict_types=1);
 use App\Enums\RedirectMatchType;
 use App\Models\Redirect;
 use App\Services\Seo\RedirectImporter;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('RedirectImporter', function (): void {
     describe('parse', function (): void {

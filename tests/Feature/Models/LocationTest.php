@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 use App\Enums\LocationType;
 use App\Models\Location;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('City', function () {
     describe('tree relationships', function () {

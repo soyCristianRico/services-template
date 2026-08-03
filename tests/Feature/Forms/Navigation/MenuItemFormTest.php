@@ -5,11 +5,8 @@ declare(strict_types=1);
 use App\Enums\MenuItemType;
 use App\Enums\MenuLocation;
 use App\Models\MenuItem;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\Support\Livewire\MenuItemFormTestComponent;
-
-uses(RefreshDatabase::class);
 
 describe('MenuItemForm', function (): void {
     describe('setMenuItem', function (): void {

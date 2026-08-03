@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 use App\Models\Landing;
 use App\Models\Lead;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
     Mail::fake();

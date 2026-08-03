@@ -8,9 +8,6 @@ use App\Models\Landing;
 use App\Models\Lead;
 use App\Models\Location;
 use App\Notifications\Lead\LeadCapturedNotification;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('LeadCapturedNotification', function () {
     describe('via', function () {

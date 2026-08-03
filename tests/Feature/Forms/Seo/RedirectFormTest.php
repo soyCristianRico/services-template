@@ -6,11 +6,8 @@ use App\Enums\RedirectMatchType;
 use App\Enums\RedirectStatusCode;
 use App\Livewire\Forms\Seo\RedirectForm;
 use App\Models\Redirect;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\Support\Livewire\RedirectFormTestComponent;
-
-uses(RefreshDatabase::class);
 
 /**
  * A form filled in but not saved, which is the state the tester on the edit

@@ -1,6 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Tests\TestCase;
 
 /*
@@ -14,8 +14,11 @@ use Tests\TestCase;
 |
 */
 
+// `Lazily` en vez de `RefreshDatabase` a secas: la transacción sólo se abre
+// cuando el test toca de verdad la base, así que los que no la tocan —render de
+// vistas, enums, helpers— dejan de pagar la migración.
 pest()->extend(TestCase::class)
- // ->use(RefreshDatabase::class)
+    ->use(LazilyRefreshDatabase::class)
     ->in('Feature');
 
 /*

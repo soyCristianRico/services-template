@@ -3,9 +3,6 @@
 declare(strict_types=1);
 
 use App\Models\NotFoundLog;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('PruneNotFoundLogsCommand', function (): void {
     describe('handle', function (): void {

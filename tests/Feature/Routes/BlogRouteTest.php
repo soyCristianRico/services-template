@@ -3,9 +3,6 @@
 declare(strict_types=1);
 
 use App\Models\BlogPost;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Blog routes', function () {
     describe('/blog (index)', function () {

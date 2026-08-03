@@ -7,9 +7,6 @@ use App\Models\Category;
 use App\Models\Landing;
 use App\Models\Location;
 use Carbon\CarbonInterface;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Landing', function (): void {
     describe('slug auto-generation', function (): void {

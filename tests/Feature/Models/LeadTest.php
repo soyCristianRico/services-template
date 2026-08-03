@@ -5,9 +5,6 @@ declare(strict_types=1);
 use App\Enums\LeadStatus;
 use App\Models\Landing;
 use App\Models\Lead;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Lead', function () {
     describe('relations', function () {

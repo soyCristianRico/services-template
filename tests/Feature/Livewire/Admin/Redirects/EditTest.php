@@ -7,10 +7,7 @@ use App\Enums\RedirectStatusCode;
 use App\Models\NotFoundLog;
 use App\Models\Redirect;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->actingAs(User::factory()->create());

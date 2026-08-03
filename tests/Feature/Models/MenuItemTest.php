@@ -5,9 +5,6 @@ declare(strict_types=1);
 use App\Enums\MenuItemType;
 use App\Enums\MenuLocation;
 use App\Models\MenuItem;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('MenuItem', function (): void {
     describe('children', function (): void {

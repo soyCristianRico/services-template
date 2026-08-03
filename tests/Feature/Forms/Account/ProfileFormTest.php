@@ -3,11 +3,8 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\Support\Livewire\ProfileFormTestComponent;
-
-uses(RefreshDatabase::class);
 
 describe('ProfileForm', function (): void {
     beforeEach(function (): void {

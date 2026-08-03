@@ -6,10 +6,7 @@ use App\Enums\MenuItemType;
 use App\Enums\MenuLocation;
 use App\Models\MenuItem;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function (): void {
     $this->actingAs(User::factory()->create());

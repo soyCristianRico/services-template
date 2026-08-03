@@ -6,9 +6,6 @@ use App\Models\Category;
 use App\Models\Landing;
 use App\Models\Location;
 use App\Models\Page;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Landing route', function (): void {
     describe('resolution', function (): void {

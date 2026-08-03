@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 use App\Mcp\Servers\ServicesServer;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Routing\RouteCollection;
 use Illuminate\Support\Facades\Route;
-
-uses(RefreshDatabase::class);
 
 /**
  * The geographic dimension is a switch, not a fork of the codebase: every file

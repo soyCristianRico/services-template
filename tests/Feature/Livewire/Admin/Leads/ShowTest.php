@@ -6,10 +6,7 @@ use App\Enums\LeadStatus;
 use App\Models\Landing;
 use App\Models\Lead;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
-
-uses(RefreshDatabase::class);
 
 beforeEach(function () {
     $this->actingAs(User::factory()->create());

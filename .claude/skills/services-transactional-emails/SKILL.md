@@ -86,6 +86,13 @@ datos escrito como líneas consecutivas llega como «Nombre: X Email: Y Teléfon
 tirón. Los campos se pasan a la vista como array y se separan con `<br>`, sin ponérselo
 al último.
 
+**Y ese salto condicional va como eco, nunca como directiva al final de la línea.** PHP
+se come el salto de línea que sigue a un cierre de bloque, así que un `@if` puesto ahí
+para saltarse el último `<br>` se lleva por delante el fin de línea: el bloque de datos
+deja de cerrar y se pega al párrafo siguiente. Un ternario impreso corta la línea de
+verdad; la directiva no. Es el fallo que aparece **justo después** de arreglar el
+anterior, y por eso va aquí al lado.
+
 ### 4 — Probar
 Test por correo: que se encola con el evento, que va a quien debe y que el cuerpo
 lleva lo que tiene que llevar.

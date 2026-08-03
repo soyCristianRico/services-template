@@ -3,12 +3,9 @@
 declare(strict_types=1);
 
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Tests\Support\Livewire\PasswordFormTestComponent;
-
-uses(RefreshDatabase::class);
 
 describe('PasswordForm', function (): void {
     beforeEach(function (): void {

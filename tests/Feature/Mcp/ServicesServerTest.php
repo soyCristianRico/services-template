@@ -38,9 +38,6 @@ use App\Models\Lead;
 use App\Models\Location;
 use App\Models\Page;
 use App\Models\Service;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('ServicesServer', function (): void {
     describe('Categories', function (): void {

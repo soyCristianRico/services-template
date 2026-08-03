@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 use App\Enums\LandingStatus;
 use App\Models\Landing;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 
 use function Pest\Laravel\artisan;
-
-uses(RefreshDatabase::class);
 
 describe('PublishScheduledLandingsCommand', function (): void {
     describe('handle', function (): void {

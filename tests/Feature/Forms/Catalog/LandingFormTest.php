@@ -5,11 +5,8 @@ declare(strict_types=1);
 use App\Enums\LandingStatus;
 use App\Models\Category;
 use App\Models\Landing;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\Support\Livewire\LandingFormTestComponent;
-
-uses(RefreshDatabase::class);
 
 describe('LandingForm', function (): void {
     describe('initialization', function (): void {

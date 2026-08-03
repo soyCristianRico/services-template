@@ -5,9 +5,6 @@ declare(strict_types=1);
 use App\Models\BlogPost;
 use Carbon\Carbon;
 use Illuminate\Database\UniqueConstraintViolationException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('BlogPost', function () {
     describe('casts', function () {

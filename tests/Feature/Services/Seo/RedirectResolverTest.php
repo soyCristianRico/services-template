@@ -6,9 +6,6 @@ use App\Enums\RedirectMatchType;
 use App\Enums\RedirectStatusCode;
 use App\Models\Redirect;
 use App\Services\Seo\RedirectResolver;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 function resolver(): RedirectResolver
 {

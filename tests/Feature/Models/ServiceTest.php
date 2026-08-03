@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 use App\Models\Category;
 use App\Models\Service;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileCannotBeAdded;
-
-uses(RefreshDatabase::class);
 
 describe('Service', function () {
     describe('relations', function () {

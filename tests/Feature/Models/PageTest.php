@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 use App\Models\Page;
 use Illuminate\Database\UniqueConstraintViolationException;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('Page', function () {
     describe('casts', function () {

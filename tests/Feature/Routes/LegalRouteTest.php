@@ -3,9 +3,6 @@
 declare(strict_types=1);
 
 use App\Models\Page;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-
-uses(RefreshDatabase::class);
 
 describe('LegalRoute', function (): void {
     describe('show', function (): void {

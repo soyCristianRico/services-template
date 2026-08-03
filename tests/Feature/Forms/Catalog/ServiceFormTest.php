@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 use App\Models\Category;
 use App\Models\Service;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\Support\Livewire\ServiceFormTestComponent;
-
-uses(RefreshDatabase::class);
 
 describe('ServiceForm', function (): void {
     describe('rules', function (): void {
