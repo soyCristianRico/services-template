@@ -103,19 +103,28 @@
     font-size: 1rem;
 }
 
-/* La escala del admin. Todo lo de arriba está acotado a `[data-public-site]`, así
-   que el panel se quedaba con lo que trae Flux de fábrica: 14px de texto y de
-   celda. Se iguala el tamaño al que se lee; la forma del botón se deja como la
-   trae Flux, que es la que usa también la parte pública de este sitio.
+/* El admin NO lleva escala propia de texto, y es a propósito.
 
-   Se engancha por los atributos que Flux deja en el marcado, no por `table` o
-   `button` a secas: estas reglas van SIN capa y le ganarían a cualquier `text-xs`
-   puesto a propósito dentro. */
-[data-admin-site] [data-flux-text],
-[data-admin-site] [data-flux-cell],
-[data-admin-site] [data-flux-column] {
-    font-size: 1rem;
-}
+   Flux ya trae una escala pensada para un panel denso y todos sus componentes se
+   apoyan en ella: `flux:input` y `flux:select` miden 14px en escritorio,
+   `flux:table.cell` y `flux:table.column` también, `flux:badge` baja a 12px y
+   `flux:text` reserva el 12px para las etiquetas (`size="sm"` o un `text-xs` a
+   mano). Subir aquí sólo el texto y las celdas rompía esa escala por la mitad: la
+   tabla se leía a 16px justo debajo de una barra de filtros que seguía a 14px, y
+   el relleno de la fila (`py-3`, en píxeles fijos) no acompañaba.
+
+   Y de paso anulaba todas las salidas de emergencia. Las utilidades de Tailwind
+   viven en la capa `utilities`, así que una regla SIN capa como aquélla les gana
+   pase lo que pase con la especificidad: un `text-xs` puesto adrede —las
+   etiquetas de una ficha, las notas al pie de los formularios— acababa también a
+   16px, encima de un valor del mismo tamaño y sin jerarquía ninguna.
+
+   Si algún día el panel entero tiene que leerse más grande, el mando es UNO y va
+   en la raíz (`html:has(body[data-admin-site]) { font-size: … }`): así crecen a la
+   vez texto, controles, relleno e iconos, que se miden en `rem`. Los puntos de
+   corte no se mueven, porque el `rem` de una media query se resuelve contra los
+   16px iniciales y no contra lo que declare la raíz. Lo que no vale es empujar
+   componentes sueltos fuera de la escala. */
 
 /* Alpine's FOUC guard. Without it x-cloak is inert and elements that start
    hidden (the cookie banner) paint until Alpine boots — most visible on error

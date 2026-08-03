@@ -52,21 +52,29 @@ describe('AdminLayout', function (): void {
 
     describe('scale', function (): void {
         /**
-         * The brand scale in app.css is scoped to `[data-public-site]`, so the
-         * admin only gets its own rules if the body carries the attribute they
-         * hang off. Drop it and the panel silently falls back to Flux's 14px.
+         * The brand scale in app.css is scoped to `[data-public-site]`, so this
+         * attribute is what keeps it from reaching the panel. Nothing hangs off
+         * it today; it stays as the one hook a future root-level size dial
+         * would need (`html:has(body[data-admin-site])`).
          */
         it('should mark the body as the admin', function (): void {
             expect(renderAdminLayout('/admin'))->toContain('data-admin-site');
         });
 
-        it('should size the admin text and tables in app.css', function (): void {
+        /**
+         * The panel reads at Flux's own scale, which every one of its controls
+         * is built around. Pushing single components off it —text at 16px over
+         * a 14px filter bar, or a `text-xs` label flattened up to the size of
+         * the value under it— is the bug this guards against, and an unlayered
+         * `font-size` on the Flux hooks is the only way to cause it.
+         */
+        it('should leave the Flux type scale alone', function (): void {
             $css = (string) file_get_contents(resource_path('css/app.css'));
 
             expect($css)
-                ->toContain('[data-admin-site] [data-flux-text]')
-                ->toContain('[data-admin-site] [data-flux-cell]')
-                ->toContain('[data-admin-site] [data-flux-column]');
+                ->not->toContain('[data-admin-site] [data-flux-text]')
+                ->not->toContain('[data-admin-site] [data-flux-cell]')
+                ->not->toContain('[data-admin-site] [data-flux-column]');
         });
     });
 
