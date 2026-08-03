@@ -42,6 +42,34 @@ describe('AdminLayout', function (): void {
         });
     });
 
+    describe('public_site_link', function (): void {
+        it('should offer a way out to the public site', function (): void {
+            $html = renderAdminLayout('/admin');
+
+            expect($html)->toMatch('/<a href="'.preg_quote(url('/'), '/').'"[^>]*target="_blank"[^>]*>(?:(?!<\/a>).)*Ver la web/s');
+        });
+    });
+
+    describe('scale', function (): void {
+        /**
+         * The brand scale in app.css is scoped to `[data-public-site]`, so the
+         * admin only gets its own rules if the body carries the attribute they
+         * hang off. Drop it and the panel silently falls back to Flux's 14px.
+         */
+        it('should mark the body as the admin', function (): void {
+            expect(renderAdminLayout('/admin'))->toContain('data-admin-site');
+        });
+
+        it('should size the admin text and tables in app.css', function (): void {
+            $css = (string) file_get_contents(resource_path('css/app.css'));
+
+            expect($css)
+                ->toContain('[data-admin-site] [data-flux-text]')
+                ->toContain('[data-admin-site] [data-flux-cell]')
+                ->toContain('[data-admin-site] [data-flux-column]');
+        });
+    });
+
     describe('nav_groups', function (): void {
         it('should keep every group collapsed outside its section', function (): void {
             expect(openNavGroups(renderAdminLayout('/admin')))->toBe(0);

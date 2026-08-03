@@ -15,6 +15,8 @@ Route::livewire('/blog/{slug}', 'pages::blog.show')
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::livewire('/', 'pages::admin.dashboard')->name('dashboard');
 
+    Route::livewire('/profile', 'pages::admin.profile')->name('profile');
+
     if (config('site.locations')) {
         Route::livewire('/locations', 'pages::admin.locations.index')->name('locations.index');
         Route::livewire('/locations/create', 'pages::admin.locations.edit')->name('locations.create');

@@ -9,7 +9,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-zinc-50 text-zinc-900 antialiased">
+<body class="min-h-screen bg-zinc-50 text-zinc-900 antialiased" data-admin-site>
     <flux:sidebar sticky stashable class="border-r border-zinc-200 bg-white">
         <flux:sidebar.toggle class="lg:hidden" icon="x-mark" inset="left" />
 
@@ -46,6 +46,12 @@
         </flux:navlist>
 
         <flux:spacer />
+
+        <flux:navlist variant="outline">
+            <flux:navlist.item icon="arrow-top-right-on-square" href="{{ url('/') }}" target="_blank">
+                Ver la web
+            </flux:navlist.item>
+        </flux:navlist>
 
         <flux:dropdown position="top" align="start" class="max-lg:hidden">
             <flux:profile :name="auth()->user()?->name ?? 'Admin'" :initials="strtoupper(substr(auth()->user()?->name ?? 'A', 0, 1))" />

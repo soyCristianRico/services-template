@@ -103,6 +103,20 @@
     font-size: 1rem;
 }
 
+/* La escala del admin. Todo lo de arriba está acotado a `[data-public-site]`, así
+   que el panel se quedaba con lo que trae Flux de fábrica: 14px de texto y de
+   celda. Se iguala el tamaño al que se lee; la forma del botón se deja como la
+   trae Flux, que es la que usa también la parte pública de este sitio.
+
+   Se engancha por los atributos que Flux deja en el marcado, no por `table` o
+   `button` a secas: estas reglas van SIN capa y le ganarían a cualquier `text-xs`
+   puesto a propósito dentro. */
+[data-admin-site] [data-flux-text],
+[data-admin-site] [data-flux-cell],
+[data-admin-site] [data-flux-column] {
+    font-size: 1rem;
+}
+
 /* Alpine's FOUC guard. Without it x-cloak is inert and elements that start
    hidden (the cookie banner) paint until Alpine boots — most visible on error
    pages, which never get the style block Livewire auto-injects. */
