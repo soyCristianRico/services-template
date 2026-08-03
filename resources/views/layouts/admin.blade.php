@@ -32,6 +32,7 @@
             <flux:navlist.group expandable heading="Contenido">
                 <flux:navlist.item href="{{ url('/admin/blog') }}">Blog</flux:navlist.item>
                 <flux:navlist.item href="{{ url('/admin/pages') }}">Páginas</flux:navlist.item>
+                <flux:navlist.item href="{{ url('/admin/menus') }}">Menús</flux:navlist.item>
             </flux:navlist.group>
             <flux:navlist.item icon="inbox" href="{{ url('/admin/leads') }}">Leads</flux:navlist.item>
         </flux:navlist>

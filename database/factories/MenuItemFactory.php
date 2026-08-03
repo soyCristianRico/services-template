@@ -31,4 +31,20 @@ class MenuItemFactory extends Factory
             'is_active' => true,
         ];
     }
+
+    /**
+     * A submenu entry lives in the same menu as the item it hangs from.
+     */
+    public function childOf(MenuItem $parent): self
+    {
+        return $this->state([
+            'parent_id' => $parent->id,
+            'location' => $parent->location,
+        ]);
+    }
+
+    public function in(MenuLocation $location): self
+    {
+        return $this->state(['location' => $location]);
+    }
 }

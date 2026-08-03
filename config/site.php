@@ -28,4 +28,26 @@ return [
 
     'locations' => env('SITE_LOCATIONS', true),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Menu dynamic blocks
+    |--------------------------------------------------------------------------
+    |
+    | A menu item of type «dynamic block» does not carry a URL: it names a block
+    | that the layout knows how to paint (a mega-dropdown listing the catalog,
+    | for instance). Which blocks exist is a property of THIS site's views, so
+    | the list lives here and the admin offers exactly these — otherwise the
+    | editor would have to type an identifier that only the templates know
+    | about, and a typo would render an empty dropdown with nothing to explain
+    | it.
+    |
+    | Key = the `source` stored on the item. Value = what the admin shows.
+    |
+    | Empty by default: the template's public layout renders plain links only,
+    | so the admin hides the «dynamic block» type until a site declares one.
+    |
+    */
+
+    'menu_blocks' => [],
+
 ];

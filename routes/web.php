@@ -55,6 +55,10 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::livewire('/pages', 'pages::admin.pages.index')->name('pages.index');
     Route::livewire('/pages/create', 'pages::admin.pages.edit')->name('pages.create');
     Route::livewire('/pages/{page}/edit', 'pages::admin.pages.edit')->name('pages.edit');
+
+    Route::livewire('/menus', 'pages::admin.menus.index')->name('menus.index');
+    Route::livewire('/menus/create', 'pages::admin.menus.edit')->name('menus.create');
+    Route::livewire('/menus/{menuItem}/edit', 'pages::admin.menus.edit')->name('menus.edit');
 });
 
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
