@@ -90,6 +90,21 @@ imágenes ya enganchadas.
 Comprobarlo midiendo, no mirando: `naturalWidth` frente al ancho pintado. Si la
 proporción pasa de ~2×, sobra imagen.
 
+**Los embeds son contenido, no maqueta.** Un iframe de mapa, de vídeo, de calendario o
+de reservas lleva en su `src` **qué entidad** enseña —un identificador de ficha, un ID
+de vídeo, un calendario concreto—, y eso no se deduce de los datos que uno tenga a mano.
+Se copia el `src` del origen tal cual. Reconstruirlo a partir de la dirección postal,
+del nombre o del título parece equivalente y no lo es: un embed de mapa montado sobre la
+dirección deja de señalar el negocio y devuelve una búsqueda de barrio con veinte pines
+de comercios ajenos —y el HTML se ve impecable, porque sigue habiendo un mapa. La URL va
+a configuración si el embed es del sitio entero, y a un campo del registro si es de
+esa ficha en concreto — en cuyo caso viaja al seeder de contenido como cualquier otro
+dato, o se pierde al desplegar. Nunca incrustada en el Blade.
+
+Y **su alto también es del origen**: cambiar un alto fijo por una proporción parece una
+mejora responsive, pero un `aspect-*` que en escritorio queda bien deja el bloque en una
+franja de 150px en móvil. Si el origen fija píxeles, es una decisión, no un descuido.
+
 ### 2 — Comportamiento (solo si la página es un listado)
 Si el mapa registró listado filtrable, buscador, paginación o calendario en esta
 página, implementarlo aquí: componente Livewire + consulta Eloquent. Las facetas, su
@@ -98,6 +113,10 @@ salen del esquema** (enum o tabla), no de los valores que se vieron en el origen
 
 No replicar la solución técnica del origen. Que allí lo resuelva una API interna es un
 detalle suyo: el requisito es el comportamiento, no el mecanismo.
+
+Eso vale para lo que el origen **calcula**, no para lo que el origen **identifica**. El
+`src` de un embed o el ID de un formulario externo señalan una entidad concreta: ahí el
+valor literal sí es el requisito, y re-derivarlo es inventarlo.
 
 ### 3 — Diseño
 Replicar en Blade las secciones concretas de esa página (según el mapa de
@@ -149,6 +168,13 @@ compararlos con los de la reconstrucción. La mitad de los desajustes que el ojo
 perdona salen aquí. Comparar también la posición vertical de cada titular y su número
 de líneas: es lo que detecta un contenedor o una tipografía que no cuadran.
 
+**Los embeds no se pueden medir desde fuera**: el iframe es de otro dominio y
+`browser_evaluate` no entra, así que la captura enseña «un mapa» y da por bueno
+cualquier mapa. Se verifican por el `src` —el del origen y el de la reconstrucción
+tienen que apuntar a la misma entidad— y pidiendo esa URL con `curl`: la respuesta dice
+si el proveedor devuelve la ficha única que se espera o una lista de resultados, que es
+justo la diferencia que la imagen no delata.
+
 Si la página tiene listado, **ejercitar los filtros en el origen antes de darlos por
 buenos**: puede parecer roto y estar filtrando por otro campo. Comprobar que la
 reconstrucción devuelve lo mismo para al menos una combinación de facetas.
@@ -163,7 +189,7 @@ de pasar a la siguiente. Si hay que corregir, iterar sobre esta misma página.
 
 - Una página por ejecución. No encadenar páginas sin validación intermedia.
 - La página no se da por hecha si no está en `clone-content.json`.
-- No inventar copy: lo que no esté en el origen, no se pone.
+- No inventar copy **ni URLs de embed**: lo que no esté en el origen, no se pone.
 - Trabajar sobre el registro esqueleto existente; no recrear estructura.
 - **La cabecera y el pie no son parte de una página.** Son chrome compartido: si están
   mal, decirlo y seguir, no arreglarlos aquí.

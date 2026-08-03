@@ -58,9 +58,33 @@ siguiendo la estructura del correo de lead que ya trae la plantilla.
 
 - **Se encolan**, no se envían en la petición: un fallo de correo no puede tumbar el
   envío de un formulario ni hacer esperar a quien lo rellenó.
-- **Destinatario del equipo por configuración**, nunca escrito en el código.
+- **Destinatario del equipo por configuración**, nunca escrito en el código, y
+  **admitiendo varias direcciones separadas por comas**. Casi siempre son dos —la del
+  cliente y la de la agencia—, y un lead que llega a un solo buzón es un lead que nadie
+  contesta la semana que esa persona no está.
 - **Nada de datos personales en el asunto.**
+- **El asunto dice si el correo pide una acción.** Si todos los formularios llegan como
+  «Nuevo lead: nombre», un contacto con una pregunta se lee igual que un alta de
+  newsletter que no necesita nada, y se pierde entre ellas.
 - Lo que entregue un fichero protegido va por enlace firmado con caducidad, no adjunto.
+
+**Dos nombres que no se pueden usar en un Mailable**: un método `subject()` o una
+propiedad `$replyTo`. Los dos existen ya en `Illuminate\Mail\Mailable` y redeclararlos
+es un fatal de PHP **al cargar la clase**, antes de ejecutar nada. Pest se muere sin
+imprimir una sola línea y devuelve código 2, así que parece que revienta el entorno y no
+el código. `subjectLine()` y `$teamInbox` valen igual.
+
+**La plantilla se publica y se viste**: `php artisan vendor:publish --tag=laravel-mail`
+y luego el tema con los tokens del contrato visual del proyecto. Un correo no carga la
+hoja de estilos del sitio, así que los colores van a pelo en el CSS. Tres cosas se
+escapan siempre: el logo apaisado aplastado por los 75×75 cuadrados que trae Laravel, el
+radio de los botones —si en el sitio son pastilla, en el correo también— y el pie, que
+por defecto no lleva ni dirección ni teléfono ni enlace a privacidad.
+
+**El markdown de los correos pega las líneas seguidas en un solo párrafo.** Un bloque de
+datos escrito como líneas consecutivas llega como «Nombre: X Email: Y Teléfono: Z» del
+tirón. Los campos se pasan a la vista como array y se separan con `<br>`, sin ponérselo
+al último.
 
 ### 4 — Probar
 Test por correo: que se encola con el evento, que va a quien debe y que el cuerpo
@@ -69,6 +93,26 @@ lleva lo que tiene que llevar.
 Y una prueba de punta a punta por evento en un entorno real: **con la cola corriendo**.
 Un mailable correcto con el worker mal configurado se queda encolado para siempre sin
 que nada avise, que es como se pierden los avisos de lead.
+
+Esa prueba se hace **en el entorno de destino y después de desplegar**, y se mira que la
+cola baje, no que el proceso exista:
+
+- `Queue::size()` antes y después. Si sube y no baja, el worker no consume. **Contar la
+  tabla `jobs` no vale si la cola es redis**: los trabajos no están ahí y siempre saldrá
+  cero, que se lee como «no se encoló nada» cuando es justo lo contrario.
+- **Cero trabajos fallidos no significa que todo vaya bien.** Un worker que muere al
+  arrancar el trabajo no llega a marcar nada como fallido.
+- El caso que más cuesta ver: **un worker demonio que sigue vivo desde antes del
+  deploy**. Mantiene las clases en memoria y queda atado al directorio de la release
+  anterior; cuando el servidor limpia releases viejas, revienta con un fatal del
+  autoloader y deja de consumir sin morir. Proceso corriendo, cola creciendo, ningún
+  error a la vista. Se ve en el log del worker, no en el de la aplicación.
+- Por eso **el script de despliegue tiene que ejecutar `queue:restart`**. Sin esa línea,
+  cada despliegue deja el worker con el código anterior. Se nota cuando hay una clase
+  nueva; un cambio dentro de una clase que ya existía falla igual de callado.
+- Si `queue:restart` no surte efecto, es que el proceso ni siquiera lee la señal —va por
+  caché, y su entorno es el de cuando arrancó. Ahí toca reiniciarlo desde el supervisor,
+  y comprobar en `ps` que la hora de arranque es de ahora.
 
 ### 5 — Reportar
 Tabla de eventos × destinatarios con lo implementado y lo que quedó pendiente de
@@ -82,4 +126,6 @@ confirmar con el cliente.
 - **Todo encolado.** Nada de envíos síncronos en la petición.
 - **El remitente es del dominio del proyecto.** El de ejemplo de la plantilla se
   rechaza o cae en spam.
+- **El aviso al equipo admite varias direcciones.** Una sola es una decisión que se toma,
+  no el único valor posible.
 - **Probado con la cola corriendo**, o no está probado.

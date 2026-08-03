@@ -168,6 +168,11 @@ Aquí solo se registra qué hay.
   se saca el par `(href, texto)`. Un enlace solo se reporta como roto si su `href`
   **extraído** devuelve error al comprobarlo. Contempla destinos fuera del sitemap:
   subdominios, dominios externos, anclas, enlaces con query (`?filtro=x`).
+- **Los embeds se anotan con su `src` entero**, igual que los enlaces y por el mismo
+  motivo. Un iframe de mapa, vídeo, calendario o reservas lleva dentro **qué entidad**
+  enseña, y eso no se reconstruye después a partir de la dirección o del título: sale
+  otra cosa que también parece un mapa. Anotar `src` y **alto**, y a quién pertenece —
+  al sitio entero o a esta ficha—, porque decide dónde se guarda.
 - **Ignorar lo que no se ve.** Descartar bloques con `display:none` / `hidden` /
   `aria-hidden`. Los estados vacíos («No se encontraron resultados…») son
   *placeholders* ocultos, no contenido, y hacen parecer desierta una página llena.
