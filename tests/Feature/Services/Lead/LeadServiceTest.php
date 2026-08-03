@@ -72,6 +72,21 @@ describe('LeadService', function () {
             );
         });
 
+        it('should notify every address when LEAD_NOTIFY_EMAIL lists several', function () {
+            config(['leads.notify_email' => 'hola@cliente.test, avisos@agencia.test']);
+            Mail::fake();
+            Notification::fake();
+
+            app(LeadService::class)->capture([
+                'name' => 'Cristian',
+                'email' => 'cristian@example.com',
+            ]);
+
+            Mail::assertQueued(NewLeadMail::class, fn (NewLeadMail $mail): bool => $mail->hasTo('hola@cliente.test')
+                && $mail->hasTo('avisos@agencia.test')
+            );
+        });
+
         it('should fall back to the first registered user when LEAD_NOTIFY_EMAIL is empty', function () {
             config(['leads.notify_email' => null]);
             Mail::fake();

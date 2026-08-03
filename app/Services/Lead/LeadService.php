@@ -33,9 +33,9 @@ class LeadService
 
     protected function notify(Lead $lead): void
     {
-        $email = $this->resolveNotifyEmail();
-        if ($email !== null) {
-            Mail::to($email)->queue(new NewLeadMail($lead));
+        $emails = $this->resolveNotifyEmails();
+        if ($emails !== []) {
+            Mail::to($emails)->queue(new NewLeadMail($lead));
         }
 
         if (is_string(config('services.discord.webhook_url')) && config('services.discord.webhook_url') !== '') {
@@ -44,19 +44,29 @@ class LeadService
     }
 
     /**
-     * Resolve the lead notification recipient.
+     * Resolve the lead notification recipients.
      *
      * Falls back to the first registered user (typically the site owner) when
      * LEAD_NOTIFY_EMAIL is not configured, so notifications are never silently
      * lost on a fresh deploy.
+     *
+     * @return list<string>
      */
-    protected function resolveNotifyEmail(): ?string
+    protected function resolveNotifyEmails(): array
     {
         $configured = config('leads.notify_email');
-        if (is_string($configured) && $configured !== '') {
-            return $configured;
+
+        if (is_string($configured) && trim($configured) !== '') {
+            return str($configured)
+                ->explode(',')
+                ->map(fn (string $email): string => trim($email))
+                ->filter()
+                ->values()
+                ->all();
         }
 
-        return User::oldest('id')->value('email');
+        $owner = User::oldest('id')->value('email');
+
+        return $owner === null ? [] : [$owner];
     }
 }
