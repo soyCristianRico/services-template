@@ -87,6 +87,10 @@ Comprobar también las **redirecciones que el mapa recogió del origen**: una mu
 tiene que responder con el mismo destino que allí. Es lo que impide que años de
 historial se conviertan en 404 el día que se migra el dominio.
 
+**Y que cada formulario manda lo que mandaba el origen.** El mapa registró, por cada
+uno, si había aviso al equipo y correo a quien lo rellenó. Que el formulario responda
+bien no dice nada de eso: el envío va por la cola y falla sin ruido.
+
 ### 6 — Visual
 `browser_take_screenshot` de home y páginas tipo en ambos sitios y comparar layout,
 jerarquía y marca. Diferencias de píxel por fuentes/render no cuentan como fallo.
@@ -101,3 +105,4 @@ visual) con estado y lista priorizada de desajustes. Adónde vuelve cada hueco:
 - falta un campo o una opción de faceta en el esquema → `/services-model-entities`
 - una página no está en `clone-content.json` → `/services-clone-page` sobre esa página
 - el grafo JSON-LD no describe lo que la página es → `/services-structured-data`
+- un formulario no manda el correo que mandaba el origen → `/services-transactional-emails`
