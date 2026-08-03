@@ -96,16 +96,18 @@ class extends Component
     </div>
 
     <flux:callout icon="information-circle" color="zinc">
-        Una redirección por línea: <strong>dirección antigua</strong>, <strong>dirección nueva</strong> y,
-        opcionalmente, el <strong>código</strong> (301 por defecto) y el <strong>tipo</strong>
-        (exacta por defecto). Vale separar con tabulador, punto y coma o coma.
-        Las líneas que empiezan por <code>#</code> se ignoran.
-        <div class="mt-2 font-mono text-xs">
+        <flux:callout.text>
+            Una redirección por línea: <strong>dirección antigua</strong>, <strong>dirección nueva</strong> y,
+            opcionalmente, el <strong>código</strong> (301 por defecto) y el <strong>tipo</strong>
+            (exacta por defecto). Vale separar con tabulador, punto y coma o coma.
+            Las líneas que empiezan por <code>#</code> se ignoran.
+        </flux:callout.text>
+        <flux:callout.text class="font-mono text-xs">
             /curso-antiguo;/cursos/curso-nuevo<br>
             /promo-verano;/cursos;302<br>
             /seccion-retirada;;410<br>
             ^/blog/\d{4}/(.+)$;/blog/$1;301;regex
-        </div>
+        </flux:callout.text>
     </flux:callout>
 
     <flux:field>

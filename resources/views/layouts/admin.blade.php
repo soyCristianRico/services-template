@@ -13,15 +13,23 @@
     <flux:sidebar sticky stashable class="border-r border-zinc-200 bg-white">
         <flux:sidebar.toggle class="lg:hidden" icon="x-mark" inset="left" />
 
-        <flux:brand href="{{ url('/admin') }}" name="{{ config('app.name') }} admin" class="px-2" />
+        @if (file_exists(public_path('images/logo.png')))
+            <flux:brand href="{{ url('/admin') }}" class="px-2">
+                <x-slot:logo class="h-8 min-w-0 rounded-none">
+                    <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" class="h-8 w-auto">
+                </x-slot:logo>
+            </flux:brand>
+        @else
+            <flux:brand href="{{ url('/admin') }}" name="{{ config('app.name') }} admin" class="px-2" />
+        @endif
 
         <flux:navlist variant="outline">
             <flux:navlist.item icon="home" href="{{ url('/admin') }}">Dashboard</flux:navlist.item>
-            <flux:navlist.group expandable heading="Catálogo">
+            <flux:navlist.group expandable heading="Catálogo" :expanded="request()->is('admin/categories*', 'admin/services*')">
                 <flux:navlist.item href="{{ url('/admin/categories') }}">Categorías</flux:navlist.item>
                 <flux:navlist.item href="{{ url('/admin/services') }}">Servicios</flux:navlist.item>
             </flux:navlist.group>
-            <flux:navlist.group expandable heading="SEO">
+            <flux:navlist.group expandable heading="SEO" :expanded="request()->is('admin/locations*', 'admin/landings*', 'admin/redirects*')">
                 @if (config('site.locations'))
                     <flux:navlist.item href="{{ url('/admin/locations') }}">Ubicaciones</flux:navlist.item>
                     <flux:navlist.item href="{{ url('/admin/landings') }}">Landings</flux:navlist.item>
@@ -29,7 +37,7 @@
                 <flux:navlist.item href="{{ url('/admin/redirects') }}">Redirecciones</flux:navlist.item>
                 <flux:navlist.item href="{{ url('/admin/redirects/404') }}">Direcciones rotas</flux:navlist.item>
             </flux:navlist.group>
-            <flux:navlist.group expandable heading="Contenido">
+            <flux:navlist.group expandable heading="Contenido" :expanded="request()->is('admin/blog*', 'admin/pages*', 'admin/menus*')">
                 <flux:navlist.item href="{{ url('/admin/blog') }}">Blog</flux:navlist.item>
                 <flux:navlist.item href="{{ url('/admin/pages') }}">Páginas</flux:navlist.item>
                 <flux:navlist.item href="{{ url('/admin/menus') }}">Menús</flux:navlist.item>
@@ -66,5 +74,7 @@
         {{ $slot ?? '' }}
         @yield('content')
     </flux:main>
+
+    @fluxScripts
 </body>
 </html>

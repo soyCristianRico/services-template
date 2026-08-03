@@ -64,9 +64,9 @@ class extends Component
 
     @if ($page)
         <flux:callout icon="link" color="zinc">
-            <a href="{{ url('/'.$page->slug) }}" target="_blank" class="underline">
-                {{ url('/'.$page->slug) }}
-            </a>
+            <flux:callout.text>
+                <flux:callout.link :href="url('/'.$page->slug)" external>{{ url('/'.$page->slug) }}</flux:callout.link>
+            </flux:callout.text>
         </flux:callout>
     @endif
 

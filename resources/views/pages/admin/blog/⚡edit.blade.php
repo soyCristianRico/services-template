@@ -98,9 +98,9 @@ class extends Component
 
     @if ($post)
         <flux:callout icon="link" color="zinc">
-            <a href="{{ url('/blog/'.$post->slug) }}" target="_blank" class="underline">
-                {{ url('/blog/'.$post->slug) }}
-            </a>
+            <flux:callout.text>
+                <flux:callout.link :href="url('/blog/'.$post->slug)" external>{{ url('/blog/'.$post->slug) }}</flux:callout.link>
+            </flux:callout.text>
         </flux:callout>
     @endif
 

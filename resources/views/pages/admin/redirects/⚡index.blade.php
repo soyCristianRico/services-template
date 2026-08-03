@@ -105,9 +105,11 @@ class extends Component
 
     @if ($this->pendingNotFound > 0)
         <flux:callout icon="exclamation-triangle" color="amber">
-            Hay {{ $this->pendingNotFound }} {{ $this->pendingNotFound === 1 ? 'dirección visitada que no existe' : 'direcciones visitadas que no existen' }}.
-            Alguien ha llegado a {{ $this->pendingNotFound === 1 ? 'ella' : 'ellas' }} y se ha encontrado un error.
-            <a href="{{ route('admin.redirects.not-found') }}" class="font-medium underline">Revisar la lista</a>.
+            <flux:callout.text>
+                Hay {{ $this->pendingNotFound }} {{ $this->pendingNotFound === 1 ? 'dirección visitada que no existe' : 'direcciones visitadas que no existen' }}.
+                Alguien ha llegado a {{ $this->pendingNotFound === 1 ? 'ella' : 'ellas' }} y se ha encontrado un error.
+                <flux:callout.link :href="route('admin.redirects.not-found')">Revisar la lista</flux:callout.link>.
+            </flux:callout.text>
         </flux:callout>
     @endif
 
