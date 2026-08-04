@@ -41,22 +41,27 @@ Schedule::command('backup:monitor')
 
 // === MONITORIZACIÓN DEL SERVIDOR ===
 
-Schedule::command('server:monitor')
-    ->everyTenMinutes()
-    ->withoutOverlapping()
-    ->appendOutputTo(storage_path('logs/server-monitor.log'));
+// Esto vigila la máquina, no el sitio. Varios sitios en un mismo servidor darían
+// el mismo aviso de disco lleno una vez por sitio y escanearían el mismo sistema
+// de ficheros una vez por sitio, así que se enciende en uno solo por máquina.
+if (config('monitoring.server_monitor')) {
+    Schedule::command('server:monitor')
+        ->everyTenMinutes()
+        ->withoutOverlapping()
+        ->appendOutputTo(storage_path('logs/server-monitor.log'));
 
-Schedule::command('security:check')
-    ->everyThirtyMinutes()
-    ->withoutOverlapping()
-    ->appendOutputTo(storage_path('logs/security-check.log'));
+    Schedule::command('security:check')
+        ->everyThirtyMinutes()
+        ->withoutOverlapping()
+        ->appendOutputTo(storage_path('logs/security-check.log'));
 
-Schedule::command('security:check-malware')
-    ->hourly()
-    ->withoutOverlapping()
-    ->appendOutputTo(storage_path('logs/malware-check.log'));
+    Schedule::command('security:check-malware')
+        ->hourly()
+        ->withoutOverlapping()
+        ->appendOutputTo(storage_path('logs/malware-check.log'));
 
-Schedule::command('security:monitor-crontabs')
-    ->everyFiveMinutes()
-    ->withoutOverlapping()
-    ->appendOutputTo(storage_path('logs/crontab-monitor.log'));
+    Schedule::command('security:monitor-crontabs')
+        ->everyFiveMinutes()
+        ->withoutOverlapping()
+        ->appendOutputTo(storage_path('logs/crontab-monitor.log'));
+}

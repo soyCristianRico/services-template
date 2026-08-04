@@ -2,7 +2,10 @@
 
 declare(strict_types=1);
 
+use Illuminate\Console\Scheduling\Event;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Schedule as ScheduleFacade;
 use SoyCristianRico\LaravelServerMonitor\Services\Security\SecurityNotificationService;
 
 /**
@@ -30,6 +33,42 @@ describe('monitoring', function (): void {
         });
     });
 
+    describe('server monitor switch', function (): void {
+        it('should be off unless the site is told to watch the machine', function (): void {
+            // Off is the safe default on a shared server: the failure it allows
+            // is a check that does not run, not four copies of it that do.
+            expect(config('monitoring.server_monitor'))->toBeFalse();
+        });
+
+        it('should not schedule the server checks while it is off', function (): void {
+            config()->set('monitoring.server_monitor', false);
+
+            expect(scheduledCommands())
+                ->not->toContain('server:monitor')
+                ->not->toContain('security:check')
+                ->not->toContain('security:check-malware')
+                ->not->toContain('security:monitor-crontabs');
+        });
+
+        it('should schedule the server checks once it is on', function (): void {
+            config()->set('monitoring.server_monitor', true);
+
+            expect(scheduledCommands())
+                ->toContain('server:monitor')
+                ->toContain('security:check')
+                ->toContain('security:check-malware')
+                ->toContain('security:monitor-crontabs');
+        });
+
+        it('should back up whether the machine is watched or not', function (): void {
+            // The backup belongs to the site, so it survives the switch that
+            // only one site per machine gets to turn on.
+            config()->set('monitoring.server_monitor', false);
+
+            expect(scheduledCommands())->toContain('backup:run');
+        });
+    });
+
     describe('server monitor', function (): void {
         it('should reach recipients without a roles system', function (): void {
             // This app has no spatie/laravel-permission: the package resolves
@@ -46,8 +85,8 @@ describe('monitoring', function (): void {
         });
 
         it('should not alert on the files the admin uploads', function (): void {
-            // Syllabi and gallery images are big and appear all at once by
-            // design. Unexcluded, every new syllabus arrives as a security alert.
+            // Gallery images are big and appear all at once by design.
+            // Unexcluded, every upload arrives as a security alert.
             expect(config('server-monitor.security.excluded_large_files_paths'))
                 ->toContain(storage_path('app/public'));
         });
@@ -65,3 +104,26 @@ describe('monitoring', function (): void {
         });
     });
 });
+
+/**
+ * The commands `routes/console.php` schedules under the current config.
+ *
+ * The real schedule was built at boot, so flipping the switch afterwards would
+ * not move it. A fresh Schedule is bound and the routes file re-evaluated
+ * against it, which is the only way to see what the `if` actually decides.
+ */
+function scheduledCommands(): string
+{
+    $schedule = new Schedule;
+
+    // swap(), not a container rebind: the facade caches the instance it resolved
+    // at boot, so `Schedule::command()` in the routes file would keep landing on
+    // that one and this would read an empty list.
+    ScheduleFacade::swap($schedule);
+
+    require base_path('routes/console.php');
+
+    return collect($schedule->events())
+        ->map(fn (Event $event): string => (string) $event->command)
+        ->implode("\n");
+}

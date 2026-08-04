@@ -30,4 +30,28 @@ return [
     */
 
     'developer_email' => env('DEVELOPER_EMAIL'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Server monitoring
+    |--------------------------------------------------------------------------
+    |
+    | Whether this site runs the server checks: CPU, memory, swap, disk, malware
+    | scanning, crontab changes, watched ports.
+    |
+    | None of that is a property of the site — it is a property of the machine.
+    | Several sites sharing a server would each report the same full disk, and
+    | each scan the same filesystem every hour. So this is switched on for ONE
+    | site per machine, the one that acts as its watchman, and left off on the
+    | rest.
+    |
+    | Off by default: on a shared server the safe failure is the check that does
+    | not run, not four copies of it that do.
+    |
+    | The backups are the other way round and are always on: those belong to the
+    | site, not to the machine.
+    |
+    */
+
+    'server_monitor' => env('SERVER_MONITOR_ENABLED', false),
 ];
