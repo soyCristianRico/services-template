@@ -9,12 +9,9 @@ use Spatie\Backup\Notifications\Notifiable;
 /**
  * Routes the backup notifications to the developer address of the site.
  *
- * Spatie resolves recipients from `backup.notifications.mail.to`, but it also
- * validates that value when it builds its config object: an empty string or a
- * comma separated list throws InvalidConfig and takes the whole `backup:run`
- * down with it. Since the address is optional in local development and may hold
- * several recipients in production, it is resolved here instead — at send time,
- * where a missing address simply means nobody is notified.
+ * Resolved here rather than in `backup.notifications.mail.to` because spatie
+ * validates that value at boot: an empty or comma separated address throws and
+ * takes `backup:run` with it.
  */
 class DeveloperNotifiable extends Notifiable
 {

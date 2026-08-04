@@ -19,23 +19,18 @@ return [
         /*
          * The name of this application. You can use this name to monitor
          * the backups.
+         *
+         * Empty: this is the subdirectory spatie lists to check the disk, and on
+         * Drive listing a missing subdirectory throws — before the write that
+         * would have created it. The disk root does get created.
          */
-        'name' => env('APP_NAME', 'laravel-backup'),
+        'name' => '',
 
         'source' => [
             'files' => [
                 /*
-                 * The list of directories and files that will be included in the backup.
-                 */
-                /*
-                 * Named one by one instead of backing up base_path(): the code is
-                 * already in git, and what is NOT anywhere else is this handful of
-                 * directories — the media uploaded from the admin, whatever the
-                 * site keeps on its private disk, and the environment file.
-                 *
-                 * A site that adds a disk of its own (sold PDFs, invoices, signed
-                 * documents) has to add it here too. Nothing else will notice it
-                 * is missing until the day of a restore.
+                 * Named one by one instead of base_path(): the code is in git, this
+                 * is not. A site that adds a disk of its own has to add it here.
                  */
                 'include' => [
                     base_path('.env'),
@@ -201,11 +196,8 @@ return [
          * The password to be used for archive encryption.
          * Set to `null` to disable encryption.
          *
-         * Not optional here, whatever the comment above says. The archive carries
-         * the leads with their GDPR consent, everything uploaded from the admin
-         * and a copy of `.env` with every key the site holds, and it lands on a
-         * third party drive. Without a password, whoever reaches that drive holds
-         * the whole site.
+         * Required in production: the archive carries personal data and a copy of
+         * `.env`, and it lands on a third party drive.
          */
         'password' => env('BACKUP_ARCHIVE_PASSWORD'),
 
@@ -223,9 +215,7 @@ return [
          * After creating the zip, verify it can be opened and contains files.
          * Recommended for critical backups but adds a small overhead.
          *
-         * On: an encrypted archive that turns out to be unopenable is discovered
-         * the day it is restored, which is the one day it cannot be discovered.
-         * The overhead is paid once a day at 04:00.
+         * On: an unopenable archive is otherwise discovered on restore day.
          */
         'verify_backup' => true,
 
@@ -250,11 +240,8 @@ return [
      */
     'notifications' => [
         /*
-         * Only the bad news is mailed. A daily "backup successful" is a message
-         * nobody reads after the first week, and an inbox rule that swallows it
-         * swallows the failure notice with it — the notice this whole thing
-         * exists to deliver. The healthy path is confirmed by `backup:monitor`
-         * staying quiet, and by `backup:list` when you actually want to look.
+         * Failures only. A daily "backup successful" earns an inbox rule that
+         * swallows the failure notice too.
          */
         'notifications' => [
             BackupHasFailedNotification::class => ['mail'],
@@ -272,13 +259,8 @@ return [
         'notifiable' => DeveloperNotifiable::class,
 
         'mail' => [
-            /*
-             * Left empty on purpose: the recipients come from DEVELOPER_EMAIL and
-             * are resolved by DeveloperNotifiable when a notification is sent.
-             * Spatie validates this value while building its config object, so an
-             * empty or comma separated address here would throw and take
-             * `backup:run` down before it backs anything up.
-             */
+            // Resolved by DeveloperNotifiable at send time: spatie validates this
+            // value at boot and would throw on an empty or comma separated one.
             'to' => [],
 
             'from' => [
@@ -339,20 +321,14 @@ return [
      */
     'monitor_backups' => [
         [
-            'name' => env('APP_NAME', 'laravel-backup'),
+            // Must match `backup.name`.
+            'name' => '',
             'disks' => ['google'],
             'health_checks' => [
-                /*
-                 * Two days, not one: the backup runs daily at 03:00 and the monitor
-                 * at 10:00, so a single failed night should not be reported as an
-                 * unhealthy backup. Two consecutive failures should.
-                 */
+                // Two days: one failed night should not raise an alarm, two should.
                 MaximumAgeInDays::class => 2,
 
-                /*
-                 * A free Google Drive account holds 15 GB. Stopping at 10 leaves
-                 * room for the archive being written before cleanup runs.
-                 */
+                // A free Drive account holds 15 GB.
                 MaximumStorageInMegabytes::class => 10000,
             ],
         ],
@@ -418,8 +394,7 @@ return [
              * this amount of megabytes has been reached.
              * Set null for unlimited size.
              *
-             * Kept below the 10 GB the monitor warns at, so the hard limit trims
-             * the oldest archives before the health check ever complains.
+             * Below the 10 GB the monitor warns at, so cleanup runs first.
              */
             'delete_oldest_backups_when_using_more_megabytes_than' => 8000,
         ],

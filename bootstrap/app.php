@@ -2,9 +2,14 @@
 
 use App\Http\Middleware\LogNotFoundRequests;
 use App\Http\Middleware\RedirectRequests;
+use Bugsnag\BugsnagLaravel\OomBootstrapper;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+
+// Antes de configure() y antes de cualquier otro bootstrapper: sube el límite de
+// memoria al agotarse para que el aviso llegue a salir.
+(new OomBootstrapper)->bootstrap();
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(

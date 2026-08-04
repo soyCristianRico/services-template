@@ -8,24 +8,12 @@ return [
     | Developer email
     |--------------------------------------------------------------------------
     |
-    | Where the technical alerts of this site go: a failed backup, a backup that
-    | stopped being fresh, a full disk, a modified crontab. This is deliberately
-    | NOT `leads.notify_email`: that one is the client's inbox, and a client can
-    | do nothing with a swap warning at 03:00.
+    | Technical alerts, not `leads.notify_email`: a client can do nothing with a
+    | swap warning at 03:00. Several addresses, comma separated. Empty is fine
+    | locally — alerts go nowhere instead of failing.
     |
-    | Accepts several addresses separated by commas, so a site can reach both the
-    | person on call and a shared inbox:
-    |
-    |     DEVELOPER_EMAIL="tu@agencia.com,avisos@agencia.com"
-    |
-    | Leaving it empty is legitimate in local development: alerts are then routed
-    | nowhere instead of failing, which is why `config/backup.php` never reads it
-    | directly. Spatie validates every address when it builds its config object
-    | and an empty string would throw there, taking `backup:run` down with it.
-    |
-    | `config/server-monitor.php` reads the same DEVELOPER_EMAIL variable. It goes
-    | through env() rather than through this file because a config file cannot
-    | reliably read another one — the load order between them is not guaranteed.
+    | `config/server-monitor.php` reads the same variable through env(): a config
+    | file cannot reliably read another one.
     |
     */
 
@@ -36,20 +24,11 @@ return [
     | Server monitoring
     |--------------------------------------------------------------------------
     |
-    | Whether this site runs the server checks: CPU, memory, swap, disk, malware
-    | scanning, crontab changes, watched ports.
+    | The server checks watch the MACHINE, not the site: sites sharing a server
+    | would each report the same full disk and each scan the same filesystem. On
+    | for one site per machine, off on the rest.
     |
-    | None of that is a property of the site — it is a property of the machine.
-    | Several sites sharing a server would each report the same full disk, and
-    | each scan the same filesystem every hour. So this is switched on for ONE
-    | site per machine, the one that acts as its watchman, and left off on the
-    | rest.
-    |
-    | Off by default: on a shared server the safe failure is the check that does
-    | not run, not four copies of it that do.
-    |
-    | The backups are the other way round and are always on: those belong to the
-    | site, not to the machine.
+    | The backups are the other way round and always run: those are the site's.
     |
     */
 

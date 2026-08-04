@@ -40,6 +40,27 @@ describe('config/backup.php', function (): void {
     });
 
     describe('destination', function (): void {
+        it('should write into the disk root, not a subdirectory', function (): void {
+            // On Drive, listing a missing subdirectory throws, and the check runs
+            // before the write that would have created it.
+            expect(config('backup.backup.name'))->toBe('');
+        });
+
+        it('should monitor the same directory it writes to', function (): void {
+            // A mismatch reports a directory nothing is written to as healthy.
+            expect(config('backup.monitor_backups.0.name'))->toBe(config('backup.backup.name'));
+        });
+
+        it('should still name the site in the alerts', function (): void {
+            // spatie builds it from app.name, not from backup.name.
+            expect(config('app.name'))->not->toBeEmpty();
+        });
+
+        it('should tell its archives apart by prefix', function (): void {
+            // With one flat directory, the prefix is what identifies the file.
+            expect(config('backup.backup.destination.filename_prefix'))->not->toBeEmpty();
+        });
+
         it('should write to google drive', function (): void {
             expect(config('backup.backup.destination.disks'))->toBe(['google'])
                 ->and(config('filesystems.disks.google.driver'))->toBe('google');

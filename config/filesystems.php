@@ -60,20 +60,16 @@ return [
             'report' => false,
         ],
 
-        // Destino de las copias de seguridad, nada más. Los ficheros del sitio no
-        // pasan por aquí: un disco remoto en la ruta de una descarga lo ataría a
-        // que Google responda.
-        //
-        // El token de refresco caduca a los siete días si la aplicación de Google
-        // Cloud sigue en modo «testing», y la copia empieza a fallar en silencio
-        // salvo por el aviso de backup:monitor. Hay que publicarla.
+        // Solo para las copias. El token de refresco caduca a los siete días si la
+        // aplicación de Google Cloud sigue en modo «testing»: hay que publicarla.
         'google' => [
             'driver' => 'google',
             'clientId' => env('GOOGLE_DRIVE_CLIENT_ID'),
             'clientSecret' => env('GOOGLE_DRIVE_CLIENT_SECRET'),
             'refreshToken' => env('GOOGLE_DRIVE_REFRESH_TOKEN'),
-            // Nombre de carpeta, no un ID: el adaptador la usa como raíz y la crea
-            // si no existe. Vacío = la raíz del Drive.
+            // Nombre de carpeta, no un ID. Vacío = la raíz del Drive.
+            // El adaptador crea esta carpeta, pero no subcarpetas suyas: por eso
+            // `backup.name` va vacío.
             'folder' => env('GOOGLE_DRIVE_FOLDER', 'backups'),
         ],
 

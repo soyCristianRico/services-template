@@ -41,9 +41,7 @@ Schedule::command('backup:monitor')
 
 // === MONITORIZACIÓN DEL SERVIDOR ===
 
-// Esto vigila la máquina, no el sitio. Varios sitios en un mismo servidor darían
-// el mismo aviso de disco lleno una vez por sitio y escanearían el mismo sistema
-// de ficheros una vez por sitio, así que se enciende en uno solo por máquina.
+// Vigila la máquina, no el sitio: se enciende en uno solo por servidor.
 if (config('monitoring.server_monitor')) {
     Schedule::command('server:monitor')
         ->everyTenMinutes()
