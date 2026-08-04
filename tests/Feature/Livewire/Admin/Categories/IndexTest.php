@@ -35,16 +35,4 @@ describe('Admin\\Categories\\Index', function () {
         });
     });
 
-    describe('actions', function () {
-        it('should delete a category and demote its children to roots', function () {
-            $parent = Category::factory()->create();
-            $child = Category::factory()->childOf($parent)->create();
-
-            Livewire::test('pages::admin.categories.index')
-                ->call('deleteCategory', $parent->id);
-
-            expect(Category::find($parent->id))->toBeNull();
-            expect(Category::find($child->id)->parent_id)->toBeNull();
-        });
-    });
 });

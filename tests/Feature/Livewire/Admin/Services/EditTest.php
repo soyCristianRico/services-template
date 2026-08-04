@@ -188,4 +188,15 @@ describe('Admin\\Services\\Edit', function () {
                 ->assertSee('Guarda el servicio antes para poder subir imágenes');
         });
     });
+    describe('record_actions', function (): void {
+        it('should delete a service', function () {
+            $service = Service::factory()->create();
+
+            Livewire::test('pages::admin.services.edit', ['service' => $service])
+                ->call('delete')
+                ->assertRedirect(route('admin.services.index'));
+
+            expect(Service::find($service->id))->toBeNull();
+        });
+    });
 });

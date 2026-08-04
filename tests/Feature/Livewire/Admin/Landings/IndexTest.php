@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-use App\Enums\LandingStatus;
 use App\Models\Category;
 use App\Models\Landing;
 use App\Models\Location;
@@ -118,34 +117,4 @@ describe('Admin\\Landings\\Index', function (): void {
         });
     });
 
-    describe('actions', function (): void {
-        it('should publish a landing immediately and clear its publish date', function (): void {
-            $landing = Landing::factory()->scheduled(now()->addDays(5))->create();
-
-            Livewire::test('pages::admin.landings.index')
-                ->call('publishNow', $landing->id);
-
-            $landing->refresh();
-            expect($landing->status)->toBe(LandingStatus::Published)
-                ->and($landing->publish_at)->toBeNull();
-        });
-
-        it('should unpublish a landing back to draft', function (): void {
-            $landing = Landing::factory()->published()->create();
-
-            Livewire::test('pages::admin.landings.index')
-                ->call('unpublish', $landing->id);
-
-            expect($landing->refresh()->status)->toBe(LandingStatus::Draft);
-        });
-
-        it('should delete a landing', function (): void {
-            $landing = Landing::factory()->create();
-
-            Livewire::test('pages::admin.landings.index')
-                ->call('deleteLanding', $landing->id);
-
-            expect(Landing::find($landing->id))->toBeNull();
-        });
-    });
 });

@@ -35,27 +35,6 @@ class extends Component
         $this->resetPage();
     }
 
-    public function publishNow(int $id): void
-    {
-        Landing::findOrFail($id)->update([
-            'status' => LandingStatus::Published,
-            'publish_at' => null,
-        ]);
-    }
-
-    public function unpublish(int $id): void
-    {
-        Landing::findOrFail($id)->update([
-            'status' => LandingStatus::Draft,
-            'publish_at' => null,
-        ]);
-    }
-
-    public function deleteLanding(int $id): void
-    {
-        Landing::findOrFail($id)->delete();
-    }
-
     /**
      * @return \Illuminate\Support\Collection<int, Category>
      */
@@ -124,13 +103,14 @@ class extends Component
             <flux:table.column>Categoría</flux:table.column>
             <flux:table.column>Ubicación</flux:table.column>
             <flux:table.column>Estado</flux:table.column>
-            <flux:table.column>Acciones</flux:table.column>
         </flux:table.columns>
         <flux:table.rows>
             @forelse ($this->landings as $landing)
                 <flux:table.row wire:key="landing-{{ $landing->id }}">
                     <flux:table.cell>
-                        <a href="{{ url('/'.$landing->slug) }}" target="_blank" class="text-blue-600 hover:underline">
+                        <x-admin.record-link :href="route('admin.landings.edit', $landing)">
+                            <a href="{{ url('/'.$landing->slug) }}" target="_blank" class="text-blue-600 hover:underline">
+                        </x-admin.record-link>
                             /{{ $landing->slug }}
                         </a>
                     </flux:table.cell>
@@ -142,22 +122,10 @@ class extends Component
                             <flux:text size="sm" class="mt-1 text-zinc-500">{{ $landing->publish_at->format('d/m/Y') }}</flux:text>
                         @endif
                     </flux:table.cell>
-                    <flux:table.cell class="flex gap-2">
-                        @if ($landing->status === \App\Enums\LandingStatus::Published)
-                            <flux:button wire:click="unpublish({{ $landing->id }})" size="xs" variant="ghost" icon="eye-slash" title="Despublicar" />
-                        @else
-                            <flux:button wire:click="publishNow({{ $landing->id }})" size="xs" variant="ghost" icon="rocket-launch" title="Publicar ahora" />
-                        @endif
-                        <flux:button :href="route('admin.landings.edit', $landing)" size="xs" variant="ghost" icon="pencil-square" />
-                        <flux:button
-                            wire:click="deleteLanding({{ $landing->id }})"
-                            wire:confirm="¿Eliminar la landing /{{ $landing->slug }}? La URL devolverá 404."
-                            size="xs" variant="ghost" icon="trash" />
-                    </flux:table.cell>
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="5" class="text-center text-zinc-500">
+                    <flux:table.cell colspan="4" class="text-center text-zinc-500">
                         No hay landings con esos filtros.
                     </flux:table.cell>
                 </flux:table.row>

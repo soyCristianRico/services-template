@@ -48,13 +48,6 @@ class extends Component
         $redirect->update(['is_active' => ! $redirect->is_active]);
     }
 
-    public function deleteRedirect(int $id): void
-    {
-        Redirect::findOrFail($id)->delete();
-
-        session()->flash('status', 'Redirección eliminada.');
-    }
-
     /**
      * @return \Illuminate\Pagination\LengthAwarePaginator<int, Redirect>
      */
@@ -139,12 +132,13 @@ class extends Component
             <flux:table.column>Código</flux:table.column>
             <flux:table.column>Usos</flux:table.column>
             <flux:table.column>Activa</flux:table.column>
-            <flux:table.column>Acciones</flux:table.column>
         </flux:table.columns>
         <flux:table.rows>
             @forelse ($this->redirects as $redirect)
                 <flux:table.row wire:key="redirect-{{ $redirect->id }}">
-                    <flux:table.cell class="font-mono text-xs">{{ $redirect->source }}</flux:table.cell>
+                    <flux:table.cell class="font-mono text-xs">
+                        <x-admin.record-link :href="route('admin.redirects.edit', $redirect)">{{ $redirect->source }}</x-admin.record-link>
+                    </flux:table.cell>
                     <flux:table.cell class="font-mono text-xs">
                         {{ $redirect->destination ?? '—' }}
                     </flux:table.cell>
@@ -172,17 +166,10 @@ class extends Component
                     <flux:table.cell>
                         <flux:switch wire:click="toggleActive({{ $redirect->id }})" :checked="$redirect->is_active" />
                     </flux:table.cell>
-                    <flux:table.cell class="flex gap-2">
-                        <flux:button :href="route('admin.redirects.edit', $redirect)" size="xs" variant="ghost" icon="pencil-square" />
-                        <flux:button
-                            wire:click="deleteRedirect({{ $redirect->id }})"
-                            wire:confirm="¿Eliminar la redirección de {{ $redirect->source }}? Esa dirección volverá a devolver un error 404."
-                            size="xs" variant="ghost" icon="trash" />
-                    </flux:table.cell>
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="7" class="text-center text-zinc-500">
+                    <flux:table.cell colspan="6" class="text-center text-zinc-500">
                         No hay redirecciones.
                         <a href="{{ route('admin.redirects.create') }}" class="underline">Crea la primera</a>
                         o <a href="{{ route('admin.redirects.import') }}" class="underline">importa una lista</a>.

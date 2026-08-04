@@ -26,11 +26,6 @@ class extends Component
         $this->resetPage();
     }
 
-    public function deletePost(int $id): void
-    {
-        BlogPost::findOrFail($id)->delete();
-    }
-
     #[Computed]
     public function posts(): \Illuminate\Contracts\Pagination\LengthAwarePaginator
     {
@@ -73,7 +68,6 @@ class extends Component
             <flux:table.column>URL</flux:table.column>
             <flux:table.column>Estado</flux:table.column>
             <flux:table.column>Fecha</flux:table.column>
-            <flux:table.column>Acciones</flux:table.column>
         </flux:table.columns>
         <flux:table.rows>
             @forelse ($this->posts as $post)
@@ -84,7 +78,9 @@ class extends Component
                     default => ['Publicado', 'green'],
                 })
                 <flux:table.row wire:key="post-{{ $post->id }}">
-                    <flux:table.cell>{{ $post->title }}</flux:table.cell>
+                    <flux:table.cell>
+                        <x-admin.record-link :href="route('admin.blog.edit', $post)">{{ $post->title }}</x-admin.record-link>
+                    </flux:table.cell>
                     <flux:table.cell>
                         <a href="{{ url('/blog/'.$post->slug) }}" target="_blank" class="text-blue-600 hover:underline">
                             /blog/{{ $post->slug }}
@@ -92,17 +88,10 @@ class extends Component
                     </flux:table.cell>
                     <flux:table.cell><flux:badge size="sm" :color="$state[1]">{{ $state[0] }}</flux:badge></flux:table.cell>
                     <flux:table.cell>{{ $post->published_at?->format('d/m/Y H:i') ?? '—' }}</flux:table.cell>
-                    <flux:table.cell class="flex gap-2">
-                        <flux:button :href="route('admin.blog.edit', $post)" size="xs" variant="ghost" icon="pencil-square" />
-                        <flux:button
-                            wire:click="deletePost({{ $post->id }})"
-                            wire:confirm="¿Eliminar el artículo {{ $post->title }}?"
-                            size="xs" variant="ghost" icon="trash" />
-                    </flux:table.cell>
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="5" class="text-center text-zinc-500">
+                    <flux:table.cell colspan="4" class="text-center text-zinc-500">
                         No hay artículos con esos filtros.
                     </flux:table.cell>
                 </flux:table.row>

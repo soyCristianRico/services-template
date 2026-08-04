@@ -49,13 +49,5 @@ describe('Admin\\Pages\\Index', function () {
             expect($page->refresh()->is_active)->toBeFalse();
         });
 
-        it('should delete a page', function () {
-            $page = Page::factory()->create();
-
-            Livewire::test('pages::admin.pages.index')
-                ->call('deletePage', $page->id);
-
-            expect(Page::find($page->id))->toBeNull();
-        });
     });
 });

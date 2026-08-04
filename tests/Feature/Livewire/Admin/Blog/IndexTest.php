@@ -79,14 +79,4 @@ describe('Admin\\Blog\\Index', function () {
         });
     });
 
-    describe('actions', function () {
-        it('should delete a post', function () {
-            $post = BlogPost::factory()->create();
-
-            Livewire::test('pages::admin.blog.index')
-                ->call('deletePost', $post->id);
-
-            expect(BlogPost::find($post->id))->toBeNull();
-        });
-    });
 });

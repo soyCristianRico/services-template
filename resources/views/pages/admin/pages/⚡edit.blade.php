@@ -47,16 +47,40 @@ class extends Component
 
         $this->redirectRoute('admin.pages.edit', $page);
     }
+
+    /**
+     * Borra el registro y vuelve al listado, que es de donde se venía.
+     *
+     * Vive aquí y no en el índice porque borrar desde una fila deja el
+     * puntero a un clic del lápiz de al lado; quien borra ya ha abierto
+     * la ficha.
+     */
+    public function delete(): void
+    {
+        $this->page?->delete();
+
+        $this->redirectRoute('admin.pages.index', navigate: true);
+    }
 };
 ?>
 
 <div class="mx-auto max-w-3xl space-y-6 p-8">
-    <div class="flex items-center justify-between">
-        <flux:heading size="xl">
+    <x-admin.page-header :back="route('admin.pages.index')">
             {{ $page ? 'Editar página: '.$page->title : 'Nueva página' }}
-        </flux:heading>
-        <flux:button :href="route('admin.pages.index')" variant="ghost" icon="arrow-left">Volver</flux:button>
-    </div>
+
+        @if ($page)
+            <x-slot:actions>
+                <x-admin.record-menu>
+                    <flux:menu.item
+                        wire:click="delete"
+                        wire:confirm="¿Eliminar la página /{{ $page->slug }}? La URL devolverá 404."
+                        icon="trash" variant="danger">
+                        Borrar
+                    </flux:menu.item>
+                </x-admin.record-menu>
+            </x-slot:actions>
+        @endif
+    </x-admin.page-header>
 
     @session('status')
         <flux:callout icon="check-circle" color="green">{{ $value }}</flux:callout>

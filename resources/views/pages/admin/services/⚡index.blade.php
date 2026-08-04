@@ -36,11 +36,6 @@ class extends Component
         $service->update(['is_active' => ! $service->is_active]);
     }
 
-    public function deleteService(int $id): void
-    {
-        Service::findOrFail($id)->delete();
-    }
-
     /**
      * @return \Illuminate\Support\Collection<int, Category>
      */
@@ -101,29 +96,23 @@ class extends Component
             <flux:table.column>Slug</flux:table.column>
             <flux:table.column>Posición</flux:table.column>
             <flux:table.column>Estado</flux:table.column>
-            <flux:table.column>Acciones</flux:table.column>
         </flux:table.columns>
         <flux:table.rows>
             @forelse ($this->services as $service)
                 <flux:table.row wire:key="service-{{ $service->id }}">
-                    <flux:table.cell>{{ $service->name }}</flux:table.cell>
+                    <flux:table.cell>
+                        <x-admin.record-link :href="route('admin.services.edit', $service)">{{ $service->name }}</x-admin.record-link>
+                    </flux:table.cell>
                     <flux:table.cell>{{ $service->category?->name ?? '—' }}</flux:table.cell>
                     <flux:table.cell><code class="text-xs">{{ $service->slug }}</code></flux:table.cell>
                     <flux:table.cell>{{ $service->position }}</flux:table.cell>
                     <flux:table.cell>
                         <flux:switch wire:click="toggleActive({{ $service->id }})" :checked="$service->is_active" />
                     </flux:table.cell>
-                    <flux:table.cell class="flex gap-2">
-                        <flux:button :href="route('admin.services.edit', $service)" size="xs" variant="ghost" icon="pencil-square" />
-                        <flux:button
-                            wire:click="deleteService({{ $service->id }})"
-                            wire:confirm="¿Eliminar el servicio {{ $service->name }}?"
-                            size="xs" variant="ghost" icon="trash" />
-                    </flux:table.cell>
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="6" class="text-center text-zinc-500">
+                    <flux:table.cell colspan="5" class="text-center text-zinc-500">
                         No hay servicios con esos filtros.
                     </flux:table.cell>
                 </flux:table.row>

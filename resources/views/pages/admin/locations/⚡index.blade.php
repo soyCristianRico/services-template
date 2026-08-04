@@ -13,11 +13,6 @@ class extends Component
 {
     public string $search = '';
 
-    public function deleteLocation(int $id): void
-    {
-        Location::findOrFail($id)->delete();
-    }
-
     /**
      * Flat list of [location, depth] ordered depth-first from each root.
      * Filters by search if present.
@@ -67,7 +62,6 @@ class extends Component
             <flux:table.column>Slug</flux:table.column>
             <flux:table.column>Tipo</flux:table.column>
             <flux:table.column>Población</flux:table.column>
-            <flux:table.column>Acciones</flux:table.column>
         </flux:table.columns>
         <flux:table.rows>
             @forelse ($this->tree as $row)
@@ -75,7 +69,9 @@ class extends Component
                 @php($depth = $row['depth'])
                 <flux:table.row wire:key="location-{{ $location->id }}">
                     <flux:table.cell>
-                        <span style="padding-left: {{ $depth * 20 }}px">
+                        <x-admin.record-link :href="route('admin.locations.edit', $location)">
+                            <span style="padding-left: {{ $depth * 20 }}px">
+                        </x-admin.record-link>
                             @if ($depth > 0) <span class="text-zinc-300">└ </span> @endif
                             {{ $location->name }}
                         </span>
@@ -83,17 +79,10 @@ class extends Component
                     <flux:table.cell><code class="text-xs">{{ $location->slug }}</code></flux:table.cell>
                     <flux:table.cell><flux:badge size="sm">{{ $location->type->label() }}</flux:badge></flux:table.cell>
                     <flux:table.cell>{{ $location->population ? number_format($location->population, 0, ',', '.') : '—' }}</flux:table.cell>
-                    <flux:table.cell class="flex gap-2">
-                        <flux:button :href="route('admin.locations.edit', $location)" size="xs" variant="ghost" icon="pencil-square" />
-                        <flux:button
-                            wire:click="deleteLocation({{ $location->id }})"
-                            wire:confirm="¿Eliminar {{ $location->name }}? Sus hijos se quedan sin padre."
-                            size="xs" variant="ghost" icon="trash" />
-                    </flux:table.cell>
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="5" class="text-center text-zinc-500">
+                    <flux:table.cell colspan="4" class="text-center text-zinc-500">
                         No hay ubicaciones. <a href="{{ route('admin.locations.create') }}" class="underline">Crea la primera</a>.
                     </flux:table.cell>
                 </flux:table.row>

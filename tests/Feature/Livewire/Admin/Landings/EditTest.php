@@ -145,4 +145,35 @@ describe('Admin\\Landings\\Edit', function (): void {
             expect($landing->refresh()->title)->toBe('Nuevo título');
         });
     });
+    describe('record_actions', function (): void {
+        it('should publish a landing immediately and clear its publish date', function (): void {
+            $landing = Landing::factory()->scheduled(now()->addDays(5))->create();
+
+            Livewire::test('pages::admin.landings.edit', ['landing' => $landing])
+                ->call('publishNow');
+
+            $landing->refresh();
+            expect($landing->status)->toBe(LandingStatus::Published)
+                ->and($landing->publish_at)->toBeNull();
+        });
+
+        it('should unpublish a landing back to draft', function (): void {
+            $landing = Landing::factory()->published()->create();
+
+            Livewire::test('pages::admin.landings.edit', ['landing' => $landing])
+                ->call('unpublish');
+
+            expect($landing->refresh()->status)->toBe(LandingStatus::Draft);
+        });
+
+        it('should delete a landing', function (): void {
+            $landing = Landing::factory()->create();
+
+            Livewire::test('pages::admin.landings.edit', ['landing' => $landing])
+                ->call('delete')
+                ->assertRedirect(route('admin.landings.index'));
+
+            expect(Landing::find($landing->id))->toBeNull();
+        });
+    });
 });

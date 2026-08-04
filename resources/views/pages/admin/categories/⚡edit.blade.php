@@ -61,16 +61,40 @@ class extends Component
             ->get(['id', 'name'])
             ->map(fn (Category $c): array => ['id' => $c->id, 'label' => $c->name]);
     }
+
+    /**
+     * Borra el registro y vuelve al listado, que es de donde se venía.
+     *
+     * Vive aquí y no en el índice porque borrar desde una fila deja el
+     * puntero a un clic del lápiz de al lado; quien borra ya ha abierto
+     * la ficha.
+     */
+    public function delete(): void
+    {
+        $this->category?->delete();
+
+        $this->redirectRoute('admin.categories.index', navigate: true);
+    }
 };
 ?>
 
 <div class="mx-auto max-w-3xl space-y-6 p-8">
-    <div class="flex items-center justify-between">
-        <flux:heading size="xl">
+    <x-admin.page-header :back="route('admin.categories.index')">
             {{ $category ? 'Editar categoría: '.$category->name : 'Nueva categoría' }}
-        </flux:heading>
-        <flux:button :href="route('admin.categories.index')" variant="ghost" icon="arrow-left">Volver</flux:button>
-    </div>
+
+        @if ($category)
+            <x-slot:actions>
+                <x-admin.record-menu>
+                    <flux:menu.item
+                        wire:click="delete"
+                        wire:confirm="¿Eliminar {{ $category->name }}? Sus hijos se quedan sin padre."
+                        icon="trash" variant="danger">
+                        Borrar
+                    </flux:menu.item>
+                </x-admin.record-menu>
+            </x-slot:actions>
+        @endif
+    </x-admin.page-header>
 
     @session('status')
         <flux:callout icon="check-circle" color="green">{{ $value }}</flux:callout>

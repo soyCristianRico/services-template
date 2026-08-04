@@ -87,19 +87,6 @@ describe('Admin\\Redirects\\Index', function (): void {
         });
     });
 
-    describe('deleteRedirect', function (): void {
-        it('should remove the redirect and stop sending anyone', function (): void {
-            $redirect = Redirect::factory()->create(['source' => '/vieja', 'destination' => '/blog']);
-
-            Livewire::test('pages::admin.redirects.index')
-                ->call('deleteRedirect', $redirect->id);
-
-            expect(Redirect::query()->count())->toBe(0);
-
-            $this->get('/vieja')->assertNotFound();
-        });
-    });
-
     describe('access', function (): void {
         it('should be closed to anyone not signed in', function (): void {
             auth()->logout();

@@ -141,16 +141,4 @@ describe('Admin\\Menus\\Index', function (): void {
         });
     });
 
-    describe('deleteItem', function (): void {
-        it('should remove the item and its submenu', function (): void {
-            $parent = MenuItem::factory()->create();
-            $child = MenuItem::factory()->childOf($parent)->create();
-
-            Livewire::test('pages::admin.menus.index')
-                ->call('deleteItem', $parent->id);
-
-            expect(MenuItem::find($parent->id))->toBeNull()
-                ->and(MenuItem::find($child->id))->toBeNull();
-        });
-    });
 });

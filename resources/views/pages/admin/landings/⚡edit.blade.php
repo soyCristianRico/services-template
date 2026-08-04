@@ -101,16 +101,65 @@ class extends Component
     {
         return Location::orderBy('name')->get(['id', 'name']);
     }
+
+    public function unpublish(): void
+    {
+        $this->landing?->update([
+            'status' => LandingStatus::Draft,
+            'publish_at' => null,
+        ]);
+
+        $this->landing?->refresh();
+    }
+
+    public function publishNow(): void
+    {
+        $this->landing?->update([
+            'status' => LandingStatus::Published,
+            'publish_at' => null,
+        ]);
+
+        $this->landing?->refresh();
+    }
+
+    /**
+     * Borra el registro y vuelve al listado, que es de donde se venía.
+     *
+     * Vive aquí y no en el índice porque borrar desde una fila deja el
+     * puntero a un clic del lápiz de al lado; quien borra ya ha abierto
+     * la ficha.
+     */
+    public function delete(): void
+    {
+        $this->landing?->delete();
+
+        $this->redirectRoute('admin.landings.index', navigate: true);
+    }
 };
 ?>
 
 <div class="mx-auto max-w-3xl space-y-6 p-8">
-    <div class="flex items-center justify-between">
-        <flux:heading size="xl">
+    <x-admin.page-header :back="route('admin.landings.index')">
             {{ $landing ? 'Editar landing' : 'Nueva landing' }}
-        </flux:heading>
-        <flux:button :href="route('admin.landings.index')" variant="ghost" icon="arrow-left">Volver al listado</flux:button>
-    </div>
+
+        @if ($landing)
+            <x-slot:actions>
+                <x-admin.record-menu>
+                    @if ($landing->status === \App\Enums\LandingStatus::Published)
+                        <flux:menu.item wire:click="unpublish" icon="eye-slash">Despublicar</flux:menu.item>
+                    @else
+                        <flux:menu.item wire:click="publishNow" icon="rocket-launch">Publicar ahora</flux:menu.item>
+                    @endif
+                    <flux:menu.item
+                        wire:click="delete"
+                        wire:confirm="¿Eliminar la landing /{{ $landing->slug }}? La URL devolverá 404."
+                        icon="trash" variant="danger">
+                        Borrar
+                    </flux:menu.item>
+                </x-admin.record-menu>
+            </x-slot:actions>
+        @endif
+    </x-admin.page-header>
 
     @session('status')
         <flux:callout icon="check-circle" color="green">{{ $value }}</flux:callout>

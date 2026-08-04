@@ -51,16 +51,4 @@ describe('Admin\\Locations\\Index', function () {
         });
     });
 
-    describe('actions', function () {
-        it('should delete a location and demote its children to roots', function () {
-            $parent = Location::factory()->create();
-            $child = Location::factory()->childOf($parent)->create();
-
-            Livewire::test('pages::admin.locations.index')
-                ->call('deleteLocation', $parent->id);
-
-            expect(Location::find($parent->id))->toBeNull();
-            expect(Location::find($child->id)->parent_id)->toBeNull();
-        });
-    });
 });

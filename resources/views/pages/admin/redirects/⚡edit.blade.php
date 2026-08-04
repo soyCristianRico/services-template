@@ -96,16 +96,40 @@ class extends Component
             ? $path === $source
             : $path === $source || str_starts_with($path, $source.'/');
     }
+
+    /**
+     * Borra el registro y vuelve al listado, que es de donde se venía.
+     *
+     * Vive aquí y no en el índice porque borrar desde una fila deja el
+     * puntero a un clic del lápiz de al lado; quien borra ya ha abierto
+     * la ficha.
+     */
+    public function delete(): void
+    {
+        $this->redirect?->delete();
+
+        $this->redirectRoute('admin.redirects.index', navigate: true);
+    }
 };
 ?>
 
 <div class="mx-auto max-w-3xl space-y-6 p-8">
-    <div class="flex items-center justify-between">
-        <flux:heading size="xl">
+    <x-admin.page-header :back="route('admin.redirects.index')">
             {{ $redirect ? 'Editar redirección' : 'Nueva redirección' }}
-        </flux:heading>
-        <flux:button :href="route('admin.redirects.index')" variant="ghost" icon="arrow-left">Volver</flux:button>
-    </div>
+
+        @if ($redirect)
+            <x-slot:actions>
+                <x-admin.record-menu>
+                    <flux:menu.item
+                        wire:click="delete"
+                        wire:confirm="¿Eliminar la redirección de {{ $redirect->source }}? Esa dirección volverá a devolver un error 404."
+                        icon="trash" variant="danger">
+                        Borrar
+                    </flux:menu.item>
+                </x-admin.record-menu>
+            </x-slot:actions>
+        @endif
+    </x-admin.page-header>
 
     @session('status')
         <flux:callout icon="check-circle" color="green">{{ $value }}</flux:callout>

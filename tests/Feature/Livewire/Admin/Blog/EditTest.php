@@ -116,4 +116,15 @@ describe('Admin\\Blog\\Edit', function () {
             expect($post->fresh()->getMedia('hero'))->toHaveCount(0);
         });
     });
+    describe('record_actions', function (): void {
+        it('should delete a post', function () {
+            $post = BlogPost::factory()->create();
+
+            Livewire::test('pages::admin.blog.edit', ['post' => $post])
+                ->call('delete')
+                ->assertRedirect(route('admin.blog.index'));
+
+            expect(BlogPost::find($post->id))->toBeNull();
+        });
+    });
 });

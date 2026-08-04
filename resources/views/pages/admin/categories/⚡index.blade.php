@@ -13,11 +13,6 @@ class extends Component
 {
     public string $search = '';
 
-    public function deleteCategory(int $id): void
-    {
-        Category::findOrFail($id)->delete();
-    }
-
     /**
      * @return array<int, array{category: Category, depth: int}>
      */
@@ -63,7 +58,6 @@ class extends Component
             <flux:table.column>Nombre</flux:table.column>
             <flux:table.column>Slug</flux:table.column>
             <flux:table.column>Icono</flux:table.column>
-            <flux:table.column>Acciones</flux:table.column>
         </flux:table.columns>
         <flux:table.rows>
             @forelse ($this->tree as $row)
@@ -71,7 +65,9 @@ class extends Component
                 @php($depth = $row['depth'])
                 <flux:table.row wire:key="category-{{ $category->id }}">
                     <flux:table.cell>
-                        <span style="padding-left: {{ $depth * 20 }}px">
+                        <x-admin.record-link :href="route('admin.categories.edit', $category)">
+                            <span style="padding-left: {{ $depth * 20 }}px">
+                        </x-admin.record-link>
                             @if ($depth > 0) <span class="text-zinc-300">└ </span> @endif
                             {{ $category->name }}
                         </span>
@@ -84,17 +80,10 @@ class extends Component
                             <span class="text-zinc-300">—</span>
                         @endif
                     </flux:table.cell>
-                    <flux:table.cell class="flex gap-2">
-                        <flux:button :href="route('admin.categories.edit', $category)" size="xs" variant="ghost" icon="pencil-square" />
-                        <flux:button
-                            wire:click="deleteCategory({{ $category->id }})"
-                            wire:confirm="¿Eliminar {{ $category->name }}? Sus hijos se quedan sin padre."
-                            size="xs" variant="ghost" icon="trash" />
-                    </flux:table.cell>
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="4" class="text-center text-zinc-500">
+                    <flux:table.cell colspan="3" class="text-center text-zinc-500">
                         No hay categorías. <a href="{{ route('admin.categories.create') }}" class="underline">Crea la primera</a>.
                     </flux:table.cell>
                 </flux:table.row>

@@ -117,4 +117,17 @@ describe('Admin\\Locations\\Edit', function () {
             expect($options)->toHaveCount(3);
         });
     });
+    describe('record_actions', function (): void {
+        it('should delete a location and demote its children to roots', function () {
+            $parent = Location::factory()->create();
+            $child = Location::factory()->childOf($parent)->create();
+
+            Livewire::test('pages::admin.locations.edit', ['location' => $parent])
+                ->call('delete')
+                ->assertRedirect(route('admin.locations.index'));
+
+            expect(Location::find($parent->id))->toBeNull();
+            expect(Location::find($child->id)->parent_id)->toBeNull();
+        });
+    });
 });

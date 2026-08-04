@@ -82,13 +82,5 @@ describe('Admin\\Services\\Index', function () {
             expect($service->refresh()->is_active)->toBeFalse();
         });
 
-        it('should delete a service', function () {
-            $service = Service::factory()->create();
-
-            Livewire::test('pages::admin.services.index')
-                ->call('deleteService', $service->id);
-
-            expect(Service::find($service->id))->toBeNull();
-        });
     });
 });

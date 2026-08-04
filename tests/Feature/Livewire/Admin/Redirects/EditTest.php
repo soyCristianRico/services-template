@@ -89,4 +89,17 @@ describe('Admin\\Redirects\\Edit', function (): void {
                 ->assertSee('contenido eliminado');
         });
     });
+    describe('record_actions', function (): void {
+        it('should remove the redirect and stop sending anyone', function (): void {
+            $redirect = Redirect::factory()->create(['source' => '/vieja', 'destination' => '/blog']);
+
+            Livewire::test('pages::admin.redirects.edit', ['redirect' => $redirect])
+                ->call('delete')
+                ->assertRedirect(route('admin.redirects.index'));
+
+            expect(Redirect::query()->count())->toBe(0);
+
+            $this->get('/vieja')->assertNotFound();
+        });
+    });
 });

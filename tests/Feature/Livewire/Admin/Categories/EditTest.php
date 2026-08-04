@@ -105,4 +105,17 @@ describe('Admin\\Categories\\Edit', function () {
             expect($options)->toHaveCount(2);
         });
     });
+    describe('record_actions', function (): void {
+        it('should delete a category and demote its children to roots', function () {
+            $parent = Category::factory()->create();
+            $child = Category::factory()->childOf($parent)->create();
+
+            Livewire::test('pages::admin.categories.edit', ['category' => $parent])
+                ->call('delete')
+                ->assertRedirect(route('admin.categories.index'));
+
+            expect(Category::find($parent->id))->toBeNull();
+            expect(Category::find($child->id)->parent_id)->toBeNull();
+        });
+    });
 });

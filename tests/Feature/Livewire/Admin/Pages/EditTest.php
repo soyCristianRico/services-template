@@ -86,4 +86,15 @@ describe('Admin\\Pages\\Edit', function () {
             expect($page->refresh()->title)->toBe('Título actualizado');
         });
     });
+    describe('record_actions', function (): void {
+        it('should delete a page', function () {
+            $page = Page::factory()->create();
+
+            Livewire::test('pages::admin.pages.edit', ['page' => $page])
+                ->call('delete')
+                ->assertRedirect(route('admin.pages.index'));
+
+            expect(Page::find($page->id))->toBeNull();
+        });
+    });
 });

@@ -149,4 +149,17 @@ describe('Admin\\Menus\\Edit', function (): void {
             expect($component->instance()->canHaveParent)->toBeFalse();
         });
     });
+    describe('record_actions', function (): void {
+        it('should remove the item and its submenu', function (): void {
+            $parent = MenuItem::factory()->create();
+            $child = MenuItem::factory()->childOf($parent)->create();
+
+            Livewire::test('pages::admin.menus.edit', ['menuItem' => $parent])
+                ->call('delete')
+                ->assertRedirect(route('admin.menus.index'));
+
+            expect(MenuItem::find($parent->id))->toBeNull()
+                ->and(MenuItem::find($child->id))->toBeNull();
+        });
+    });
 });
