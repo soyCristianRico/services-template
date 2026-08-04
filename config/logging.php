@@ -118,6 +118,18 @@ return [
             'replace_placeholders' => true,
         ],
 
+        /*
+        | Errores de la aplicación agrupados y con traza. Se activa metiéndolo en
+        | LOG_STACK ("single,bugsnag") y poniendo BUGSNAG_API_KEY.
+        |
+        | Sin clave el canal no envía nada, que es lo que queremos en local y en
+        | los tests: el ruido de desarrollo no debe gastar la cuota ni enterrar los
+        | errores de producción.
+        */
+        'bugsnag' => [
+            'driver' => 'bugsnag',
+        ],
+
         'null' => [
             'driver' => 'monolog',
             'handler' => NullHandler::class,
