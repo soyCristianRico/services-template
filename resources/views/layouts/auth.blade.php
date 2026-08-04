@@ -7,6 +7,12 @@
     <title>@yield('title', config('app.name'))</title>
     <meta name="robots" content="noindex, follow">
 
+    {{-- Sin esto el navegador se cae a `/favicon.ico`, que es el de 0 bytes que
+         trae el esqueleto de Laravel: pestaña en blanco. Es el mismo icono que
+         enlaza el sitio público, porque el panel es la misma marca. --}}
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('favicon.png') }}">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <script>

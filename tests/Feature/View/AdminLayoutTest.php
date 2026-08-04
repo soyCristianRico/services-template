@@ -91,4 +91,14 @@ describe('AdminLayout', function (): void {
             'contenido' => '/admin/blog',
         ]);
     });
+    describe('favicon', function (): void {
+        /**
+         * The public layout links the icon; the admin used to link nothing, so
+         * the browser fell back to `/favicon.ico` — the 0-byte placeholder the
+         * Laravel skeleton ships — and painted a blank tab.
+         */
+        it('should link the same icon as the public site', function (): void {
+            expect(renderAdminLayout('/admin'))->toContain('href="'.asset('favicon.png').'"');
+        });
+    });
 });
