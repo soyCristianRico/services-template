@@ -40,7 +40,38 @@ Los tipos a muestrear son los del inventario, **incluidas las `entidades_nuevas`
 solo las entidades que trae el template. Una entidad creada para este clon se verifica
 igual que un servicio.
 
-### 3 — Reproducibilidad en producción
+### 3 — La copia que no pertenece a ninguna página
+El bucle de clonado recorre páginas, así que reescribe lo que vive **dentro** de una
+página. Lo que envuelve a todas —el banner de cookies, el formulario de captación, las
+páginas de gracias, los textos por defecto de meta description— no lo toca nadie: llega
+del template con la copia del negocio para el que se escribió el template, y sobrevive
+al clon entero porque ninguna página lo reclama como suya.
+
+Sale caro porque es el texto que aparece en **todas** las páginas. Una academia de
+oposiciones con un banner de cookies que dice «gestionar tus solicitudes de presupuesto»
+lo enseña en cada visita, y encima en el sitio donde el usuario está decidiendo si se
+fía: el aviso de cookies.
+
+Barrer el vocabulario del template contra el negocio que se acaba de clonar. Lo que casi
+siempre queda:
+
+- `components/cookies/banner.blade.php` — para qué dice que se usan los datos
+- el formulario de captación — su titular, su botón y su mensaje de éxito
+- los textos por defecto de meta description en las plantillas de página
+- las páginas de gracias
+
+Y con la misma pasada, **las promesas de plazo heredadas**. «Te llamamos en 15 minutos»
+o «respuesta en menos de 15 minutos» son compromisos comerciales del negocio original;
+publicarlos en nombre de otro es prometer por él algo que quizá no cumple. No se
+reescriben a ojo: se marcan y se preguntan.
+
+Grep es suficiente: buscar los sustantivos del negocio viejo (presupuesto, obra,
+avería, instalación…) en `resources/views` y en los cuerpos guardados. Que no aparezcan
+en el sitio clonado no significa que no estén en la web: casi todo esto vive en rutas
+que hoy no tienen ni un registro —un formulario de captación sin landings creadas— y
+aparece meses después, cuando ya no lo mira nadie.
+
+### 4 — Reproducibilidad en producción
 Cruzar las páginas del mapa con las entradas de
 `database/seeders/data/clone-content.json`. Toda página clonada tiene que estar ahí:
 lo que solo esté en la base de datos local **no existe en producción**, porque allí se
@@ -74,13 +105,13 @@ ningún fichero estático atendió — falta el enlace, o faltan los ficheros. Y
 `php artisan storage:link` al script de despliegue, que es idempotente: si el enlace ya
 existe avisa y sigue con código de salida 0.
 
-### 4 — Listados y filtros
+### 5 — Listados y filtros
 Para cada página que el mapa marcó como listado: comprobar que están todas las facetas
 documentadas, que sus opciones cubren el dominio completo del campo (no solo los
 valores con datos) y que el conteo de resultados sin filtrar coincide con el origen.
 Es el bloque donde más se escapa, porque una faceta que falta no rompe nada visible.
 
-### 5 — Meta y SEO
+### 6 — Meta y SEO
 Comparar meta title, meta description y presencia de JSON-LD por tipo de página.
 Confirmar que las inactivas devuelven 404 y no salen en el sitemap.
 
@@ -110,16 +141,19 @@ historial se conviertan en 404 el día que se migra el dominio.
 uno, si había aviso al equipo y correo a quien lo rellenó. Que el formulario responda
 bien no dice nada de eso: el envío va por la cola y falla sin ruido.
 
-### 6 — Visual
+### 7 — Visual
 `browser_take_screenshot` de home y páginas tipo en ambos sitios y comparar layout,
 jerarquía y marca. Diferencias de píxel por fuentes/render no cuentan como fallo.
 
 ## Reportar
 
-Checklist por bloque (cobertura, URLs, contenido, reproducibilidad, listados, SEO,
-visual) con estado y lista priorizada de desajustes. Adónde vuelve cada hueco:
+Checklist por bloque (cobertura, URLs, contenido, copia heredada, reproducibilidad,
+listados, SEO, visual) con estado y lista priorizada de desajustes. Adónde vuelve cada
+hueco:
 
 - contenido, diseño o listado de una página → `/services-clone-page` sobre esa página
+- copia del template que sobrevivió al clon → se corrige a mano; no es de ninguna página
+  y no hay skill que vuelva a pasar por ella
 - falta una página entera, o el mapa no trae `papel` → `/services-map-source`
 - falta un campo o una opción de faceta en el esquema → `/services-model-entities`
 - una página no está en `clone-content.json` → `/services-clone-page` sobre esa página
