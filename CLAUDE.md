@@ -163,6 +163,41 @@ family as production or it cannot catch any of the limits above. `new-site.sh`
 creates both databases and writes both env files, so a new site starts out this
 way.
 
+## A cascade deletes rows, not files
+
+`cascadeOnDelete` is enforced by the database, and the database knows nothing
+about Eloquent. Deleting a parent removes the children with one statement and
+**no model event fires for them** — no `deleting`, no observer, and none of the
+cleanup those hooks exist to do.
+
+That is invisible while a child holds only columns. It bites the moment a child
+holds a **file**: a media-library collection, or a path to something on a private
+disk. The row disappears, the file stays, and nothing left in the database names
+it. Nobody notices, because the only symptom is a disk that grows.
+
+**When the child owns files, delete the children through Eloquent from the
+parent's `deleting` hook.** Leave the foreign key as it is — it stays as the
+backstop for anything that reaches the table another way.
+
+```php
+protected static function booted(): void
+{
+    static::deleting(function (Category $category): void {
+        $category->services->each->delete();
+    });
+}
+```
+
+The same reasoning applies one level down: a model that stores its own file on a
+disk deletes it in its own `deleting` hook, so it cleans up however it is
+deleted — from the admin, from a command, from a parent, or from tinker. Put the
+cleanup on the model rather than at the call site; a rule that lives in one
+button is a rule that holds until the second button.
+
+The cheapest way to know whether this applies: **does deleting this row leave
+bytes on a disk?** If yes, it needs a hook and a test that asserts the file is
+gone, not just the row.
+
 ## Migrations
 
 - One concern per migration, and always a working `down()`.
