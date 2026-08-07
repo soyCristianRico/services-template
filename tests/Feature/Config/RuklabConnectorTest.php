@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Models\BlogPost;
 use App\Models\Lead;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\Testing\File;
 use Ruklab\Connector\Content\ContentType;
 
 describe('Ruklab connector config', function () {
@@ -55,8 +57,7 @@ describe('Ruklab connector config', function () {
             // stop rendering.
             foreach (config('ruklab.types') as $name => $type) {
                 foreach ($type->structuredFields() as $field) {
-                    expect($type->writable())->not->toContain(
-                        $field,
+                    expect(in_array($field, $type->writable(), true))->toBeFalse(
                         "El tipo «{$name}» ofrece escribir {$field}, que guarda una estructura.",
                     );
                 }
@@ -108,5 +109,110 @@ describe('Ruklab connector config', function () {
         it('starts read-only', function () {
             expect(config('ruklab.writes_enabled'))->toBeFalse();
         });
+    });
+});
+
+describe('Ruklab connector media', function () {
+    beforeEach(function () {
+        config()->set('ruklab.token', 'el-bueno');
+        config()->set('ruklab.writes_enabled', true);
+    });
+
+    it('declares only collections the model actually registers', function () {
+        // A collection named here and missing from the model would be created
+        // on the fly by medialibrary, with none of the conversions the site
+        // expects, and the hero would render at its original weight.
+        foreach (config('ruklab.types') as $name => $type) {
+            if ($type->media === []) {
+                continue;
+            }
+
+            $registered = $type->newModel()->getRegisteredMediaCollections()->pluck('name')->all();
+
+            foreach ($type->media as $ourName => $collection) {
+                expect(in_array($collection, $registered, true))->toBeTrue(
+                    "El tipo «{$name}» declara la imagen «{$ourName}» en la colección «{$collection}», que el modelo no registra.",
+                );
+            }
+        }
+    });
+
+    it('stores an uploaded image in the hero collection', function () {
+        $post = BlogPost::factory()->create();
+
+        $response = $this->withHeader('Authorization', 'Bearer el-bueno')
+            ->post("/ruklab/v1/content/post/{$post->id}/media", [
+                'name' => 'featured',
+                'file' => File::image('portada.jpg', 1200, 630),
+            ]);
+
+        $response->assertOk()->assertJsonPath('collection', 'hero');
+
+        expect($post->fresh()->getFirstMedia('hero'))->not->toBeNull();
+    });
+
+    it('replaces the image instead of piling a second one on', function () {
+        // Publishing the same article twice must not leave the site with two
+        // heroes and no way to say which one wins.
+        $post = BlogPost::factory()->create();
+
+        foreach (['una.jpg', 'otra.jpg'] as $name) {
+            $this->withHeader('Authorization', 'Bearer el-bueno')
+                ->post("/ruklab/v1/content/post/{$post->id}/media", [
+                    'name' => 'featured',
+                    'file' => File::image($name, 1200, 630),
+                ])->assertOk();
+        }
+
+        expect($post->fresh()->getMedia('hero'))->toHaveCount(1);
+    });
+
+    it('refuses an image name this type does not declare', function () {
+        $post = BlogPost::factory()->create();
+
+        $this->withHeader('Authorization', 'Bearer el-bueno')
+            ->post("/ruklab/v1/content/post/{$post->id}/media", [
+                'name' => 'inventada',
+                'file' => File::image('portada.jpg'),
+            ])->assertForbidden();
+    });
+
+    it('refuses something that is not an image', function () {
+        $post = BlogPost::factory()->create();
+
+        $this->withHeader('Authorization', 'Bearer el-bueno')
+            ->post("/ruklab/v1/content/post/{$post->id}/media", [
+                'name' => 'featured',
+                'file' => File::create('factura.pdf', 10, 'application/pdf'),
+            ])->assertStatus(422);
+    });
+
+    it('refuses to touch anything on a read-only site', function () {
+        config()->set('ruklab.writes_enabled', false);
+
+        $post = BlogPost::factory()->create();
+
+        $this->withHeader('Authorization', 'Bearer el-bueno')
+            ->post("/ruklab/v1/content/post/{$post->id}/media", [
+                'name' => 'featured',
+                'file' => File::image('portada.jpg'),
+            ])->assertForbidden();
+
+        expect($post->fresh()->getFirstMedia('hero'))->toBeNull();
+    });
+
+    it('shows the image when reading the article back', function () {
+        $post = BlogPost::factory()->create();
+
+        $this->withHeader('Authorization', 'Bearer el-bueno')
+            ->post("/ruklab/v1/content/post/{$post->id}/media", [
+                'name' => 'featured',
+                'file' => File::image('portada.jpg'),
+            ])->assertOk();
+
+        $this->withHeader('Authorization', 'Bearer el-bueno')
+            ->getJson("/ruklab/v1/content/post/{$post->id}")
+            ->assertOk()
+            ->assertJsonPath('images.featured', fn (?string $url): bool => is_string($url) && $url !== '');
     });
 });

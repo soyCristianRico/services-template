@@ -69,6 +69,10 @@ return [
             ],
             status: 'is_active',
             url: '/blog/{slug}',
+            // La imagen no es una columna: es la colección `hero` de
+            // medialibrary. Se declara aquí para que Ruk Lab pueda dejarla
+            // ahí al publicar.
+            media: ['featured' => 'hero'],
         ),
 
         'page' => ContentType::make(
