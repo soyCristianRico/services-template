@@ -59,6 +59,11 @@ Para cada entidad propuesta, resolver y dejar por escrito:
   tamaños parecidos.
 - **Relaciones** — con métodos Eloquent tipados. Las relaciones opcionales al modelo
   del template (p. ej. → `Service`) van `nullable` + `nullOnDelete`.
+- **Hijos que guardan ficheros** — una cascada la ejecuta la base de datos, que no
+  dispara eventos de Eloquent: la fila del hijo desaparece y su imagen o su PDF se
+  quedan en el disco sin nada que los nombre. Si el hijo tiene media o una ruta a un
+  disco privado, el padre lo borra por Eloquent desde su gancho `deleting`, y la clave
+  ajena se queda de red de seguridad. Ver `.ai/guidelines/database.md`.
 - **Estado y orden** — `is_active`, `position`, `published_at` si el origen los tiene.
 - **Imágenes** — nunca una columna de texto con la ruta. La entidad implementa
   `HasMedia` y declara su colección (`cover`, `gallery`, `hero`…), como ya hacen las
@@ -98,7 +103,10 @@ Con la propuesta validada, y siguiendo las convenciones del proyecto:
 Todo lo creado aquí se prueba. Nada de «ya lo cubre otro test de refilón».
 
 **Modelos → `tests/Feature/Models/{Modelo}Test.php`.** Relaciones (incluido qué pasa al
-borrar el padre: cascada vs desvincular), casts, scopes y unicidad de slug.
+borrar el padre: cascada vs desvincular), casts, scopes y unicidad de slug. Si al
+borrar quedan ficheros en un disco, la prueba comprueba **que el fichero ya no está**,
+no solo que la fila se haya ido: la fila la borra la clave ajena de todos modos y por
+sí sola no prueba nada.
 
 **Enums → `tests/Unit/Enums/{Enum}Test.php`.** Son PHP puro: no necesitan base de datos
 ni arrancar el framework, así que **van en `Unit`, sin `RefreshDatabase`**. Corren en

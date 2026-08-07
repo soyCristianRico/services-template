@@ -47,9 +47,17 @@ Reglas:
 - **Variantes**: si una ficha puede tener dos bloques equivalentes (dos convocatorias,
   dos tarifas), se activan con un interruptor y el segundo bloque aparece entero.
 
-### 3 — Imágenes
+### 3 — Ficheros
 Subida con previsualización, sustitución y borrado, sobre el sistema de medios del
-proyecto. Cualquier imagen que el origen deje cambiar, aquí también.
+proyecto. Cualquier imagen que el origen deje cambiar, aquí también. Sustituir un
+fichero borra el anterior; no se acumulan versiones que nadie va a mirar.
+
+**Lo que se vaya a procesar después se valida al subirlo.** Si un fichero se sella, se
+convierte, se recorta o se reempaqueta más tarde, esa operación se intenta aquí, con el
+cliente delante y el archivo recién elegido. Descubrir en la entrega que no se puede
+procesar significa que ya ha fallado delante de quien lo esperaba —y si había un pago
+por medio, después de cobrarlo—. El veredicto se guarda junto al fichero y cuenta como
+bloqueador de publicación, igual que la ausencia del propio fichero.
 
 ### 4 — Taxonomías y listados
 CRUD de las taxonomías propias (áreas, tipos), y en cada índice: buscador, filtros por

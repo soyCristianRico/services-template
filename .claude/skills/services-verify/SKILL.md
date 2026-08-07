@@ -55,6 +55,25 @@ Las **imágenes entran en esa prueba**: tras sembrar en limpio, cada registro qu
 tener imagen la tiene. Si falta, es que el fichero no está versionado o su nombre no
 casa con el slug, y en producción saldría el hueco.
 
+**Y esa prueba se repite contra el dominio desplegado, pidiendo la imagen.** Todo lo
+anterior se comprueba en local, y hay un fallo que en local es invisible por
+construcción: `public/storage` es un enlace simbólico que está en `.gitignore`, así que
+no viaja en el repositorio. Si nadie corre `php artisan storage:link` en el servidor,
+**cada imagen de MediaLibrary da 404 en producción con la base de datos y los ficheros
+perfectos**, y el sitio se ve entero menos las fotos. Las de `public/images/` sí
+cargan, porque esas van en git; esa asimetría es justo lo que despista al mirarlo.
+
+No vale con abrir la página: pedir la URL de la imagen y mirar el código de respuesta.
+
+```bash
+curl -s -o /dev/null -w "%{http_code} %{content_type}\n" https://DOMINIO/storage/1/conversions/algo-card.jpg
+```
+
+`200 image/jpeg` es pasar. Un `404 text/html` es Laravel respondiendo a una ruta que
+ningún fichero estático atendió — falta el enlace, o faltan los ficheros. Y añadir
+`php artisan storage:link` al script de despliegue, que es idempotente: si el enlace ya
+existe avisa y sigue con código de salida 0.
+
 ### 4 — Listados y filtros
 Para cada página que el mapa marcó como listado: comprobar que están todas las facetas
 documentadas, que sus opciones cubren el dominio completo del campo (no solo los

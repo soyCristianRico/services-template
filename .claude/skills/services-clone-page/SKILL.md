@@ -80,6 +80,17 @@ del registro; aquí solo se colocan con ese nombre. Nunca enlazar al dominio de 
 columna de texto. Una imagen que el origen usa en varios sitios se descarga una vez:
 la ficha, la tarjeta del listado y el OG leen todos del mismo registro.
 
+**`public/images/` es material del seeder, nunca una fuente en caliente.** Se escribe
+una vez al clonar y no se vuelve a leer: la plantilla lee **siempre** del registro. La
+trampa es que acabas de dejar el fichero ahí con un nombre que es el slug, así que
+`asset('images/courses/'.$slug.'.jpg')` sale solo y funciona —hoy—. Lo que no funciona
+es mañana: esa carpeta no la toca nadie más, así que el día que sustituyan la foto
+desde el admin la página seguirá enseñando la de la migración, y encima el OG de la
+misma página sí cambiará, porque ese sí lee del registro. Queda un admin con un botón
+que miente y dos fotos distintas para el mismo curso. Si hace falta decidir si hay
+foto, se pregunta al registro (`getFirstMediaUrl(...) ?: null`), no con `is_file()`
+contra `public_path()`.
+
 **El original no se pinta tal cual.** Leer la conversión que declara el modelo
 (`getFirstMediaUrl('col', 'card')`), no el fichero original. Al `<img>` le hacen falta
 `width`, `height` y `loading="lazy"`: sin los dos primeros el listado da saltos
