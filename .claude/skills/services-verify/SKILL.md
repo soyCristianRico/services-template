@@ -47,13 +47,14 @@ páginas de gracias, los textos por defecto de meta description— no lo toca na
 del template con la copia del negocio para el que se escribió el template, y sobrevive
 al clon entero porque ninguna página lo reclama como suya.
 
-Sale caro porque es el texto que aparece en **todas** las páginas. Una academia de
-oposiciones con un banner de cookies que dice «gestionar tus solicitudes de presupuesto»
-lo enseña en cada visita, y encima en el sitio donde el usuario está decidiendo si se
-fía: el aviso de cookies.
+Sale caro porque es el texto que aparece en **todas** las páginas. Un sitio que no pide
+presupuestos con un banner de cookies que dice «gestionar tus solicitudes de
+presupuesto» lo enseña en cada visita, y encima donde el usuario está decidiendo si se
+fía.
 
-Barrer el vocabulario del template contra el negocio que se acaba de clonar. Lo que casi
-siempre queda:
+Debería haberlo dejado escrito `/services-extract-design`, que es quien monta el marco.
+Aquí se comprueba que lo hizo. Barrer el vocabulario del template contra el negocio que
+se acaba de clonar; lo que casi siempre queda:
 
 - `components/cookies/banner.blade.php` — para qué dice que se usan los datos
 - el formulario de captación — su titular, su botón y su mensaje de éxito
@@ -152,8 +153,8 @@ listados, SEO, visual) con estado y lista priorizada de desajustes. Adónde vuel
 hueco:
 
 - contenido, diseño o listado de una página → `/services-clone-page` sobre esa página
-- copia del template que sobrevivió al clon → se corrige a mano; no es de ninguna página
-  y no hay skill que vuelva a pasar por ella
+- copia del template que sobrevivió al clon → `/services-extract-design`, que es quien
+  monta el marco y su copia. No es de ninguna página, así que el bucle no vuelve a ella
 - falta una página entera, o el mapa no trae `papel` → `/services-map-source`
 - falta un campo o una opción de faceta en el esquema → `/services-model-entities`
 - una página no está en `clone-content.json` → `/services-clone-page` sobre esa página

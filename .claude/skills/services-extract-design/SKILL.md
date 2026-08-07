@@ -89,6 +89,17 @@ Los enlaces salen de los ítems de menú ya sembrados, nunca escritos a mano en 
 cliente añade contenido. Del origen se replican las piezas de la cabecera (logo, menú,
 CTA, cualquier barra superior) y las columnas del pie con sus tipografías.
 
+**Y la copia que viene con el marco, que es la que nadie reclama.** El banner de
+cookies, el formulario de captación y los textos por defecto de meta description llegan
+del template escritos para el negocio para el que se escribió el template. No son de
+ninguna página, así que el bucle de clonado no pasa por ellos y sobreviven al clon
+entero — apareciendo, eso sí, en **todas** las páginas.
+
+Reescribirlos aquí con el vocabulario del negocio real. Y **marcar, sin reescribir, las
+promesas de plazo heredadas**: un «te respondemos en 15 minutos» es un compromiso
+comercial del negocio anterior, y publicarlo en nombre de otro es prometer por él. Eso
+se pregunta.
+
 ### 5 — Comprobar la base
 
 Levantar el proyecto en local, capturar la home y compararla con la del origen.
