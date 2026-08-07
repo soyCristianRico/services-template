@@ -42,9 +42,7 @@
                     <span class="font-display text-xl font-semibold text-foreground">{{ config('app.name') }}</span>
                 @endif
             </a>
-            <nav class="hidden gap-6 text-sm md:flex">
-                {{-- Each site overrides this nav --}}
-            </nav>
+            <x-site-navigation class="hidden text-sm md:flex" />
         </div>
     </header>
 
@@ -56,6 +54,10 @@
     <footer class="mt-24 border-t border-border">
         <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-8 text-sm text-muted-foreground">
             <span>&copy; {{ date('Y') }} {{ config('app.name') }}</span>
+            <x-site-navigation :location="\App\Enums\MenuLocation::Footer" class="flex-wrap gap-4" />
+            {{-- The legal links stay written here on purpose. They are a legal
+                 obligation, not editorial navigation, and an empty menu table
+                 must never be able to take them off the page. --}}
             <a href="{{ route('legal') }}#aviso-legal" wire:navigate class="transition hover:text-foreground">Aviso legal</a>
             <a href="{{ route('legal') }}#privacidad" wire:navigate class="transition hover:text-foreground">Política de privacidad</a>
             <a href="{{ route('legal') }}#cookies" wire:navigate class="transition hover:text-foreground">Política de cookies</a>
