@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-
 describe('Error pages', function () {
     describe('404', function () {
         beforeEach(function () {

@@ -34,6 +34,21 @@ class Category extends Model
         ];
     }
 
+    /**
+     * Takes the services down one by one instead of leaving them to the cascade.
+     *
+     * The foreign key would delete their rows without Eloquent ever hearing about
+     * it, and the images of each one live on a disk under a media row that only
+     * fires its own cleanup on a model event. Left to the database, deleting one
+     * category strands every photo its services had.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (Category $category): void {
+            $category->services->each->delete();
+        });
+    }
+
     public function parent(): BelongsTo
     {
         return $this->belongsTo(self::class, 'parent_id');
@@ -42,6 +57,11 @@ class Category extends Model
     public function children(): HasMany
     {
         return $this->hasMany(self::class, 'parent_id');
+    }
+
+    public function services(): HasMany
+    {
+        return $this->hasMany(Service::class);
     }
 
     public function descendants(): Collection
