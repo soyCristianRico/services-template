@@ -168,6 +168,9 @@ Aquí solo se registra qué hay.
   se saca el par `(href, texto)`. Un enlace solo se reporta como roto si su `href`
   **extraído** devuelve error al comprobarlo. Contempla destinos fuera del sitemap:
   subdominios, dominios externos, anclas, enlaces con query (`?filtro=x`).
+  El `href` se anota **literal, tal como está en el origen** —barra final incluida—:
+  aquí se registra, no se arregla. Es una dirección *del origen*, y traducirla a como
+  las escribe el destino es de quien la guarda (`/services-scaffold-structure`, 2c).
 - **Los embeds se anotan con su `src` entero**, igual que los enlaces y por el mismo
   motivo. Un iframe de mapa, vídeo, calendario o reservas lleva dentro **qué entidad**
   enseña, y eso no se reconstruye después a partir de la dirección o del título: sale

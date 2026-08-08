@@ -95,6 +95,8 @@ lo que hace que el clon sea versionado y repetible.
 
 - Usar el **`href` extraído** por el mapeo, nunca deducirlo del texto del enlace.
   Enlaces externos, subdominios y anclas se conservan tal cual.
+- **Y traducirlo al destino antes de guardarlo.** Un `href` del mapa es una dirección
+  *del origen*, y cómo se escribe una dirección es del destino. Ver abajo.
 - **Distinguir enlace de bloque dinámico.** Un mega-menú que agrupa fichas por su
   categoría no son N enlaces sueltos: es un ítem `dynamic_block` con su `source`. Si se
   siembra plano, cada ficha nueva obliga a tocar el menú a mano y acaba desincronizado.
@@ -103,6 +105,39 @@ lo que hace que el clon sea versionado y repetible.
 
 La pantalla de admin para editarlos es código de plantilla, igual que la entidad. No
 se construye por proyecto.
+
+### 2c — La dirección del origen no se escribe como la escribe el destino
+El mapeo extrae el `href` literal y hace bien: es lo único que dice a qué página
+apunta el enlace. Lo que no puede es **guardarse literal**. Un gestor como WordPress
+termina todas sus URLs en `/`, así que del volcado sale
+`https://origen.com/servicios/reformas/`, y Laravel no sirve esa dirección: sirve
+`/servicios/reformas`. Son dos formas de escribir el mismo destino y solo una es la
+que el sitio declara suya.
+
+**Lo que lo hace caro es que no se ve.** Laravel recorta la barra al enrutar, así que
+`/faqs/` responde 200 exactamente igual que `/faqs`, y el dominio del origen pasa a
+ser el del destino el día del cambio. La página se ve perfecta, los enlaces funcionan
+al pincharlos, y cada uno apunta a una dirección que no es la del canonical ni la del
+sitemap. Sobrevive al clon entero y a la verificación porque no hay nada roto que
+mirar. En la web de la que salió esta regla eran **1.231 enlaces de 5.574**, y el
+grueso no estaba en el contenido: estaba aquí, en 15 filas de menú que salen en todas
+las páginas del sitio.
+
+Al guardar, dos reglas:
+
+- **Ruta relativa, sin barra final.** `https://origen.com/servicios/reformas/` →
+  `/servicios/reformas`. La query y el ancla se quedan donde estaban:
+  `/cursos/?area=verano` → `/cursos?area=verano`.
+- **Solo si el host ES el origen.** Un subdominio no lo es: `tienda.origen.com` es
+  otro sistema, y convertirlo en ruta relativa lo manda a una página del sitio nuevo
+  que no existe. Externos, subdominios, anclas y `mailto:` se guardan tal cual.
+
+La red por debajo es `php artisan seo:normalize-links --dry-run`, que lista lo que
+está mal, y sin `--dry-run` lo arregla. Barre todos los modelos —los descubre, no los
+lista— y solo toca lo que ya está mal, así que se puede correr las veces que haga
+falta. Sirve de comprobación al terminar de sembrar, y de rescate para un clon que ya
+se hizo sin esto. No sustituye a sembrarlo bien: lo que se guarda bien no necesita
+que nadie se acuerde de correr un comando.
 
 ### 3 — Sembrar y comprobar en local
 `php artisan db:seed --class=CloneStructureSeeder`. Verificar conteos por entidad
@@ -117,6 +152,8 @@ Siguiente paso: `/services-extract-design`.
 
 - Solo estructura: sin copy, sin meta final. El relleno es de `/services-clone-page`.
 - Seeder idempotente: re-ejecutar no duplica.
+- Ninguna dirección propia se guarda con barra final ni con el dominio delante. Que el
+  enlace funcione al pincharlo no dice nada: funcionan las dos formas.
 - No fabricar entidades que no estén en el inventario.
 - No crear ni alterar esquema (migraciones/modelos): eso es `/services-model-entities`.
   Si falta una tabla, parar y decirlo — no sembrar a medias en silencio.

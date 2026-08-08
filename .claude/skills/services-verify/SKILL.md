@@ -138,6 +138,32 @@ Comprobar también las **redirecciones que el mapa recogió del origen**: una mu
 tiene que responder con el mismo destino que allí. Es lo que impide que años de
 historial se conviertan en 404 el día que se migra el dominio.
 
+**Y el enlazado interno, que es el desajuste que ningún bloque anterior puede ver.**
+Los enlaces guardados llegan del origen escritos como los escribía el origen —con el
+dominio delante y acabados en `/`— y Laravel los sirve igual de bien, así que no hay
+página rota, ni enlace muerto, ni captura que delate nada. El sitio entero apuntando a
+direcciones que su propio canonical no reconoce pasa por aquí sin ruido.
+
+```bash
+php artisan seo:normalize-links --dry-run
+```
+
+Un listado vacío es pasar. Cualquier fila es un registro guardado con la dirección del
+origen: se arregla corriendo el mismo comando sin `--dry-run`, y **vuelve a
+`/services-scaffold-structure` o a `/services-clone-page`** según de dónde salga la
+fila, porque lo que hay que corregir es que se sembró así, no solo estas filas.
+
+Comprobarlo **también sobre el HTML servido**, no solo sobre la base de datos: la
+cabecera y el pie pueden traer un enlace escrito a mano en un Blade, y ese no está en
+ninguna tabla. Sobre una página cualquiera del sitio levantado, ningún `href` propio
+debe acabar en `/`:
+
+```bash
+curl -s https://DOMINIO/ | grep -oE 'href="[^"]*/"'
+```
+
+Lo que salga tiene que ser externo —redes sociales, subdominios— o es una fila más.
+
 **Y que cada formulario manda lo que mandaba el origen.** El mapa registró, por cada
 uno, si había aviso al equipo y correo a quien lo rellenó. Que el formulario responda
 bien no dice nada de eso: el envío va por la cola y falla sin ruido.
@@ -158,5 +184,7 @@ hueco:
 - falta una página entera, o el mapa no trae `papel` → `/services-map-source`
 - falta un campo o una opción de faceta en el esquema → `/services-model-entities`
 - una página no está en `clone-content.json` → `/services-clone-page` sobre esa página
+- enlaces guardados con la dirección del origen → `/services-scaffold-structure` si son
+  del menú, `/services-clone-page` si son del cuerpo de una página
 - el grafo JSON-LD no describe lo que la página es → `/services-structured-data`
 - un formulario no manda el correo que mandaba el origen → `/services-transactional-emails`

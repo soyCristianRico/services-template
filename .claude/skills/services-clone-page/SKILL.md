@@ -73,6 +73,19 @@ entrada de blog) o de una entidad creada por `/services-model-entities` y listad
 `entidades_nuevas`. En ese caso, los campos a rellenar son los del mapeo
 campo→columna que dejó esa skill en el inventario, no los del template.
 
+**Los enlaces del cuerpo se traducen al destino.** El copy viene con sus enlaces
+internos escritos como los escribía el origen —absolutos y acabados en `/`— y así se
+guardan si nadie los toca. Al guardar van en **ruta relativa y sin barra final**, y
+solo se traducen los que apuntan al origen: un subdominio (`tienda.origen.com`) es
+otro sistema y se queda tal cual.
+
+No es cosmética y no se ve: Laravel recorta la barra al enrutar, así que el enlace
+funciona igual al pincharlo, y por eso pasa el clonado, la revisión y la verificación
+sin que nadie lo mire. Lo que queda es un artículo cuyos enlaces internos apuntan
+todos a una dirección que ni el canonical ni el sitemap reconocen. Es la misma regla
+que `/services-scaffold-structure` aplica al menú —está explicada entera allí, en 2c—
+y el mismo `php artisan seo:normalize-links --dry-run` la comprueba.
+
 **Imágenes.** Descargar las del origen a `public/images/{colección}/{slug}.{ext}` y
 **dejarlas versionadas**. El seeder de contenido las engancha a la colección de medios
 del registro; aquí solo se colocan con ese nombre. Nunca enlazar al dominio de origen
