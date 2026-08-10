@@ -81,16 +81,40 @@ class extends Component
     {
         return $this->menuItem === null || $this->menuItem->children()->doesntExist();
     }
+
+    /**
+     * Borrar el ítem, y con él su desplegable.
+     *
+     * Vive aquí y no en el índice porque borrar desde una fila deja el
+     * puntero a un clic del lápiz de al lado; quien borra ya ha abierto
+     * la ficha.
+     */
+    public function delete(): void
+    {
+        $this->menuItem?->delete();
+
+        $this->redirectRoute('admin.menus.index', navigate: true);
+    }
 };
 ?>
 
 <div class="mx-auto max-w-3xl space-y-6 p-8">
-    <div class="flex items-center justify-between">
-        <flux:heading size="xl">
-            {{ $menuItem ? 'Editar ítem: '.$menuItem->label : 'Nuevo ítem de menú' }}
-        </flux:heading>
-        <flux:button :href="route('admin.menus.index')" variant="ghost" icon="arrow-left">Volver</flux:button>
-    </div>
+    <x-admin.page-header :back="route('admin.menus.index')">
+        {{ $menuItem ? 'Editar ítem: '.$menuItem->label : 'Nuevo ítem de menú' }}
+
+        @if ($menuItem)
+            <x-slot:actions>
+                <x-admin.record-menu>
+                    <flux:menu.item
+                        wire:click="delete"
+                        wire:confirm="¿Eliminar «{{ $menuItem->label }}»?{{ $menuItem->children()->exists() ? ' Su desplegable se va con él.' : '' }}"
+                        icon="trash" variant="danger">
+                        Borrar
+                    </flux:menu.item>
+                </x-admin.record-menu>
+            </x-slot:actions>
+        @endif
+    </x-admin.page-header>
 
     @session('status')
         <flux:callout icon="check-circle" color="green">{{ $value }}</flux:callout>
