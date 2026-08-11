@@ -335,7 +335,7 @@ owns their paths and sizes. Record only what the brief decided:
 - Favicon direction: isotype only, no wordmark — it renders small
 
 ### OG image (`og:image`)
-- 1200×630 at `public/og-default.png`, declared as `SEO_DEFAULT_IMAGE=og-default.png` in `.env` (path relative to `public/`)
+- 1200×630 at `public/images/og-default.png` — the path is hardcoded in `config/seo.php`, so the file just has to exist under that name
 - <description of layout — "dark bg, logo top-left, claim large center, accent stripe">
 
 ## 10. Editorial tone

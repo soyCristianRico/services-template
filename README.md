@@ -70,7 +70,6 @@ MAILGUN_SECRET=key-...
 MAILGUN_ENDPOINT=api.eu.mailgun.net   # Europe (GDPR). Use api.mailgun.net for US accounts.
 
 # SEO defaults — optional, but helps Google's JSON-LD
-SEO_DEFAULT_IMAGE=images/og-default.jpg
 SEO_ORG_NAME="Alquiler Generadores"
 SEO_ORG_LOGO=images/logo.png
 SEO_ORG_LINKEDIN=https://www.linkedin.com/company/...

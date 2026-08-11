@@ -8,12 +8,14 @@ return [
     | Default OG image
     |--------------------------------------------------------------------------
     |
-    | Path relative to public/ (passed to asset()). Set to null to omit the
-    | og:image when a page does not provide one explicitly.
+    | Path relative to public/ (passed to asset()), used by every page that
+    | does not pass an image of its own. The file ships with the repo, so this
+    | is not an environment concern: hardcoding it means a deploy can never
+    | end up silently without an og:image. Set to null to omit the tag.
     |
     */
 
-    'default_image' => env('SEO_DEFAULT_IMAGE'),
+    'default_image' => 'images/og-default.png',
 
     /*
     |--------------------------------------------------------------------------

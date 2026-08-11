@@ -40,4 +40,5 @@ which is easy to miss and has already shipped in more than one site in this fami
 - Logo at `public/images/logo.png`. The public layout falls back to the site name
   when the file is absent, so a fresh clone never shows a broken image.
 - Favicon at `public/favicon.png`, OG image at `public/images/og-default.png`
-  (1200×630), declared in `.env` as `SEO_DEFAULT_IMAGE`.
+  (1200×630). The path is hardcoded in `config/seo.php`, so the file just has
+  to exist under that name.
