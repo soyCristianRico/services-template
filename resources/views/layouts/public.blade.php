@@ -25,6 +25,8 @@
     @endif
 </head>
 <body data-public-site class="min-h-screen bg-background font-sans text-foreground antialiased">
+    <x-site.admin-bar />
+
     @if (($gtmId ?? config('services.google_tag_manager.id')) && auth()->guest())
         {{-- Google Tag Manager (noscript) --}}
         <noscript><iframe src="https://www.googletagmanager.com/ns.html?id={{ $gtmId ?? config('services.google_tag_manager.id') }}"

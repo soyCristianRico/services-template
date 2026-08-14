@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\BlogPost;
+use App\Services\Admin\AdminBar;
 use App\Services\Seo\SeoService;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
@@ -14,9 +15,11 @@ class extends Component
 {
     public BlogPost $post;
 
-    public function mount(string $slug, SeoService $seo): void
+    public function mount(string $slug, SeoService $seo, AdminBar $bar): void
     {
         $this->post = BlogPost::published()->where('slug', $slug)->firstOrFail();
+
+        $bar->editing($this->post);
 
         $url = url('/blog/'.$this->post->slug);
         $heroImage = $this->post->getFirstMediaUrl('hero') ?: null;

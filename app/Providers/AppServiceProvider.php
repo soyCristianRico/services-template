@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\Admin\AdminBar;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\ViewErrorBag;
@@ -13,7 +14,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Scoped y no un binding cualquiera: la pantalla pública escribe en él
+        // el registro que está enseñando durante `mount()`, y el layout lo lee
+        // al pintar la barra. Dos instancias serían una barra vacía.
+        $this->app->scoped(AdminBar::class);
     }
 
     /**

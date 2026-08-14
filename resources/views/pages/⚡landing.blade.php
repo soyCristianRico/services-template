@@ -5,6 +5,7 @@ declare(strict_types=1);
 use App\Models\Landing;
 use App\Models\Page;
 use App\Services\Seo\SchemaBuilder;
+use App\Services\Admin\AdminBar;
 use App\Services\Seo\SeoService;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
@@ -18,7 +19,7 @@ class extends Component
 
     public ?Landing $landing = null;
 
-    public function mount(string $slug, SeoService $seo, SchemaBuilder $schema): void
+    public function mount(string $slug, SeoService $seo, SchemaBuilder $schema, AdminBar $bar): void
     {
         // Page wins over Landing when both share a slug — Pages are the editable
         // singletons (legal, sobre nosotros, gracias) and they should never be
@@ -26,6 +27,7 @@ class extends Component
         $page = Page::active()->where('slug', $slug)->first();
         if ($page !== null) {
             $this->page = $page;
+            $bar->editing($page);
             $this->seoForPage($page, $seo);
 
             return;
@@ -35,6 +37,8 @@ class extends Component
             ->with(['category.parent', 'location.parent'])
             ->where('slug', $slug)
             ->firstOrFail();
+
+        $bar->editing($this->landing);
 
         $this->seoForLanding($this->landing, $seo, $schema);
     }
