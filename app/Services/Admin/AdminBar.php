@@ -17,33 +17,19 @@ use Illuminate\Support\Str;
 /**
  * La franja que sólo ve quien tiene sesión abierta, encima de la web pública.
  *
- * Existe para un movimiento: estás mirando algo en la web y llegas a su
- * pantalla del panel sin ir a buscarla. Lo demás de la barra está colocado
- * alrededor de eso.
+ * Cada pantalla dice qué registro enseña —`$bar->editing($post)` en su
+ * `mount()`— y la barra lo convierte en un enlace. No se adivina nada de la
+ * URL: la que no dice nada se queda sin botón y no rompe nada.
  *
- * La pantalla pública dice qué registro está enseñando —`$bar->editing($post)`
- * en su `mount()`, al lado de la llamada de SEO que ya lo tiene cargado— y la
- * barra lo convierte en un enlace. No se adivina nada de la URL, así que una
- * pantalla que no dice nada simplemente se queda sin botón de editar y no se
- * rompe nada.
- *
- * Aquí no hay roles: quien entra al panel lo ve entero, así que la barra
- * enseña lo mismo. Lo que no está enrutado en este sitio desaparece solo.
- *
- * Se registra como `scoped`, para que la instancia en la que escribe la
- * pantalla sea la que lee el layout: un componente Livewire de página entera se
- * monta y se pinta antes que su layout.
+ * Va como `scoped` porque quien escribe y quien lee son dos: la pantalla monta
+ * y se pinta antes que su layout, y con dos instancias la barra saldría vacía.
  */
 class AdminBar
 {
     /**
-     * Cada tipo de registro y cómo se le llama.
-     *
-     * Una entrada sirve para tres respuestas: dónde está su pantalla, y la
-     * palabra que imprime la barra tanto en «Editar …» como en «Crear …». El
-     * nombre de ruta es el tronco: `.edit` y `.create` cuelgan de él.
-     *
-     * El orden es el del menú «Crear».
+     * Una entrada por tipo, y de ella salen «Editar …» y «Crear …»: así uno no
+     * puede estar accesible por un lado y faltar por el otro. El orden es el
+     * del menú. La ruta es el tronco; `.edit` y `.create` cuelgan de él.
      *
      * @var array<class-string<Model>, array{route: string, noun: string}>
      */
@@ -57,9 +43,6 @@ class AdminBar
 
     protected ?Model $record = null;
 
-    /**
-     * Qué está enseñando la pantalla pública. Se llama desde su `mount()`.
-     */
     public function editing(?Model $record): void
     {
         $this->record = $record;
@@ -70,9 +53,6 @@ class AdminBar
         return $this->record;
     }
 
-    /**
-     * Si hay barra que pintar: la ve quien tiene sesión y nadie más.
-     */
     public function visible(): bool
     {
         return Auth::check();
@@ -91,9 +71,6 @@ class AdminBar
             : route($entry['route'].'.edit', $this->record);
     }
 
-    /**
-     * «Editar artículo», «Editar ficha»… — null cuando no hay enlace.
-     */
     public function editLabel(): ?string
     {
         $entry = $this->entry();
@@ -104,12 +81,6 @@ class AdminBar
     }
 
     /**
-     * Lo que se puede empezar desde aquí, para el menú «Crear».
-     *
-     * El mismo registro que el enlace de editar, así que un tipo de registro no
-     * puede estar accesible por un lado y faltar por el otro. Lo que no tiene
-     * ruta en este sitio se cae solo.
-     *
      * @return list<array{label: string, url: string}>
      */
     public function creatable(): array
@@ -132,8 +103,6 @@ class AdminBar
     }
 
     /**
-     * La entrada del registro que hay en pantalla.
-     *
      * @return array{route: string, noun: string}|null
      */
     protected function entry(): ?array

@@ -11,18 +11,14 @@ use Illuminate\Support\Str;
 /**
  * De dónde venía quien acabó dejando sus datos.
  *
- * Ninguna señal sola cubre el mapa. Las UTMs cubren lo que etiquetas tú
- * —newsletter, redes, colaboraciones— y no aparecen en Google Ads, que etiqueta
- * solo con `gclid`. El referrer cubre lo orgánico y las webs que te enlazan, y
- * no cubre lo directo ni lo que llega por WhatsApp. Las tres juntas sí, y de
- * las tres se saca un canal legible que es lo único que se acaba mirando.
+ * Hacen falta las tres señales: las UTMs no aparecen en Google Ads, que
+ * etiqueta sólo con `gclid`, y el referrer no cubre ni lo directo ni lo que
+ * llega por WhatsApp.
  *
- * Se lee en la PRIMERA página que pisa el visitante, no al enviar el
- * formulario: los formularios son Livewire, y en ese POST el referrer es la
- * propia web. Y se guarda en la sesión, que es cookie necesaria y no entra en
- * el banner de consentimiento. El precio de esa decisión es real y conviene
- * saberlo: quien vuelve tres días después llega como visita nueva y se le
- * atribuye lo que traiga ese día.
+ * Se lee en la PRIMERA página, no al enviar: los formularios son Livewire y en
+ * ese POST el referrer es la propia web. Va en la sesión —cookie necesaria, no
+ * entra en el banner— y eso se paga: quien vuelve a los tres días cuenta como
+ * visita nueva.
  */
 final class LeadAttribution
 {
@@ -70,9 +66,6 @@ final class LeadAttribution
         public ?string $landingUrl = null,
     ) {}
 
-    /**
-     * Lo que trae la petición con la que empieza la visita.
-     */
     public static function fromRequest(Request $request): self
     {
         $referrer = self::externalReferrer($request);
@@ -93,9 +86,6 @@ final class LeadAttribution
         );
     }
 
-    /**
-     * Lo que quedó guardado de esta visita, si es que se llegó a guardar.
-     */
     public static function fromSession(): ?self
     {
         $stored = session()->get(self::SESSION_KEY);
@@ -135,9 +125,6 @@ final class LeadAttribution
     }
 
     /**
-     * Las columnas de `leads`, que son también la forma en que se guarda en la
-     * sesión: una sola forma que mantener.
-     *
      * @return array<string, string|null>
      */
     public function toLeadAttributes(): array

@@ -5,15 +5,11 @@ declare(strict_types=1);
 namespace App\Enums;
 
 /**
- * De dónde salió un lead, en la lengua en la que se habla de esto.
+ * De dónde salió un lead. Es lo único de la atribución que se mira en el
+ * listado, y por eso es la única columna con índice.
  *
- * Es lo único de la atribución que se mira en el listado: la fuente, el medio y
- * la campaña son el detalle de la ficha, y el referrer sólo se abre cuando algo
- * no cuadra. Por eso el canal es una columna con índice y lo demás no.
- *
- * Un lead sin canal no es un lead sin origen: es uno que nació fuera de una
- * visita —la importación de TidyCal, el webhook de Stripe— donde no hay sesión
- * que preguntar. Se enseña como «—» y no como «Directo», que sería mentir.
+ * Sin canal no es sin origen: es un lead nacido fuera de una visita, donde no
+ * hay sesión que preguntar. Se enseña «—» y no «Directo», que sería mentir.
  */
 enum LeadChannel: string
 {
@@ -36,9 +32,6 @@ enum LeadChannel: string
         };
     }
 
-    /**
-     * El color del `flux:badge` del listado.
-     */
     public function color(): string
     {
         return match ($this) {
