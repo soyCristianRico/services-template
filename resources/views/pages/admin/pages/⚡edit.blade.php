@@ -119,7 +119,7 @@ class extends Component
 
         <flux:field>
             <flux:label>Cuerpo</flux:label>
-            <flux:editor wire:model="form.body" />
+            <x-admin.rich-editor wire:model="form.body" />
             <flux:description>HTML enriquecido. Se renderiza tal cual en la página pública dentro del wrapper <code>.prose</code>.</flux:description>
             <flux:error name="form.body" />
         </flux:field>

@@ -132,3 +132,37 @@
 [x-cloak] {
     display: none !important;
 }
+
+/* Barra de formato flotante de los campos de texto rico del admin.
+
+   Flux la imprime pegada al borde superior del campo y siempre encendida, que
+   es una fila de botones ocupando sitio delante de un texto que casi nunca se
+   formatea. Aquí se saca del flujo (`position: fixed`) y `floating-toolbar.js`
+   la coloca sobre lo que hay seleccionado: sin selección no se ve, y el campo
+   se lee como lo que es, un párrafo.
+
+   Las reglas van SIN capa a propósito. Las clases que trae la barra —fondo,
+   borde inferior, esquinas de arriba, ancho completo— son utilidades de
+   Tailwind y viven en la capa `utilities`, así que una regla sin capa les gana
+   sin necesidad de `!important`.
+
+   No hay variante oscura porque el panel no la tiene: la clase `.dark` no se
+   aplica en ninguna parte de esta web. */
+.floating-toolbar {
+    position: fixed;
+    z-index: 50;
+    transform: translateX(-50%);
+    width: fit-content;
+    border: 1px solid var(--color-zinc-200);
+    border-radius: 0.625rem;
+    background: white;
+    box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.15);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.12s ease;
+}
+
+.floating-toolbar.is-visible {
+    opacity: 1;
+    pointer-events: auto;
+}
