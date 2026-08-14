@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use App\Models\BlogPost;
 use App\Models\Lead;
+use App\Models\Service;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Testing\File;
@@ -52,16 +53,24 @@ describe('Ruklab connector config', function () {
         });
 
         it('never offers to write a column that holds a structure', function () {
-            // A landing's body is a tree of blocks. Ruk Lab sends text, so
-            // writing there would encode the string itself and the page would
-            // stop rendering.
-            foreach (config('ruklab.types') as $name => $type) {
-                foreach ($type->structuredFields() as $field) {
-                    expect(in_array($field, $type->writable(), true))->toBeFalse(
-                        "El tipo «{$name}» ofrece escribir {$field}, que guarda una estructura.",
-                    );
-                }
-            }
+            // Ruk Lab sends text. A column cast to an array holds a tree, and
+            // writing a string into it would encode the string itself and stop
+            // the page rendering.
+            //
+            // It maps one on purpose rather than walking the live config,
+            // which asserted nothing the moment no type mapped one — and could
+            // not have failed anyway, since `writable()` is defined as the
+            // writable fields MINUS the structured ones. What is worth pinning
+            // is that subtraction, so this is what pins it.
+            $type = ContentType::make(
+                model: Service::class,
+                label: 'Prueba',
+                fields: ['title' => 'name', 'content' => 'custom_fields'],
+            );
+
+            expect($type->structuredFields())->toContain('content')
+                ->and($type->writable())->not->toContain('content')
+                ->and($type->writable())->toContain('title');
         });
 
         it('keeps people and money out of reach', function () {
