@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\LeadChannel;
 use App\Models\Landing;
 use App\Models\Lead;
 use Illuminate\Support\Facades\Bus;
@@ -82,6 +83,32 @@ describe('LeadForm', function () {
                 ->call('save');
 
             expect(Lead::first()->landing_id)->toBeNull();
+        });
+    });
+
+    describe('attribution', function () {
+        /**
+         * La cadena entera, que es donde se rompería sin que nadie lo notara:
+         * la visita llega con UTMs, navega, escribe, y el lead guardado sabe de
+         * dónde vino. El formulario no toca nada de esto —lo trae la sesión que
+         * anotó la primera página—, así que si un día deja de funcionar no será
+         * porque alguien se olvidara de pasarlo.
+         */
+        it('should save the lead knowing how that visit reached the site', function () {
+            $this->get('/?utm_source=instagram&utm_medium=cpc&utm_campaign=verano')
+                ->assertSuccessful();
+
+            Livewire::test('lead-form')
+                ->set('form.name', 'Cristian')
+                ->set('form.email', 'cristian@example.com')
+                ->call('save')
+                ->assertHasNoErrors();
+
+            $lead = Lead::first();
+
+            expect($lead->channel)->toBe(LeadChannel::Ads)
+                ->and($lead->utm_source)->toBe('instagram')
+                ->and($lead->utm_campaign)->toBe('verano');
         });
     });
 

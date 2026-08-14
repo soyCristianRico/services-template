@@ -24,11 +24,34 @@ class LeadService
      */
     public function capture(array $attributes): Lead
     {
-        $lead = Lead::create([...$attributes, 'status' => $attributes['status'] ?? LeadStatus::New]);
+        $lead = Lead::create([
+            ...$this->attribution(),
+            ...$attributes,
+            'status' => $attributes['status'] ?? LeadStatus::New,
+        ]);
 
         $this->notify($lead);
 
         return $lead;
+    }
+
+    /**
+     * De dónde venía la visita que acaba de convertir.
+     *
+     * Va aquí y no en el formulario a propósito: es el único sitio por el que
+     * pasan todas las capturas, así que ninguna puede olvidarse de anotarlo.
+     *
+     * Vuelve vacío cuando no hay sesión que preguntar, que es el caso de todo
+     * lead que nazca fuera de una visita. Esos se quedan sin canal, y sin canal
+     * es la respuesta honesta: no llegaron por ningún sitio que hayamos visto.
+     *
+     * Lo que traiga el llamante manda sobre lo de la sesión, no al revés.
+     *
+     * @return array<string, string|null>
+     */
+    protected function attribution(): array
+    {
+        return LeadAttribution::fromSession()?->toLeadAttributes() ?? [];
     }
 
     protected function notify(Lead $lead): void

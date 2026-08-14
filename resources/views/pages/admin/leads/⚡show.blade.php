@@ -103,6 +103,54 @@ class extends Component
         </flux:card>
     @endif
 
+    {{-- Cómo llegó a la web, que no es lo mismo que en qué formulario escribió.
+         Un lead nacido fuera de una visita no tiene sesión detrás y no trae
+         nada de esto: la tarjeta no se pinta. --}}
+    @if ($lead->channel)
+        <flux:card>
+            <div class="flex items-center gap-3">
+                <flux:heading size="lg">Atribución</flux:heading>
+                <flux:badge :color="$lead->channel->color()" size="sm">{{ $lead->channel->label() }}</flux:badge>
+            </div>
+
+            <div class="mt-3 space-y-2 text-sm">
+                @if ($lead->utm_source || $lead->utm_medium || $lead->utm_campaign)
+                    <div><span class="text-zinc-500">Fuente / medio:</span> {{ $lead->utm_source ?? '—' }} / {{ $lead->utm_medium ?? '—' }}</div>
+                    @if ($lead->utm_campaign)
+                        <div><span class="text-zinc-500">Campaña:</span> {{ $lead->utm_campaign }}</div>
+                    @endif
+                    @if ($lead->utm_term || $lead->utm_content)
+                        <div><span class="text-zinc-500">Término / contenido:</span> {{ $lead->utm_term ?? '—' }} / {{ $lead->utm_content ?? '—' }}</div>
+                    @endif
+                @endif
+
+                @if ($lead->click_id)
+                    <div><span class="text-zinc-500">ID de clic:</span> <code class="break-all text-xs">{{ $lead->click_id }}</code></div>
+                @endif
+
+                <div>
+                    <span class="text-zinc-500">Venía de:</span>
+                    @if ($lead->referrer)
+                        <a href="{{ $lead->referrer }}" target="_blank" rel="noopener noreferrer nofollow" class="break-all text-blue-600 hover:underline">
+                            {{ $lead->referrer }}
+                        </a>
+                    @else
+                        <span class="text-zinc-400">sin referrer (directo, o una app que no lo manda)</span>
+                    @endif
+                </div>
+
+                @if ($lead->landing_url)
+                    <div>
+                        <span class="text-zinc-500">Entró por:</span>
+                        <a href="{{ $lead->landing_url }}" target="_blank" class="break-all text-blue-600 hover:underline">
+                            {{ $lead->landing_url }}
+                        </a>
+                    </div>
+                @endif
+            </div>
+        </flux:card>
+    @endif
+
     @if (! empty($lead->payload))
         <flux:card>
             <flux:heading size="lg">Datos extra</flux:heading>

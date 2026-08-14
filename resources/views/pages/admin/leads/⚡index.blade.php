@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\LeadChannel;
 use App\Enums\LeadStatus;
 use App\Models\Landing;
 use App\Models\Lead;
@@ -25,6 +26,9 @@ class extends Component
 
     #[Url(as: 'landing')]
     public ?int $landingId = null;
+
+    #[Url(as: 'canal')]
+    public string $channelFilter = 'all';
 
     public function updating(): void
     {
@@ -52,6 +56,12 @@ class extends Component
             }))
             ->when($this->statusFilter !== 'all', fn ($q) => $q->where('status', $this->statusFilter))
             ->when($this->landingId, fn ($q) => $q->where('landing_id', $this->landingId))
+            // «sin-canal» son los que nacieron fuera de una visita.
+            ->when($this->channelFilter === 'none', fn ($q) => $q->whereNull('channel'))
+            ->when(
+                LeadChannel::tryFrom($this->channelFilter) !== null,
+                fn ($q) => $q->where('channel', $this->channelFilter)
+            )
             ->orderByDesc('created_at')
             ->paginate(25);
     }
@@ -61,7 +71,7 @@ class extends Component
 <div class="space-y-6 p-8">
     <flux:heading size="xl">Leads</flux:heading>
 
-    <div class="grid gap-3 md:grid-cols-3">
+    <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <flux:input wire:model.live.debounce.300ms="search" type="search" placeholder="Buscar por email, nombre o teléfono…" icon="magnifying-glass" />
         <flux:select wire:model.live="statusFilter">
             <flux:select.option value="all">Todos los estados</flux:select.option>
@@ -75,6 +85,13 @@ class extends Component
                 <flux:select.option value="{{ $landing->id }}">/{{ $landing->slug }}</flux:select.option>
             @endforeach
         </flux:select>
+        <flux:select wire:model.live="channelFilter">
+            <flux:select.option value="all">Todos los canales</flux:select.option>
+            @foreach (LeadChannel::cases() as $channel)
+                <flux:select.option value="{{ $channel->value }}">{{ $channel->label() }}</flux:select.option>
+            @endforeach
+            <flux:select.option value="none">Sin canal</flux:select.option>
+        </flux:select>
     </div>
 
     <flux:table>
@@ -84,6 +101,7 @@ class extends Component
             <flux:table.column>Email</flux:table.column>
             <flux:table.column>Teléfono</flux:table.column>
             <flux:table.column>Landing</flux:table.column>
+            <flux:table.column>Canal</flux:table.column>
             <flux:table.column>Estado</flux:table.column>
             <flux:table.column>Acciones</flux:table.column>
         </flux:table.columns>
@@ -106,6 +124,13 @@ class extends Component
                         @endif
                     </flux:table.cell>
                     <flux:table.cell>
+                        @if ($lead->channel)
+                            <flux:badge size="sm" :color="$lead->channel->color()">{{ $lead->channel->label() }}</flux:badge>
+                        @else
+                            <span class="text-zinc-400">—</span>
+                        @endif
+                    </flux:table.cell>
+                    <flux:table.cell>
                         <flux:badge size="sm" :color="match ($lead->status) {
                             App\Enums\LeadStatus::New => 'blue',
                             App\Enums\LeadStatus::Contacted => 'amber',
@@ -119,7 +144,7 @@ class extends Component
                 </flux:table.row>
             @empty
                 <flux:table.row>
-                    <flux:table.cell colspan="7" class="text-center text-zinc-500">
+                    <flux:table.cell colspan="8" class="text-center text-zinc-500">
                         No hay leads con esos filtros.
                     </flux:table.cell>
                 </flux:table.row>

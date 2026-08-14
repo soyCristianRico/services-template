@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\LeadChannel;
 use App\Enums\LeadStatus;
 use App\Models\Landing;
 use App\Models\Lead;
@@ -42,6 +43,32 @@ describe('Admin\\Leads\\Index', function () {
 
             $leads = Livewire::test('pages::admin.leads.index')
                 ->set('statusFilter', LeadStatus::Contacted->value)
+                ->get('leads');
+
+            expect($leads)->toHaveCount(2);
+        });
+
+        it('should filter by channel', function () {
+            Lead::factory()->count(3)->create(['channel' => LeadChannel::Organic]);
+            Lead::factory()->count(2)->create(['channel' => LeadChannel::Ads]);
+
+            $leads = Livewire::test('pages::admin.leads.index')
+                ->set('channelFilter', LeadChannel::Ads->value)
+                ->get('leads');
+
+            expect($leads)->toHaveCount(2);
+        });
+
+        /**
+         * Sin canal no es un canal más: son los que nacieron fuera de una
+         * visita, y son un grupo que se quiere poder mirar aparte.
+         */
+        it('should filter the ones that never had a visit behind them', function () {
+            Lead::factory()->count(3)->create(['channel' => LeadChannel::Direct]);
+            Lead::factory()->count(2)->create(['channel' => null]);
+
+            $leads = Livewire::test('pages::admin.leads.index')
+                ->set('channelFilter', 'none')
                 ->get('leads');
 
             expect($leads)->toHaveCount(2);

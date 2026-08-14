@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\LeadChannel;
 use App\Enums\LeadStatus;
 use Database\Factories\LeadFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -23,6 +24,15 @@ class Lead extends Model
         'phone',
         'message',
         'source_url',
+        'channel',
+        'utm_source',
+        'utm_medium',
+        'utm_campaign',
+        'utm_term',
+        'utm_content',
+        'click_id',
+        'referrer',
+        'landing_url',
         'payload',
         'status',
         'ip',
@@ -34,6 +44,7 @@ class Lead extends Model
         return [
             'payload' => 'array',
             'status' => LeadStatus::class,
+            'channel' => LeadChannel::class,
         ];
     }
 

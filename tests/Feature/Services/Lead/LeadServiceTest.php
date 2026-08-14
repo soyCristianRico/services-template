@@ -2,13 +2,16 @@
 
 declare(strict_types=1);
 
+use App\Enums\LeadChannel;
 use App\Enums\LeadStatus;
 use App\Mail\Lead\NewLeadMail;
 use App\Models\Landing;
 use App\Models\Lead;
 use App\Models\User;
 use App\Notifications\Lead\LeadCapturedNotification;
+use App\Services\Lead\LeadAttribution;
 use App\Services\Lead\LeadService;
+use Illuminate\Http\Request;
 use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
@@ -50,6 +53,66 @@ describe('LeadService', function () {
 
             expect($lead->landing->id)->toBe($landing->id);
             expect($lead->source_url)->toBe(url('/'.$landing->slug));
+        });
+    });
+
+    describe('attribution', function () {
+        beforeEach(function () {
+            Mail::fake();
+            Notification::fake();
+        });
+
+        /**
+         * Va en el servicio y no en el formulario porque es el único sitio por
+         * el que pasan todas las capturas: así ninguna se olvida.
+         */
+        it('should carry the origin of the visit into the lead', function () {
+            LeadAttribution::fromRequest(
+                Request::create('https://example.test/contacto', 'GET', [
+                    'utm_source' => 'newsletter',
+                    'utm_medium' => 'email',
+                    'utm_campaign' => 'agosto',
+                ])
+            )->remember();
+
+            $lead = app(LeadService::class)->capture([
+                'name' => 'Ana',
+                'email' => 'ana@example.com',
+            ]);
+
+            expect($lead->channel)->toBe(LeadChannel::Email)
+                ->and($lead->utm_source)->toBe('newsletter')
+                ->and($lead->utm_campaign)->toBe('agosto')
+                ->and($lead->landing_url)->toContain('/contacto?');
+        });
+
+        /**
+         * Un lead nacido fuera de una visita no tiene sesión que preguntar. Se
+         * queda sin canal, que es la respuesta honesta: no llegó por ningún
+         * sitio que hayamos visto. Poner «Directo» sería inventárselo.
+         */
+        it('should leave a lead born outside a visit without a channel', function () {
+            $lead = app(LeadService::class)->capture([
+                'name' => 'Ana',
+                'email' => 'ana@example.com',
+            ]);
+
+            expect($lead->channel)->toBeNull()
+                ->and($lead->utm_source)->toBeNull();
+        });
+
+        it('should let the caller override what the visit said', function () {
+            LeadAttribution::fromRequest(
+                Request::create('https://example.test/', 'GET', ['utm_medium' => 'cpc'])
+            )->remember();
+
+            $lead = app(LeadService::class)->capture([
+                'name' => 'Ana',
+                'email' => 'ana@example.com',
+                'channel' => LeadChannel::Direct,
+            ]);
+
+            expect($lead->channel)->toBe(LeadChannel::Direct);
         });
     });
 

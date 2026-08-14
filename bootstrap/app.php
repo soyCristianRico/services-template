@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CaptureLeadAttribution;
 use App\Http\Middleware\LogNotFoundRequests;
 use App\Http\Middleware\RedirectRequests;
 use Bugsnag\BugsnagLaravel\OomBootstrapper;
@@ -31,6 +32,10 @@ return Application::configure(basePath: dirname(__DIR__))
             LogNotFoundRequests::class,
             RedirectRequests::class,
         ]);
+
+        // En el grupo `web` y al final: necesita la sesión ya arrancada, que es
+        // donde se guarda de dónde venía la visita hasta que convierte.
+        $middleware->web(append: CaptureLeadAttribution::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

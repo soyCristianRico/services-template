@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Enums\LeadChannel;
 use App\Enums\LeadStatus;
 use App\Models\Landing;
 use App\Models\Lead;
@@ -14,6 +15,32 @@ beforeEach(function () {
 
 describe('Admin\\Leads\\Show', function () {
     describe('rendering', function () {
+        it('should show where the visit came from', function () {
+            $lead = Lead::factory()->create([
+                'channel' => LeadChannel::Ads,
+                'utm_source' => 'google',
+                'utm_medium' => 'cpc',
+                'utm_campaign' => 'verano-2026',
+                'referrer' => 'https://www.google.es/',
+            ]);
+
+            Livewire::test('pages::admin.leads.show', ['lead' => $lead])
+                ->assertSee('Atribución')
+                ->assertSee('Publicidad')
+                ->assertSee('verano-2026');
+        });
+
+        /**
+         * Un lead nacido fuera de una visita no tiene nada que enseñar aquí, y
+         * una tarjeta con todo a «—» sólo estorba.
+         */
+        it('should leave the card out when there was no visit behind the lead', function () {
+            $lead = Lead::factory()->create(['channel' => null]);
+
+            Livewire::test('pages::admin.leads.show', ['lead' => $lead])
+                ->assertDontSee('Atribución');
+        });
+
         it('should render the lead details', function () {
             $lead = Lead::factory()->create([
                 'name' => 'Cristian',
