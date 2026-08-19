@@ -8,8 +8,7 @@ use App\Enums\RedirectMatchType;
 use App\Enums\RedirectStatusCode;
 use App\Models\Redirect;
 use App\Services\Seo\RedirectPath;
-use Closure;
-use Illuminate\Validation\Rule;
+use App\Services\Seo\RedirectWriter;
 use Livewire\Form;
 
 class RedirectForm extends Form
@@ -54,36 +53,12 @@ class RedirectForm extends Form
 
     public function rules(): array
     {
-        return [
-            'source' => [
-                'required',
-                'string',
-                'max:500',
-                Rule::unique('redirects', 'source')->ignore($this->id),
-                fn (string $attribute, mixed $value, Closure $fail) => $this->checkSource((string) $value, $fail),
-            ],
-            'destination' => [
-                $this->isGone() ? 'nullable' : 'required',
-                'nullable',
-                'string',
-                'max:500',
-                fn (string $attribute, mixed $value, Closure $fail) => $this->checkDestination((string) $value, $fail),
-            ],
-            'match_type' => ['required', Rule::enum(RedirectMatchType::class)],
-            'status_code' => ['required', Rule::enum(RedirectStatusCode::class)],
-            'is_active' => ['boolean'],
-            'preserve_query' => ['boolean'],
-            'notes' => ['nullable', 'string', 'max:1000'],
-        ];
+        return $this->writer()->rules($this->attributes(), $this->id);
     }
 
     public function messages(): array
     {
-        return [
-            'source.required' => 'Escribe la dirección antigua.',
-            'source.unique' => 'Ya existe una redirección para esa dirección.',
-            'destination.required' => 'Escribe a dónde tiene que ir. Si la página se retiró sin sustituta, elige el código 410.',
-        ];
+        return $this->writer()->messages();
     }
 
     public function save(): Redirect
@@ -95,23 +70,9 @@ class RedirectForm extends Form
 
         $this->validate();
 
-        $attributes = [
-            'source' => $this->source,
-            'destination' => $this->isGone() ? null : $this->destination,
-            'match_type' => $this->match_type,
-            'status_code' => $this->status_code,
-            'is_active' => $this->is_active,
-            'preserve_query' => $this->preserve_query,
-            'notes' => $this->notes,
-        ];
+        $redirect = $this->writer()->persist($this->attributes(), $this->id);
 
-        if ($this->id !== null) {
-            $redirect = Redirect::findOrFail($this->id);
-            $redirect->update($attributes);
-        } else {
-            $redirect = Redirect::create($attributes);
-            $this->id = $redirect->id;
-        }
+        $this->id = $redirect->id;
 
         return $redirect;
     }
@@ -165,86 +126,38 @@ class RedirectForm extends Form
 
     protected function normalizeInput(): void
     {
-        $source = trim($this->source);
+        $normalized = $this->writer()->normalize($this->attributes());
 
-        // An empty box has to stay empty so `required` can fire. Normalising it
-        // would turn "nothing" into "/" and quietly put a redirect on the home
-        // page — from a form the person thought they had left blank.
-        $this->source = match (true) {
-            $source === '' => '',
-            $this->matchType() === RedirectMatchType::Regex => $source,
-            default => RedirectPath::normalize($source),
-        };
-
-        if ($this->destination !== null) {
-            $this->destination = trim($this->destination);
-        }
-
-        if ($this->isGone()) {
-            $this->destination = null;
-        }
+        $this->source = $normalized['source'];
+        $this->destination = $normalized['destination'];
     }
 
-    protected function checkSource(string $value, Closure $fail): void
+    /**
+     * The form's state as the writer expects it — one shape shared with the MCP
+     * tools, so both go through the same rules.
+     *
+     * @return array<string, mixed>
+     */
+    protected function attributes(): array
     {
-        if ($this->matchType() === RedirectMatchType::Regex) {
-            if (! RedirectPath::isValidPattern($value)) {
-                $fail('El patrón no es una expresión regular válida. Revisa los paréntesis y las barras.');
-            }
-
-            return;
-        }
-
-        if (RedirectPath::isExcluded($value)) {
-            $fail('Esa dirección pertenece al panel o a los servicios internos y no se puede redirigir.');
-
-            return;
-        }
-
-        if ($this->matchType() === RedirectMatchType::Prefix && RedirectPath::normalize($value) === '/') {
-            $fail('Un prefijo «/» se llevaría por delante la web entera. Usa una dirección concreta.');
-        }
+        return [
+            'source' => $this->source,
+            'destination' => $this->destination,
+            'match_type' => $this->match_type,
+            'status_code' => $this->status_code,
+            'is_active' => $this->is_active,
+            'preserve_query' => $this->preserve_query,
+            'notes' => $this->notes,
+        ];
     }
 
-    protected function checkDestination(string $value, Closure $fail): void
+    /**
+     * Resolved on call rather than held in a property: a Form is rebuilt and
+     * rehydrated on every Livewire request, and a service is not state to carry
+     * across the wire.
+     */
+    protected function writer(): RedirectWriter
     {
-        if ($value === '' || $this->isGone()) {
-            return;
-        }
-
-        if (RedirectPath::isExternal($value)) {
-            return;
-        }
-
-        if (! str_starts_with($value, '/')) {
-            $fail('El destino tiene que empezar por «/», o ser una dirección completa con https://.');
-
-            return;
-        }
-
-        // A pattern's destination holds `$1` placeholders, so comparing it against
-        // anything before substitution says nothing.
-        if ($this->matchType() === RedirectMatchType::Regex) {
-            return;
-        }
-
-        $destination = RedirectPath::normalize($value);
-
-        if ($destination === RedirectPath::normalize($this->source)) {
-            $fail('El origen y el destino son la misma dirección: el navegador se quedaría dando vueltas.');
-
-            return;
-        }
-
-        $next = Redirect::query()
-            ->active()
-            ->where('match_type', RedirectMatchType::Exact->value)
-            ->where('source', $destination)
-            ->when($this->id !== null, fn ($query) => $query->whereKeyNot($this->id))
-            ->first();
-
-        if ($next !== null) {
-            $fail("El destino es a su vez el origen de otra redirección ({$next->source} → {$next->destination}). Encadenarlas hace perder posicionamiento: apunta directamente a {$next->destination}.");
-        }
+        return app(RedirectWriter::class);
     }
 }

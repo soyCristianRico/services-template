@@ -29,13 +29,16 @@ use App\Mcp\Tools\Pages\CreatePageTool;
 use App\Mcp\Tools\Pages\GetPageTool;
 use App\Mcp\Tools\Pages\ListPagesTool;
 use App\Mcp\Tools\Pages\UpdatePageTool;
+use App\Mcp\Tools\Seo\CreateRedirectTool;
+use App\Mcp\Tools\Seo\ListRedirectsTool;
+use App\Mcp\Tools\Seo\UpdateRedirectTool;
 use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Attributes\Version;
 
 #[Name('Services — Content & Leads')]
-#[Version('0.3.0')]
+#[Version('0.4.0')]
 #[Instructions(<<<'MARKDOWN'
     Manage the site's DB-driven content from Claude.
 
@@ -47,6 +50,12 @@ use Laravel\Mcp\Server\Attributes\Version;
       Use bulk-create for the typical "I want N landings for these categories × these locations" workflow.
     - **Blog posts** — list, get, create, update. Set published_at in the past to publish, in the future to schedule, null for draft.
     - **Pages** (editable static pages: aviso legal, gracias, sobre nosotros) — list, get, create, update.
+    - **Redirects** (old addresses that have to keep working) — list, create, update. A moved page, a retired
+      one (status 410, no destination), or a whole section at once (match_type `prefix`). Sources are stored
+      normalised — lower case, no host, no query, no trailing slash — so search for one before creating it.
+      They are matched BEFORE routing, so a redirect whose source is still a live page hides that page:
+      retire the page in the same breath, or the redirect is a trap. Chains, loops and anything under /admin
+      are refused rather than stored.
     - **Leads** (incoming form submissions) — list, update-status. Leads are NOT created here, only via the public form.
 
     What does NOT live here:
@@ -95,6 +104,11 @@ class ServicesServer extends Server
         GetPageTool::class,
         CreatePageTool::class,
         UpdatePageTool::class,
+
+        // Redirects (old addresses that must keep working)
+        ListRedirectsTool::class,
+        CreateRedirectTool::class,
+        UpdateRedirectTool::class,
 
         // Leads
         ListLeadsTool::class,
