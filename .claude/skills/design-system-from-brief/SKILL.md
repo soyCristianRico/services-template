@@ -1,6 +1,6 @@
 ---
 name: design-system-from-brief
-description: Transform a brand direction brief (text, references, or both) into a structured DESIGN.md at the project root, plus optionally update the Tailwind @theme block in resources/css/app.css. Use when the user asks to create, generate or write a design system, a DESIGN.md, or to "turn this brand brief into a design contract". The brief is typically a markdown document with positioning, colors, typography and tone, but image references and competitor URLs are also accepted.
+description: Transform a brand direction brief (text, references, or both) into a structured DESIGN.md at the project root, and apply the resulting Tailwind @theme block to resources/css/app.css. Use when the user asks to create, generate or write a design system, a DESIGN.md, or to "turn this brand brief into a design contract". The brief is typically a markdown document with positioning, colors, typography and tone, but image references and competitor URLs are also accepted.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch
 disable-model-invocation: true
 ---
@@ -379,13 +379,10 @@ Flux-specific (breaks the brand silently — always include):
 - Brand color console: <link to a generated palette page if any>
 ```
 
-### Phase 5 — Optional `app.css` update
+### Phase 5 — Apply to `app.css`
 
-After writing DESIGN.md, ask:
+Do this right after writing DESIGN.md, without asking — a DESIGN.md whose classes don't resolve yet isn't a finished deliverable, it's a promise.
 
-> "¿Aplico también el bloque `@theme` a `resources/css/app.css` para que las clases (`bg-accent`, `text-muted-foreground`, la fuente display…) funcionen ya? Sin esto, las clases del DESIGN.md son sólo documentación y el sitio sigue con la identidad anterior."
-
-If yes:
 1. Read `resources/css/app.css`
 2. Replace the existing `@theme { ... }` block (or add one if missing) with the brief's CSS variables, **keeping the house token names** (Phase 1)
 3. Preserve the imports above (`@import 'tailwindcss';`, `@import '...flux.css';`) and the `@custom-variant dark`, `@source` lines below
