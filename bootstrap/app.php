@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\CaptureLeadAttribution;
 use App\Http\Middleware\LogNotFoundRequests;
+use App\Http\Middleware\NoIndexHealthCheck;
 use App\Http\Middleware\RedirectRequests;
 use Bugsnag\BugsnagLaravel\OomBootstrapper;
 use Illuminate\Foundation\Application;
@@ -36,6 +37,10 @@ return Application::configure(basePath: dirname(__DIR__))
         // En el grupo `web` y al final: necesita la sesión ya arrancada, que es
         // donde se guarda de dónde venía la visita hasta que convierte.
         $middleware->web(append: CaptureLeadAttribution::class);
+
+        // The health-check route isn't in the `web` group, so this has to be
+        // registered globally to reach it.
+        $middleware->append(NoIndexHealthCheck::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
