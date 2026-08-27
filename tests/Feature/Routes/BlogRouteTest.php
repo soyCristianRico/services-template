@@ -41,6 +41,70 @@ describe('Blog routes', function () {
         });
     });
 
+    describe('/blog pagination', function () {
+        it('should show 10 posts on page 1 and the rest on further pages', function () {
+            BlogPost::factory()->count(11)->sequence(
+                fn ($sequence) => ['published_at' => now()->subMinutes($sequence->index)],
+            )->create();
+
+            $ordered = BlogPost::published()->orderByDesc('published_at')->get();
+            $page1Posts = $ordered->slice(0, 10);
+            $page2Posts = $ordered->slice(10, 10);
+
+            $page1 = $this->get('/blog')->assertOk();
+            foreach ($page1Posts as $post) {
+                $page1->assertSee($post->title);
+            }
+            foreach ($page2Posts as $post) {
+                $page1->assertDontSee($post->title);
+            }
+
+            $page2 = $this->get('/blog?page=2')->assertOk();
+            foreach ($page2Posts as $post) {
+                $page2->assertSee($post->title);
+            }
+            foreach ($page1Posts as $post) {
+                $page2->assertDontSee($post->title);
+            }
+        });
+
+        it('should self-canonicalize a paginated page instead of collapsing to page 1', function () {
+            BlogPost::factory()->count(11)->create();
+
+            $this->get('/blog?page=2')
+                ->assertOk()
+                ->assertSee('<link rel="canonical" href="'.route('blog.index').'?page=2">', false);
+
+            $this->get('/blog')
+                ->assertOk()
+                ->assertSee('<link rel="canonical" href="'.route('blog.index').'">', false);
+        });
+
+        it('should emit rel=next/rel=prev links across pages', function () {
+            BlogPost::factory()->count(11)->create();
+
+            $this->get('/blog')
+                ->assertOk()
+                ->assertSee('<link rel="next" href="'.route('blog.index').'?page=2">', false)
+                ->assertDontSee('rel="prev"', false);
+
+            $this->get('/blog?page=2')
+                ->assertOk()
+                ->assertSee('<link rel="prev" href="'.route('blog.index').'">', false)
+                ->assertDontSee('rel="next"', false);
+        });
+
+        it('should 404 for a page beyond the last one', function () {
+            BlogPost::factory()->count(3)->create();
+
+            $this->get('/blog?page=100')->assertNotFound();
+        });
+
+        it('should not 404 for page 1 when there is no content at all', function () {
+            $this->get('/blog')->assertOk();
+        });
+    });
+
     describe('/blog/{slug} (show)', function () {
         it('should return 200 for a published post', function () {
             BlogPost::factory()->create([

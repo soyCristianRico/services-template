@@ -94,7 +94,7 @@ class SeoService
         bool $appendSiteName = true,
         array $structuredData = [],
     ): void {
-        $url ??= $this->stripQuery(request()->url());
+        $url ??= $this->canonicalUrl();
         $image ??= $this->defaultImage;
         $index ??= self::isIndexable(request()->route()?->getName());
 
@@ -279,14 +279,21 @@ class SeoService
         };
     }
 
-    protected function stripQuery(string $url): string
+    /**
+     * Canonical for the current request: the plain path, self-referencing a
+     * paginated page (`?page=2`) so each page of a listing canonicalizes to
+     * itself rather than collapsing into page 1. Every other query param
+     * (filters, search) is dropped — those variants are not meant to be
+     * indexed separately from the plain listing.
+     */
+    protected function canonicalUrl(): string
     {
-        $parts = parse_url($url);
+        $page = request()->query('page');
 
-        if (! isset($parts['scheme'], $parts['host'])) {
-            return $url;
+        if (is_string($page) && ctype_digit($page) && (int) $page > 1) {
+            return request()->url().'?page='.$page;
         }
 
-        return $parts['scheme'].'://'.$parts['host'].($parts['path'] ?? '');
+        return request()->url();
     }
 }

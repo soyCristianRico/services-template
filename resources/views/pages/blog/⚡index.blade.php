@@ -4,32 +4,37 @@ declare(strict_types=1);
 
 use App\Models\BlogPost;
 use App\Services\Seo\SeoService;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
+use Livewire\WithPagination;
 
 new
 #[Layout('layouts.public')]
 class extends Component
 {
+    use WithPagination;
+
     public function mount(SeoService $seo): void
     {
         $seo->setSEO(
             title: 'Blog',
             description: 'Guías, comparativas y consejos prácticos sobre lo que alquilamos.',
-            url: url('/blog'),
             // Don't expose an empty blog to search engines until it has content.
             index: BlogPost::hasPublished() ? null : false,
         );
     }
 
-    /**
-     * @return \Illuminate\Database\Eloquent\Collection<int, BlogPost>
-     */
+    /** @return LengthAwarePaginator<int, BlogPost> */
     #[Computed]
-    public function posts(): \Illuminate\Database\Eloquent\Collection
+    public function posts(): LengthAwarePaginator
     {
-        return BlogPost::published()->orderByDesc('published_at')->get();
+        $paginator = BlogPost::published()->orderByDesc('published_at')->paginate(10);
+
+        abort_if($paginator->currentPage() > 1 && $paginator->currentPage() > $paginator->lastPage(), 404);
+
+        return $paginator;
     }
 };
 ?>
@@ -61,4 +66,12 @@ class extends Component
             <flux:text class="text-zinc-500">Aún no hay artículos publicados.</flux:text>
         @endforelse
     </div>
+
+    @if ($this->posts->hasPages())
+        <div class="mt-12">{{ $this->posts->links() }}</div>
+    @endif
 </div>
+
+@push('seo-links')
+    <x-site.pagination-seo-links :paginator="$this->posts" />
+@endpush
