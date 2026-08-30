@@ -803,6 +803,13 @@ fi
 log "Preparing .env"
 cp .env.example .env
 
+if [[ -f "$SOURCE_ROOT/fal-api-key.txt" ]]; then
+    log "Setting FAL_KEY from the template checkout"
+    set_env FAL_KEY "$(cat "$SOURCE_ROOT/fal-api-key.txt")" .env
+else
+    warn "No fal-api-key.txt in $SOURCE_ROOT — image generation (DAP024) needs FAL_KEY set manually."
+fi
+
 provision_database
 write_production_env
 write_robots_txt

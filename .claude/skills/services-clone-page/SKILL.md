@@ -93,6 +93,24 @@ del registro; aquí solo se colocan con ese nombre. Nunca enlazar al dominio de 
 columna de texto. Una imagen que el origen usa en varios sitios se descarga una vez:
 la ficha, la tarjeta del listado y el OG leen todos del mismo registro.
 
+**Si la imagen del origen es pequeña, se sube de resolución antes de guardarla —
+nunca se guarda pixelada tal cual.** Medir con `getimagesize` (o `identify`) antes de
+dar la descarga por buena: si el ancho real no llega al mínimo que pide su uso en la
+página (los mismos umbrales que usa `/content-images`: 1600px hero, 1200px foto de
+sección, 512px icono o recurso), pasarla por el modelo de upscaling de fal.ai
+(`fal-ai/esrgan`, la misma cuenta y `FAL_KEY` que ya usa `/content-images`, endpoint
+`https://fal.run/fal-ai/esrgan`) apuntando `image_url` a la **URL del origen**, no al
+fichero ya descargado, y guardar el resultado ya mejorado en su sitio final. Si ni el
+upscaling llega a un mínimo razonable, decirlo al presentar la página (paso 6) en vez
+de dejarla pixelada en silencio.
+
+**Si el nuevo diseño pide un elemento que el origen no tenía** —un recurso
+decorativo, un icono ilustrado que `DESIGN.md` incorpora y la web vieja no usaba—,
+generarlo con el mismo mecanismo que `/content-images` (FLUX Schnell vía fal.ai,
+mismo criterio de aceptación y máximo 3 intentos, ver esa skill para el detalle).
+Es contenido nuevo, no clonado: decirlo al presentar la página, no colarlo como si
+viniera del origen.
+
 **`public/images/` es material del seeder, nunca una fuente en caliente.** Se escribe
 una vez al clonar y no se vuelve a leer: la plantilla lee **siempre** del registro. La
 trampa es que acabas de dejar el fichero ahí con un nombre que es el slug, así que
