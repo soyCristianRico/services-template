@@ -14,6 +14,7 @@ class LlmsTxtController
     {
         return LlmsTxtBuilder::make((string) config('app.name'), (string) config('site.tagline'))
             ->url(route('home'))
+            ->note('Cada página también está disponible en Markdown: pide la misma URL con la cabecera `Accept: text/markdown`.')
             ->section('Páginas', $directory->pages())
             ->section('Aterrizajes', $directory->landings())
             ->section('Blog', $directory->blogPosts())
