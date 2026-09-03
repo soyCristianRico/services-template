@@ -7,7 +7,7 @@ use App\Models\Landing;
 use App\Models\MenuItem;
 use App\Models\Page;
 use App\Models\Service;
-use Ruklab\Connector\Content\ContentType;
+use Toolkit\Connector\Content\ContentType;
 
 return [
 

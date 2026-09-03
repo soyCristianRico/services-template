@@ -8,7 +8,7 @@ use App\Models\Service;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Testing\File;
-use Ruklab\Connector\Content\ContentType;
+use Toolkit\Connector\Content\ContentType;
 
 describe('Ruklab connector config', function () {
     describe('types', function () {

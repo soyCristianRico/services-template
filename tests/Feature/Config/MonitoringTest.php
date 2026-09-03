@@ -6,7 +6,7 @@ use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Facades\Schedule as ScheduleFacade;
-use SoyCristianRico\LaravelServerMonitor\Services\Security\SecurityNotificationService;
+use Toolkit\ServerMonitor\Services\Security\SecurityNotificationService;
 
 /**
  * The two published configs that decide whether an alert reaches a person:
