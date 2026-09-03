@@ -37,6 +37,10 @@ class SeoService
         'sitemap.pages',
         'sitemap.landings',
         'sitemap.blog',
+        // llms.txt is a plain (non-Livewire) route so PublicPageDirectory
+        // already excludes it by construction — listed here too, defensively,
+        // alongside the sitemap routes it stands next to.
+        'llms-txt',
         // Blog show is parameter-based so it's excluded from /sitemap-pages.xml
         // automatically; the listing /blog IS indexable.
     ];

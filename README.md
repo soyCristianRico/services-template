@@ -6,6 +6,7 @@ Laravel template to launch rental brokerage sites (generators, containers, palle
 
 - Programmatic pages `/{category}-{location}` with full SEO (title, OG, Twitter, JSON-LD: WebPage + Service@areaServed + BreadcrumbList).
 - `/sitemap.xml` with sub-sitemaps (pages, landings, blog) and real `lastmod`.
+- AI-agent friendly: any public page returns Markdown instead of HTML when requested with `Accept: text/markdown`, and `/llms.txt` auto-lists the site's current pages, landings and blog posts — both read whatever content exists (name, tagline in `config('site.tagline')`, live routes/DB rows), so they need no wiring after cloning. The `/generate-llms-txt` skill later replaces the auto-generated file with a curated `public/llms.txt` at deploy time, which takes precedence.
 - Embedded lead form with honeypot, email notification, and signed (HMAC) webhook to your CRM.
 - Livewire + Flux Pro admin: Categories · Services (with gallery) · Locations · Landings (with bulk-activate matrix) · Blog (drafts/scheduled/published) · Static pages · Leads.
 - MCP server (`/mcp/services`) with 25 tools to manage everything from Claude.

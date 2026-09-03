@@ -2,17 +2,23 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\LlmsTxtController;
 use App\Http\Controllers\SitemapController;
 use Illuminate\Support\Facades\Route;
+use Toolkit\AgentMarkdown\NegotiateMarkdownResponse;
 
-Route::livewire('/', 'pages::home')->name('home');
+// Public pages only — never /admin. A crawler asking for `Accept: text/markdown`
+// gets the page's <main> content converted instead of full HTML.
+Route::middleware(NegotiateMarkdownResponse::class)->group(function (): void {
+    Route::livewire('/', 'pages::home')->name('home');
 
-Route::livewire('/blog', 'pages::blog.index')->name('blog.index');
-Route::livewire('/blog/{slug}', 'pages::blog.show')
-    ->where('slug', '[a-z0-9-]+')
-    ->name('blog.show');
+    Route::livewire('/blog', 'pages::blog.index')->name('blog.index');
+    Route::livewire('/blog/{slug}', 'pages::blog.show')
+        ->where('slug', '[a-z0-9-]+')
+        ->name('blog.show');
+});
 
-Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
+Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): void {
     Route::livewire('/', 'pages::admin.dashboard')->name('dashboard');
 
     Route::livewire('/profile', 'pages::admin.profile')->name('profile');
@@ -75,15 +81,22 @@ if (config('site.locations')) {
     Route::get('/sitemap-landings.xml', [SitemapController::class, 'landings'])->name('sitemap.landings');
 }
 
-// Legal — one page carrying the four blocks as #anchors. Declared before the
-// catch-all so it wins over a CMS Page that happens to be slugged "legal".
-Route::livewire('/legal', 'pages::legal')->name('legal');
+// llms.txt — index for AI agents, mirroring the sitemap's own page enumeration.
+Route::get('/llms.txt', [LlmsTxtController::class, 'index'])->name('llms-txt');
 
-// Programmatic landings — must stay last so /, /admin, /blog, Fortify-named routes
-// and sitemap routes are matched first. Skipped entirely on sites with no
-// geographic dimension, where this catch-all would swallow every other slug.
-if (config('site.locations')) {
-    Route::livewire('/{slug}', 'pages::landing')
-        ->where('slug', '[a-z0-9-]+')
-        ->name('landing');
-}
+Route::middleware(NegotiateMarkdownResponse::class)->group(function (): void {
+    // Legal — one page carrying the four blocks as #anchors. Declared before
+    // the catch-all so it wins over a CMS Page that happens to be slugged
+    // "legal".
+    Route::livewire('/legal', 'pages::legal')->name('legal');
+
+    // Programmatic landings — must stay last so /, /admin, /blog, Fortify-named
+    // routes and sitemap routes are matched first. Skipped entirely on sites
+    // with no geographic dimension, where this catch-all would swallow every
+    // other slug.
+    if (config('site.locations')) {
+        Route::livewire('/{slug}', 'pages::landing')
+            ->where('slug', '[a-z0-9-]+')
+            ->name('landing');
+    }
+});

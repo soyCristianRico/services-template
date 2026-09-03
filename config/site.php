@@ -50,4 +50,18 @@ return [
 
     'menu_blocks' => [],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Tagline
+    |--------------------------------------------------------------------------
+    |
+    | One-line description of the site. Kept here — instead of inline in the
+    | home page's setSEO() call — so the home page and `/llms.txt` read the
+    | same copy instead of drifting apart. Each cloned site rewrites this to
+    | its own placeholder-free description.
+    |
+    */
+
+    'tagline' => 'Intermediario de alquiler. Pide presupuesto, recibe oferta en menos de 15 minutos, paga sólo cuando confirmas.',
+
 ];

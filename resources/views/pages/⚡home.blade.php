@@ -12,7 +12,7 @@ class extends Component
     {
         $seo->setSEO(
             title: (string) config('app.name'),
-            description: 'Intermediario de alquiler. Pide presupuesto, recibe oferta en menos de 15 minutos, paga sólo cuando confirmas.',
+            description: (string) config('site.tagline'),
             appendSiteName: false,
         );
     }
