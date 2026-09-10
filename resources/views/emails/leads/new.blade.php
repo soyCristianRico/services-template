@@ -22,7 +22,7 @@
 @if (! empty($lead->payload))
 **Datos extra:**
 @foreach ($lead->payload as $key => $value)
-- **{{ $key }}:** {{ is_scalar($value) ? $value : json_encode($value) }}
+- **{{ $key }}:** {{ is_scalar($value) ? $value : json_encode($value, JSON_UNESCAPED_UNICODE) }}
 @endforeach
 @endif
 
