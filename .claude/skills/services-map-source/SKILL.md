@@ -2,7 +2,7 @@
 name: services-map-source
 description: Dimensionar y documentar una web de servicios publicada — qué páginas hay y qué secciones tiene cada una — en un documento revisable más un inventario JSON. Primer paso (global) para clonar una web existente.
 disable-model-invocation: true
-allowed-tools: WebFetch, Bash, Read, Write, Glob, Grep, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_evaluate, mcp__playwright__browser_take_screenshot
+allowed-tools: WebFetch, Bash, Read, Write, Glob, Grep
 ---
 
 # Services · Dimensionar web origen
@@ -76,7 +76,7 @@ sin descomprimir los gigas de imágenes.
 ### 1 — Reunir URLs
 Leer `origen/sitemap.xml` (y sub-sitemaps). Si no hay, rastrear desde la home por
 enlaces internos. HTML plano → `WebFetch` o `curl`. Ver paso 3 para cuándo hace falta
-Playwright (menos de lo que parece).
+el navegador de Orca (menos de lo que parece).
 
 > **El sitemap NO es el inventario completo.** Los plugins de SEO excluyen las páginas
 > `noindex`, y ahí viven justo las del embudo de conversión: gracias, confirmación de
@@ -182,7 +182,7 @@ Aquí solo se registra qué hay.
 - **Nunca declarar una página «vacía» a partir del HTML estático.** Si aparece un
   contenedor vacío (`<div class="…__items"></div>`) con atributos tipo `data-rest-url`,
   `data-nonce` o `data-ajax`, es un listado **hidratado por JS**: localiza su endpoint
-  y trae los datos de ahí. Playwright es el último recurso, no el primero — solo si no
+  y trae los datos de ahí. El navegador de Orca es el último recurso, no el primero — solo si no
   hay API ni fuente de datos alcanzable.
 
 ### 3b — Recoger las redirecciones que ya tiene el origen

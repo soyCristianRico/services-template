@@ -2,7 +2,7 @@
 name: services-extract-design
 description: Extraer el sistema visual de la web de servicios actual (colores, tipografías, escalas, logo) y volcarlo en DESIGN.md + tokens de Tailwind del template. Tercer paso (global) del clonado; deja la base visual sobre la que se replica cada página.
 disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Bash, WebFetch, mcp__playwright__browser_navigate, mcp__playwright__browser_evaluate, mcp__playwright__browser_take_screenshot, Skill
+allowed-tools: Read, Write, Edit, Bash, WebFetch, Skill
 ---
 
 # Services · Extraer diseño de la web actual

@@ -2,7 +2,7 @@
 name: services-structured-data
 description: Diseñar, implementar y validar los datos estructurados (JSON-LD) del sitio clonado — por tipo de página, con un grafo compartido y validación real. Se ejecuta cuando las páginas ya tienen contenido. Es la primera skill del bucle cuyo objetivo NO es la paridad con el origen, sino superarlo.
 disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, mcp__playwright__browser_navigate, mcp__playwright__browser_evaluate
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch
 ---
 
 # Services · Datos estructurados

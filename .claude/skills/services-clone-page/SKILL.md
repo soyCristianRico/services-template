@@ -2,7 +2,7 @@
 name: services-clone-page
 description: Clonar UNA página de la web origen de principio a fin — contenido, diseño y verificación — sobre el registro esqueleto ya creado. Es el motor del bucle 1-a-1: se ejecuta una página cada vez y se valida antes de seguir.
 disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Bash, WebFetch, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_evaluate, mcp__playwright__browser_take_screenshot
+allowed-tools: Read, Write, Edit, Bash, WebFetch
 ---
 
 # Services · Clonar página (1 a 1)
@@ -204,14 +204,14 @@ despliegue.
 Capturar origen y reconstrucción **por tramos** (una página larga entera se reduce a
 algo ilegible) y comparar secciones, jerarquía, copy clave y meta.
 
-Mirar no basta: **medir**. Con `browser_evaluate` sobre el origen, sacar los valores
+Mirar no basta: **medir**. Con `eval` (Orca browser) sobre el origen, sacar los valores
 computados de lo que se está replicando —color, tamaño, peso, radio, familia— y
 compararlos con los de la reconstrucción. La mitad de los desajustes que el ojo
 perdona salen aquí. Comparar también la posición vertical de cada titular y su número
 de líneas: es lo que detecta un contenedor o una tipografía que no cuadran.
 
 **Los embeds no se pueden medir desde fuera**: el iframe es de otro dominio y
-`browser_evaluate` no entra, así que la captura enseña «un mapa» y da por bueno
+`eval` no entra, así que la captura enseña «un mapa» y da por bueno
 cualquier mapa. Se verifican por el `src` —el del origen y el de la reconstrucción
 tienen que apuntar a la misma entidad— y pidiendo esa URL con `curl`: la respuesta dice
 si el proveedor devuelve la ficha única que se espera o una lista de resultados, que es

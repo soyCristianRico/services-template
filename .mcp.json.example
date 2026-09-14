@@ -1,10 +1,5 @@
 {
     "mcpServers": {
-        "playwright": {
-            "type": "stdio",
-            "command": "npx",
-            "args": ["-y", "@playwright/mcp@latest", "--headless", "--block-service-workers", "--timeout-navigation", "30000"]
-        },
         "laravel-boost": {
             "type": "stdio",
             "command": "wsl.exe",

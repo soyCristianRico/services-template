@@ -2,7 +2,7 @@
 name: page-from-design
 description: Build a brand-new page from an approved design export (HTML, screenshots, assets) plus its content document, using the components and tokens the project already has. For pages that exist nowhere yet — the team designed them from scratch and there is no source site to compare against.
 disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_evaluate, mcp__playwright__browser_take_screenshot
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch
 ---
 
 # Page from an approved design
@@ -121,7 +121,8 @@ This applies to every new batch of classes, not just the first.
 
 ## 6 — Verify by measuring
 
-Capture desktop and mobile, and **measure with `browser_evaluate`** instead of trusting
+Capture desktop and mobile, and **measure with `eval`** (Orca browser, see
+`~/.claude/mecanicas/orca-browser.md`) instead of trusting
 your eye: background color, text color, the four borders, button height, the icon's
 vertical offset from center. Half the mismatches the eye forgives show up there, and
 some the eye reports turn out to be something else.

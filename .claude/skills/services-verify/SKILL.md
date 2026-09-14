@@ -2,7 +2,7 @@
 name: services-verify
 description: Verificación final del clon completo — paridad de URLs, contenido, meta/SEO y visual entre la web origen y la reconstruida — y reporte de desajustes. Cierra el proceso de clonado, tras haber clonado todas las páginas 1 a 1.
 disable-model-invocation: true
-allowed-tools: Read, Bash, WebFetch, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_evaluate, mcp__playwright__browser_take_screenshot
+allowed-tools: Read, Bash, WebFetch
 ---
 
 # Services · Verificar clon (final)
@@ -169,7 +169,8 @@ uno, si había aviso al equipo y correo a quien lo rellenó. Que el formulario r
 bien no dice nada de eso: el envío va por la cola y falla sin ruido.
 
 ### 7 — Visual
-`browser_take_screenshot` de home y páginas tipo en ambos sitios y comparar layout,
+Captura (Orca `screenshot`/`full-screenshot`, ver `~/.claude/mecanicas/orca-browser.md`)
+de home y páginas tipo en ambos sitios y comparar layout,
 jerarquía y marca. Diferencias de píxel por fuentes/render no cuentan como fallo.
 
 ## Reportar
