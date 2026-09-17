@@ -178,7 +178,7 @@ return [
              * The disk names on which the backups will be stored.
              */
             'disks' => [
-                'google',
+                's3',
             ],
 
             /*
@@ -323,7 +323,7 @@ return [
         [
             // Must match `backup.name`.
             'name' => '',
-            'disks' => ['google'],
+            'disks' => ['s3'],
             'health_checks' => [
                 // Two days: one failed night should not raise an alarm, two should.
                 MaximumAgeInDays::class => 2,
