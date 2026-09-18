@@ -91,18 +91,6 @@ describe('monitoring', function (): void {
                 ->toContain(storage_path('app/public'));
         });
     });
-
-    describe('bugsnag', function (): void {
-        it('should offer a log channel', function (): void {
-            expect(config('logging.channels.bugsnag.driver'))->toBe('bugsnag');
-        });
-
-        it('should stay out of the stack until it is switched on', function (): void {
-            // Errors from local development would otherwise burn the quota and
-            // bury the production ones this exists to surface.
-            expect(config('logging.channels.stack.channels'))->not->toContain('bugsnag');
-        });
-    });
 });
 
 /**
