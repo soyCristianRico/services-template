@@ -90,13 +90,13 @@ Route::middleware(NegotiateMarkdownResponse::class)->group(function (): void {
     // "legal".
     Route::livewire('/legal', 'pages::legal')->name('legal');
 
-    // Programmatic landings — must stay last so /, /admin, /blog, Fortify-named
-    // routes and sitemap routes are matched first. Skipped entirely on sites
-    // with no geographic dimension, where this catch-all would swallow every
-    // other slug.
-    if (config('site.locations')) {
-        Route::livewire('/{slug}', 'pages::landing')
-            ->where('slug', '[a-z0-9-]+')
-            ->name('landing');
-    }
+    // Generic CMS pages (and, when the site has a geographic dimension, programmatic
+    // landings as a fallback) — must stay last so every route above is matched first.
+    // Page-serving is NOT gated by site.locations: creating a loose page from
+    // /admin/pages isn't a geographic feature, so it must keep working even on
+    // sites with no location tree. Landing::published() simply returns nothing
+    // when there are no locations, so the fallback stays harmless.
+    Route::livewire('/{slug}', 'pages::landing')
+        ->where('slug', '[a-z0-9-]+')
+        ->name('landing');
 });
