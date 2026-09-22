@@ -69,7 +69,7 @@ Extract these atoms from the input (any source):
 | **Concept / positioning** | "Modern industrial premium, not affiliation, not low-cost" | §1 Concept |
 | **Colors** | Hex codes + role (accent, primary, neutrals, semantic) | §3 Color tokens |
 | **Typography** | Font family + weights + scale + tracking/letter-spacing | §4 Typography |
-| **Spacing / radius** | "Mucho aire", "spacing generoso" | §5 Spacing & radius |
+| **Spacing / radius** | "Mucho aire", "spacing generoso"; radius: "esquinas muy redondeadas", "bordes rectos, sin curvas", "pill buttons" | §5 Spacing & radius |
 | **Components** | "CTAs amarillos", "cards con poco borde" | §6 Components |
 | **Layout** | "Hero protagonista", "secciones full-width" | §7 Layouts |
 | **Photography** | "Ciudad nocturna, técnicos, no stock" | §9 Imagery |
@@ -388,7 +388,8 @@ Do this right after writing DESIGN.md, without asking — a DESIGN.md whose clas
 3. Preserve the imports above (`@import 'tailwindcss';`, `@import '...flux.css';`) and the `@custom-variant dark`, `@source` lines below
 4. Update the font `@import` to the new families **and only the weights actually used**
 5. Update the `[data-public-site] h1|h2|h3[data-flux-heading]` weights if the brief's display font ships different ones
-6. Run `npm run build`
+6. **If the brief gives a radius/corner direction, apply it to the actual components — writing it in DESIGN.md §5 is not applying it.** Translate the qualitative signal to the nearest Tailwind scale value (sharp → `rounded-sm`/`rounded-none`, soft → `rounded-lg`/`rounded-xl`, very rounded → `rounded-2xl`/`rounded-3xl`, pill → `rounded-full`), then `grep -rn "rounded-" resources/views/components/ resources/views/layouts/` for the shared Button/Card/Input components and update their classes to match — not just the ones the current page happens to use. A brief that gives no radius signal at all is the only case that skips this step; silence on the rest of a filled-in brief is not silence on radius.
+7. Run `npm run build`
 
 **A green build is not proof the theme applied.** A renamed or misspelled token just produces a class that resolves to nothing — nothing errors. Verify the values actually landed:
 
