@@ -17,11 +17,19 @@ Schedule::command('redirects:prune')->weeklyOn(1, '04:00');
 
 // === COPIAS DE SEGURIDAD ===
 
+// Sin las credenciales del almacenamiento (demos, instalaciones nuevas) cada comando
+// de copia fallaría y avisaría a diario. Al rellenarlas, las copias arrancan solas.
+$backupDiskConfigured = fn (): bool => filled(config('filesystems.disks.s3.key'))
+    && filled(config('filesystems.disks.s3.secret'))
+    && filled(config('filesystems.disks.s3.bucket'))
+    && filled(config('filesystems.disks.s3.endpoint'));
+
 // Una al día basta: el catálogo lo edita una persona en horario de oficina, no un
 // flujo continuo. Lo que no se puede rehacer —los leads y lo subido desde el
 // admin— cabe de sobra en la ventana de un día.
 Schedule::command('backup:run')
     ->dailyAt('03:00')
+    ->when($backupDiskConfigured)
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/backup.log'));
 
@@ -29,6 +37,7 @@ Schedule::command('backup:run')
 // limpieza iba a liberar media hora después.
 Schedule::command('backup:clean')
     ->dailyAt('04:00')
+    ->when($backupDiskConfigured)
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/backup-clean.log'));
 
@@ -36,6 +45,7 @@ Schedule::command('backup:clean')
 // aviso llega a una hora en la que alguien lo va a leer.
 Schedule::command('backup:monitor')
     ->dailyAt('10:00')
+    ->when($backupDiskConfigured)
     ->withoutOverlapping()
     ->appendOutputTo(storage_path('logs/backup-monitor.log'));
 
