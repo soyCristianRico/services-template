@@ -20,11 +20,13 @@ return [
          * The name of this application. You can use this name to monitor
          * the backups.
          *
-         * Empty: this is the subdirectory spatie lists to check the disk, and on
-         * Drive listing a missing subdirectory throws — before the write that
-         * would have created it. The disk root does get created.
+         * Never empty: the bucket on S3 is shared between sites, and this is the
+         * subfolder that keeps this site's archives apart from the others'. An
+         * empty name makes backup:clean list and prune the whole bucket.
+         * Derived from APP_NAME, like filename_prefix, so a cloned site does not
+         * have to remember to set it.
          */
-        'name' => '',
+        'name' => Str::slug((string) env('APP_NAME', 'laravel')),
 
         'source' => [
             'files' => [
@@ -322,7 +324,7 @@ return [
     'monitor_backups' => [
         [
             // Must match `backup.name`.
-            'name' => '',
+            'name' => Str::slug((string) env('APP_NAME', 'laravel')),
             'disks' => ['s3'],
             'health_checks' => [
                 // Two days: one failed night should not raise an alarm, two should.

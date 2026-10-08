@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Notifications\Monitoring\DeveloperNotifiable;
+use Illuminate\Support\Str;
 use Spatie\Backup\Config\Config;
 use Spatie\Backup\Notifications\Notifications\BackupHasFailedNotification;
 use Spatie\Backup\Notifications\Notifications\BackupWasSuccessfulNotification;
@@ -40,10 +41,12 @@ describe('config/backup.php', function (): void {
     });
 
     describe('destination', function (): void {
-        it('should write into the disk root, not a subdirectory', function (): void {
-            // On Drive, listing a missing subdirectory throws, and the check runs
-            // before the write that would have created it.
-            expect(config('backup.backup.name'))->toBe('');
+        it('should namespace backups under this site, not the shared bucket root', function (): void {
+            // The S3 bucket is shared between sites; an empty name makes
+            // backup:clean list and prune every site's archives.
+            expect(config('backup.backup.name'))
+                ->not->toBeEmpty()
+                ->toBe(Str::slug((string) config('app.name')));
         });
 
         it('should monitor the same directory it writes to', function (): void {
@@ -61,9 +64,9 @@ describe('config/backup.php', function (): void {
             expect(config('backup.backup.destination.filename_prefix'))->not->toBeEmpty();
         });
 
-        it('should write to google drive', function (): void {
-            expect(config('backup.backup.destination.disks'))->toBe(['google'])
-                ->and(config('filesystems.disks.google.driver'))->toBe('google');
+        it('should write to s3', function (): void {
+            expect(config('backup.backup.destination.disks'))->toBe(['s3'])
+                ->and(config('filesystems.disks.s3.driver'))->toBe('s3');
         });
 
         it('should monitor the same disk it writes to', function (): void {
