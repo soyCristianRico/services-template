@@ -6,6 +6,7 @@ use App\Models\BlogPost;
 use App\Models\Landing;
 use App\Models\MenuItem;
 use App\Models\Page;
+use App\Models\Redirect;
 use App\Models\Service;
 use Toolkit\Connector\Content\ContentType;
 
@@ -141,6 +142,35 @@ return [
             'location' => 'location',
         ],
         'status' => 'is_active',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Redirecciones
+    |--------------------------------------------------------------------------
+    |
+    | La web ya tiene su propia tabla, con su panel y su middleware, así que el
+    | conector lee y escribe esa en vez de traer otra: lo que se cree desde
+    | Ruk Lab sale en el panel y lo del panel se ve desde Ruk Lab.
+    |
+    */
+
+    'redirects' => [
+        'enabled' => env('RUKLAB_CONNECTOR_REDIRECTS', true),
+        'model' => Redirect::class,
+        'fields' => [
+            'source' => 'source',
+            'target' => 'destination',
+            'code' => 'status_code',
+            'active' => 'is_active',
+            'hits' => 'hits',
+            'match' => 'match_type',
+        ],
+        'codes' => [301, 302, 307, 308, 410],
+        'defaults' => [
+            'match_type' => 'exact',
+            'preserve_query' => true,
+        ],
     ],
 
     /*
