@@ -133,6 +133,12 @@
     display: none !important;
 }
 
+@media (prefers-reduced-motion: no-preference) {
+    html {
+        scroll-behavior: smooth;
+    }
+}
+
 /* Barra de formato flotante de los campos de texto rico del admin.
 
    Flux la imprime pegada al borde superior del campo y siempre encendida, que
