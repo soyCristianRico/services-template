@@ -1,6 +1,6 @@
 ---
 name: design-system-from-brief
-description: Transform a brand direction brief (text, references, or both) into a structured DESIGN.md at the project root, and apply the resulting Tailwind @theme block to resources/css/app.css. Use when the user asks to create, generate or write a design system, a DESIGN.md, or to "turn this brand brief into a design contract". The brief is typically a markdown document with positioning, colors, typography and tone, but image references and competitor URLs are also accepted.
+description: Transform a brand direction brief (text, references, or both) into a structured DESIGN.md at the project root, and apply the resulting Tailwind @theme block to resources/css/app.css. Use when the user asks to create, generate or write a design system, a DESIGN.md, or to "turn this brand brief into a design contract". The brief is typically a markdown document with positioning, colors, typography and tone, but image references and reference URLs are also accepted.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, WebFetch
 disable-model-invocation: true
 ---
@@ -8,6 +8,10 @@ disable-model-invocation: true
 # Design system from brief
 
 Generate a `DESIGN.md` at the project root that acts as the visual contract every future "implement this view" prompt reads first. The input is a brand direction document (color palette, typography, positioning, photography direction, anti-patterns). The output is a structured Markdown file wired to this project's actual stack: Laravel 12 + Livewire 4 + Flux Pro 2 + Tailwind 4.
+
+When the user points to an existing site or reference ("look at the web and apply it"), the instruction
+covers the whole visual language, not just colour and type. Every token in `@theme` must come from the
+reference or be explicitly marked as a template default. Silent inheritance of template values is a defect.
 
 ## When to invoke
 
@@ -27,10 +31,19 @@ Skip the skill (don't invoke) when:
 
 1. **Markdown brief** — pasted in the conversation. The most common input. Should contain at least: positioning concept, color palette with hex codes, typography, tone.
 2. **Image references** — screenshots, mood boards, logos. Read them multimodally and extract patterns.
-3. **Competitor URLs** — use WebFetch to pull the page, then describe the visual language.
+3. **Reference URL** — read in two passes, see below.
 4. **Mix of the above** — common when the user has a brief AND a screenshot they like.
 
 If only 1 is provided, that's enough. If the brief is missing critical fields (no color palette, no typography), ask before generating — don't invent core brand decisions.
+
+A reference URL is read in two passes, in this order. Load `~/.claude/mecanicas/orca-browser.md` first and
+follow its `curl` and screenshot rules.
+
+1. **Source, not summary.** `curl -sL` the HTML, list its stylesheets and download the ones that carry the
+   design (page-builder kit CSS such as Elementor `post-*.css`, theme CSS, custom properties). `WebFetch` is
+   orientation only: never report "the site has no styles" from it.
+2. **Rendered page.** Screenshot the main page at desktop width and look at it. CSS lists values; the
+   screenshot shows which ones are actually used where (a kit default overridden on the page).
 
 ## Process
 
@@ -68,8 +81,11 @@ Extract these atoms from the input (any source):
 |---|---|---|
 | **Concept / positioning** | "Modern industrial premium, not affiliation, not low-cost" | §1 Concept |
 | **Colors** | Hex codes + role (accent, primary, neutrals, semantic) | §3 Color tokens |
-| **Typography** | Font family + weights + scale + tracking/letter-spacing | §4 Typography |
-| **Spacing / radius** | "Mucho aire", "spacing generoso"; radius: "esquinas muy redondeadas", "bordes rectos, sin curvas", "pill buttons" | §5 Spacing & radius |
+| **Typography** | Font family + weights + scale + tracking/letter-spacing + heading and button case | §4 Typography |
+| **Spacing / density** | "Mucho aire", "spacing generoso"; section padding, container width, card padding in a reference | §5 Spacing, radius & elevation |
+| **Radius** | "esquinas muy redondeadas", "bordes rectos, sin curvas", "pill buttons"; `border-radius` per element type in a reference | §5, per role (see below) |
+| **Shadows** | `box-shadow` in a reference; "sin sombras" | §5 |
+| **Borders** | width, colour, presence on cards and inputs | §5, `--color-border*` |
 | **Components** | "CTAs amarillos", "cards con poco borde" | §6 Components |
 | **Layout** | "Hero protagonista", "secciones full-width" | §7 Layouts |
 | **Photography** | "Ciudad nocturna, técnicos, no stock" | §9 Imagery |
@@ -77,6 +93,30 @@ Extract these atoms from the input (any source):
 | **Anti-patterns** | "NO obra barata, NO rayos en el logo" | §11 Anti-patterns |
 
 When the brief uses a CSS variable block (like `@theme { --color-accent: #F5C400; }`), preserve those exact tokens. They become the source of truth for both DESIGN.md and `resources/css/app.css`.
+
+#### Reading a reference
+
+With a reference URL, extract every row of the table above; none is optional. Colours come from custom
+properties and kit CSS, fonts from `font-family`, `@font-face` and loaded Google Fonts, the rest from
+`border-radius`, `box-shadow`, `padding`/`gap`, `border`, `text-transform` and `letter-spacing` — each
+confirmed on the screenshot. When the reference mixes values (kit default vs page override), use the one on
+the rendered controls of the main page and say which in DESIGN.md §5.
+
+**Radius per role.** Flux uses `rounded-lg` on inputs, buttons, menus and nav items, `rounded-md` on select
+internals and badges, `rounded-xl` on modals, callouts and cards. Map reference radii to those roles, not to
+one number:
+
+- `--radius-sm`: badges, small chips.
+- `--radius-md` / `--radius-lg`: controls (inputs, buttons, menus, nav items). Usually the same value.
+- `--radius-xl`: containers (modals, callouts, cards, images).
+
+**Provenance.** Every token ends in one of three states, recorded in DESIGN.md:
+
+- *brief/reference* — value taken as-is (hex exact, lowercase).
+- *(derived)* — a tint or neutral derived from a brief colour; name the Tailwind family.
+- *(template default)* — nothing in the brief or reference decided it. Allowed only for properties the
+  reference genuinely does not show (shadows on a flat site); list them so the user sees what was never
+  decided.
 
 ### Phase 3 — Map to the stack
 
@@ -255,10 +295,12 @@ The public type scale lives in **one place**: the `[data-public-site]` rules in 
 
 Only declare font weights that are actually loaded in the `@import` — a heading asking for 800 when the font loads 400-700 gets faux-bolded by the browser.
 
+Record heading and button case (`text-transform`) and letter-spacing when the reference uses them.
+
 ## 5. Spacing, radius & elevation
 
 - Spacing scale: <"generous" / "dense" / specific Tailwind tokens used>
-- Radius: `rounded-<size>` for <components>
+- Radius: per role — controls (inputs, buttons, menus, nav items) vs containers (modals, callouts, cards, images) — and, if the reference mixed values, which one was chosen
 - Shadows: <list of shadow utilities used, or "no shadows — flat design">
 
 ## 6. Components
@@ -377,6 +419,10 @@ Flux-specific (breaks the brand silently — always include):
 - Brief source: <link/path>
 - Inspiration sites: <list from brief>
 - Brand color console: <link to a generated palette page if any>
+
+## 14. Provenance
+
+<One line listing every *(template default)* token — what the brief and the reference never decided.>
 ```
 
 ### Phase 5 — Apply to `app.css`
@@ -399,11 +445,16 @@ grep -o "\-\-color-accent:[^;]*;\|--font-display:[^;]*;" public/build/assets/app
 
 Expect the brand hex, not `var(--color-zinc-800)`. If Flux's derived `color-mix` values also show the brand hex, the trio propagated correctly through the component library.
 
+Then **look at it**. Screenshot the home page and one inner page with a table or a form, and compare against
+the reference screenshot on: control radius, container radius, accent colour on the primary button, display
+font on titles, background/neutral warmth. If anything differs, fix `@theme` (or the component classes) and
+repeat. Do not close the skill with an unseen UI.
+
 ### Phase 6 — Verify
 
 After writing the file:
 - Show the user the file path
-- Surface the 3-5 most important decisions in a short summary (don't dump the whole file)
+- Surface the 3-5 most important decisions in a short summary (don't dump the whole file) and the template defaults left in place, so the user can say "that one too" instead of discovering it on screen
 - Suggest: "Next: open `resources/views/pages/⚡home.blade.php` and ask me to rebuild the hero following this DESIGN.md"
 
 ## Output conventions
@@ -425,3 +476,4 @@ After writing the file:
 - **Don't over-document the admin.** The skill produces a design contract for PUBLIC views. The admin uses Flux defaults — mention it once in §2 and move on.
 - **Don't specify logo, favicon or icon sizes.** Those belong to the `brand-assets` skill; duplicating them here guarantees the two drift apart.
 - **Don't dump rationale into the file.** Keep DESIGN.md operational: "use this, don't use that". Rationale lives in commit messages and PR descriptions.
+- **Don't keep template radii, shadows or spacing without saying so.** Every one is brief/reference, *(derived)* or *(template default)* in §14.
