@@ -125,4 +125,42 @@ describe('LeadForm', function () {
             expect(Lead::count())->toBe(0);
         });
     });
+
+    describe('dataLayer', function () {
+        it('should push lead_form_submitted with the source URL once the lead is saved', function () {
+            $component = Livewire::test('lead-form')
+                ->set('form.name', 'Cristian')
+                ->set('form.email', 'cristian@example.com')
+                ->call('save')
+                ->assertHasNoErrors();
+
+            $pushed = collect($component->effects['xjs'] ?? [])->pluck('expression')->implode("\n");
+
+            expect($pushed)
+                ->toContain('window.dataLayer.push(')
+                ->toContain('"event":"lead_form_submitted"')
+                ->toContain('"lead_source_url":'.json_encode($component->get('sourceUrl')))
+                ->not->toContain('cristian@example.com')
+                ->not->toContain('Cristian');
+        });
+
+        it('should not push anything when validation fails', function () {
+            Livewire::test('lead-form')
+                ->set('form.name', 'Cristian')
+                ->set('form.email', 'not-an-email')
+                ->call('save')
+                ->assertHasErrors(['form.email'])
+                ->assertNoJs();
+        });
+
+        it('should not push anything when the honeypot is filled', function () {
+            Livewire::test('lead-form')
+                ->set('form.name', 'Cristian')
+                ->set('form.email', 'cristian@example.com')
+                ->set('form.website', 'http://spammer.example')
+                ->call('save')
+                ->assertHasNoErrors()
+                ->assertNoJs();
+        });
+    });
 });
