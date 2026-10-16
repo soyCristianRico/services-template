@@ -59,14 +59,6 @@ describe('monitoring', function (): void {
                 ->toContain('security:check-malware')
                 ->toContain('security:monitor-crontabs');
         });
-
-        it('should back up whether the machine is watched or not', function (): void {
-            // The backup belongs to the site, so it survives the switch that
-            // only one site per machine gets to turn on.
-            config()->set('monitoring.server_monitor', false);
-
-            expect(scheduledCommands())->toContain('backup:run');
-        });
     });
 
     describe('server monitor', function (): void {

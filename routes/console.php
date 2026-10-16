@@ -17,37 +17,8 @@ Schedule::command('redirects:prune')->weeklyOn(1, '04:00');
 
 // === COPIAS DE SEGURIDAD ===
 
-// Sin las credenciales del almacenamiento (demos, instalaciones nuevas) cada comando
-// de copia fallaría y avisaría a diario. Al rellenarlas, las copias arrancan solas.
-$backupDiskConfigured = fn (): bool => filled(config('filesystems.disks.s3.key'))
-    && filled(config('filesystems.disks.s3.secret'))
-    && filled(config('filesystems.disks.s3.bucket'))
-    && filled(config('filesystems.disks.s3.endpoint'));
-
-// Una al día basta: el catálogo lo edita una persona en horario de oficina, no un
-// flujo continuo. Lo que no se puede rehacer —los leads y lo subido desde el
-// admin— cabe de sobra en la ventana de un día.
-Schedule::command('backup:run')
-    ->dailyAt('03:00')
-    ->when($backupDiskConfigured)
-    ->withoutOverlapping()
-    ->appendOutputTo(storage_path('logs/backup.log'));
-
-// Poda antes que vigilancia, para que el monitor no avise de un espacio que la
-// limpieza iba a liberar media hora después.
-Schedule::command('backup:clean')
-    ->dailyAt('04:00')
-    ->when($backupDiskConfigured)
-    ->withoutOverlapping()
-    ->appendOutputTo(storage_path('logs/backup-clean.log'));
-
-// A las 10:00 y no de madrugada a propósito: si la copia de las 03:00 falló, el
-// aviso llega a una hora en la que alguien lo va a leer.
-Schedule::command('backup:monitor')
-    ->dailyAt('10:00')
-    ->when($backupDiskConfigured)
-    ->withoutOverlapping()
-    ->appendOutputTo(storage_path('logs/backup-monitor.log'));
+// Las copias (backup:run, backup:clean y backup:monitor) las programa ruklab/toolkit,
+// junto con su configuración: este proyecto no tiene config/backup.php a propósito.
 
 // === MONITORIZACIÓN DEL SERVIDOR ===
 
