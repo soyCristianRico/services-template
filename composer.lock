@@ -5232,7 +5232,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/soyCristianRico/toolkit",
-                "reference": "85671d41b60e1f149755371d3fa1892b77c5c472"
+                "reference": "00d3bc88392c8ceba06132cadf3c433c67a8240a"
             },
             "require": {
                 "illuminate/console": "^11.0|^12.0|^13.0",
@@ -5307,7 +5307,7 @@
                 }
             ],
             "description": "Shared toolkit for Ruk Lab's custom-built websites: server monitoring & security, the connector to the Ruk Lab platform, and Markdown for AI agents (llms.txt + content negotiation).",
-            "time": "2026-10-17T16:01:36+00:00"
+            "time": "2026-10-17T17:02:35+00:00"
         },
         {
             "name": "spatie/db-dumper",
