@@ -10,6 +10,7 @@ use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Toolkit\Images\ImagePreparer;
 
 new
 #[Layout('layouts.admin')]
@@ -47,7 +48,7 @@ class extends Component
         $this->slugManuallyEdited = true;
     }
 
-    public function updatedNewImages(): void
+    public function updatedNewImages(ImagePreparer $preparer): void
     {
         $this->validate([
             'newImages.*' => ['image', 'max:5120'],
@@ -64,13 +65,16 @@ class extends Component
             // Copy first so we hand Spatie a stable, owned file path. Livewire
             // can shuffle the validated temp file out from under us between
             // validate() and addMedia(), so working from a fresh copy avoids
-            // the "file does not exist" race.
+            // the "file does not exist" race. The copy is also shrunk to web
+            // size, and a camera name ("IMG_2034") is swapped for the service's.
             $tmpPath = tempnam(sys_get_temp_dir(), 'media_upload_');
             copy($image->getRealPath(), $tmpPath);
 
+            $prepared = $preparer->prepare($tmpPath, $image->getClientOriginalName(), $this->service->name);
+
             $this->service
-                ->addMedia($tmpPath)
-                ->usingFileName($image->getClientOriginalName())
+                ->addMedia($prepared['path'])
+                ->usingFileName($prepared['name'])
                 ->toMediaCollection('gallery');
         }
 
@@ -249,7 +253,7 @@ class extends Component
             <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
                 @foreach ($service->getMedia('gallery') as $media)
                     <div wire:key="media-{{ $media->id }}" class="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white">
-                        <img src="{{ $media->getUrl() }}" alt="{{ $media->name }}" class="aspect-square w-full object-cover">
+                        <x-toolkit::image :media="$media" :alt="$media->name" sizes="240px" class="aspect-square w-full object-cover" />
                         <button
                             type="button"
                             wire:click="deleteImage({{ $media->id }})"

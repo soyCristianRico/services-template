@@ -5232,7 +5232,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/soyCristianRico/toolkit",
-                "reference": "d3e3b43d3a472e3f655bc25514df50512c63ebf0"
+                "reference": "85671d41b60e1f149755371d3fa1892b77c5c472"
             },
             "require": {
                 "illuminate/console": "^11.0|^12.0|^13.0",
@@ -5250,10 +5250,12 @@
                 "pestphp/pest-plugin-laravel": "^2.0|^3.0",
                 "phpunit/phpunit": "^10.0|^11.0",
                 "spatie/laravel-backup": "^9.0|^10.0",
+                "spatie/laravel-medialibrary": "^11.0",
                 "spatie/laravel-permission": "^5.0|^6.0"
             },
             "suggest": {
                 "spatie/laravel-backup": "Backup turns itself on when this is installed and the app has no config/backup.php of its own.",
+                "spatie/laravel-medialibrary": "Images turns itself on when this is installed: WebP versions, srcset component, upload preparation.",
                 "spatie/laravel-permission": "Only needed by ServerMonitor to resolve alert recipients by role. Setting DEVELOPER_EMAIL instead works on any app."
             },
             "default-branch": true,
@@ -5265,7 +5267,8 @@
                         "Toolkit\\Connector\\ConnectorServiceProvider",
                         "Toolkit\\AgentMarkdown\\AgentMarkdownServiceProvider",
                         "Toolkit\\ExceptionMonitor\\ExceptionMonitorServiceProvider",
-                        "Toolkit\\Backup\\BackupServiceProvider"
+                        "Toolkit\\Backup\\BackupServiceProvider",
+                        "Toolkit\\Images\\ImagesServiceProvider"
                     ]
                 }
             },
@@ -5304,7 +5307,7 @@
                 }
             ],
             "description": "Shared toolkit for Ruk Lab's custom-built websites: server monitoring & security, the connector to the Ruk Lab platform, and Markdown for AI agents (llms.txt + content negotiation).",
-            "time": "2026-10-16T15:10:37+00:00"
+            "time": "2026-10-17T16:01:36+00:00"
         },
         {
             "name": "spatie/db-dumper",

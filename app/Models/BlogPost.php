@@ -10,11 +10,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Toolkit\Images\Concerns\HasWebImages;
 
 class BlogPost extends Model implements HasMedia
 {
     /** @use HasFactory<BlogPostFactory> */
-    use HasFactory, InteractsWithMedia;
+    use HasFactory, HasWebImages, InteractsWithMedia;
 
     protected $fillable = [
         'slug',
@@ -36,6 +38,14 @@ class BlogPost extends Model implements HasMedia
             'published_at' => 'datetime',
             'is_active' => 'boolean',
         ];
+    }
+
+    /**
+     * WebP versions of every image, for <x-toolkit::image> (ruklab/toolkit).
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->registerWebImageConversions();
     }
 
     public function registerMediaCollections(): void

@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Toolkit\Images\ImagePreparer;
 
 new
 #[Layout('layouts.admin')]
@@ -44,7 +45,7 @@ class extends Component
         $this->slugManuallyEdited = true;
     }
 
-    public function updatedNewHero(): void
+    public function updatedNewHero(ImagePreparer $preparer): void
     {
         $this->validate(['newHero' => ['image', 'max:5120']], [
             'newHero.image' => 'El archivo debe ser una imagen.',
@@ -58,9 +59,11 @@ class extends Component
         $tmp = tempnam(sys_get_temp_dir(), 'media_upload_');
         copy($this->newHero->getRealPath(), $tmp);
 
+        $prepared = $preparer->prepare($tmp, $this->newHero->getClientOriginalName(), $this->post->title);
+
         $this->post
-            ->addMedia($tmp)
-            ->usingFileName($this->newHero->getClientOriginalName())
+            ->addMedia($prepared['path'])
+            ->usingFileName($prepared['name'])
             ->toMediaCollection('hero');
 
         $this->newHero = null;

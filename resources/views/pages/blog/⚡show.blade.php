@@ -47,9 +47,9 @@ class extends Component
         <a href="{{ url('/blog') }}" class="hover:text-zinc-900">Blog</a>
     </nav>
 
-    @if ($post->getFirstMediaUrl('hero'))
-        <img src="{{ $post->getFirstMediaUrl('hero') }}" alt="{{ $post->title }}"
-             class="mb-8 aspect-[16/9] w-full rounded-lg object-cover">
+    @if ($hero = $post->getFirstMedia('hero'))
+        <x-toolkit::image :media="$hero" :alt="$post->title" sizes="(min-width: 768px) 768px, 100vw" priority
+             class="mb-8 aspect-[16/9] w-full rounded-lg object-cover" />
     @endif
 
     <flux:heading level="1">{{ $post->title }}</flux:heading>

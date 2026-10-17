@@ -12,11 +12,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
+use Toolkit\Images\Concerns\HasWebImages;
 
 class Service extends Model implements HasMedia
 {
     /** @use HasFactory<ServiceFactory> */
-    use HasFactory, InteractsWithMedia;
+    use HasFactory, HasWebImages, InteractsWithMedia;
 
     protected $fillable = [
         'category_id',
@@ -38,6 +40,14 @@ class Service extends Model implements HasMedia
             'is_active' => 'boolean',
             'position' => 'integer',
         ];
+    }
+
+    /**
+     * WebP versions of every image, for <x-toolkit::image> (ruklab/toolkit).
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->registerWebImageConversions();
     }
 
     public function registerMediaCollections(): void

@@ -47,9 +47,9 @@ class extends Component
         @forelse ($this->posts as $post)
             <article class="border-b border-zinc-200 pb-8">
                 <a href="{{ url('/blog/'.$post->slug) }}" class="block hover:opacity-90">
-                    @if ($post->getFirstMediaUrl('hero'))
-                        <img src="{{ $post->getFirstMediaUrl('hero') }}" alt="{{ $post->title }}"
-                             class="mb-4 aspect-[16/9] w-full rounded-lg object-cover">
+                    @if ($hero = $post->getFirstMedia('hero'))
+                        <x-toolkit::image :media="$hero" :alt="$post->title" sizes="(min-width: 768px) 768px, 100vw"
+                             class="mb-4 aspect-[16/9] w-full rounded-lg object-cover" />
                     @endif
                     <flux:heading level="2">{{ $post->title }}</flux:heading>
                 </a>
