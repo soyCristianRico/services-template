@@ -70,8 +70,8 @@ class extends Component
     </div>
 
     <flux:text class="text-zinc-600">
-        Catálogo de equipos. Opcional — el template no muestra servicios en la landing pública por defecto;
-        cada sitio decide si los renderiza (con <code>x-service-grid :category="$landing->category" /></code>).
+        Las fichas del catálogo, cada una en su categoría. Desactivada, una ficha deja de salir en la web
+        pero se conserva aquí.
     </flux:text>
 
     <div class="grid gap-3 md:grid-cols-3">
