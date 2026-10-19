@@ -115,6 +115,13 @@ o `C) sin ubicaciones`. Anotar cuál aplica.
 deriva de las URLs del origen. Lo aplica `/services-scaffold-structure`; aquí solo se
 documenta, porque el mapeo no toca ficheros del proyecto.
 
+**Y con la misma lógica, el catálogo.** Anotar `site.catalog`: `true` si la oferta del
+origen es una lista de fichas del mismo tipo agrupadas por categoría —lo que el template
+modela como `services` + `categories`—, `false` si vive en páginas hechas a mano o en
+entidades propias (`fuera_de_modelo`). Tampoco se pregunta: se deriva de si hay algo que
+listar. Con `false` el catálogo sale del admin, de MCP y del conector, y el cliente no
+se encuentra dos secciones vacías que nada de la web lee.
+
 Cuidado con un patrón frecuente: una **taxonomía jerárquica que comparte base de
 rewrite con su CPT** hace que `/x/{término}/` y `/x/{ficha}/` convivan en la misma
 carpeta. Son entidades distintas aunque la URL se parezca.

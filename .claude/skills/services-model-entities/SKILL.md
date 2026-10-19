@@ -146,6 +146,11 @@ gestionarla sin tocar código, igual que en su CMS de origen. Eso es
 `/services-admin-panel`, y se ejecuta más tarde — pero se anota ya, porque es la parte
 que más se olvida al modelar.
 
+Y una entidad que tiene pantalla tiene sitio en el menú: entra como un caso de
+`AdminSection` (con su grupo) en ese mismo paso. Si es una tabla auxiliar de otra —las
+categorías de algo, sus tipos—, es una pestaña de la pantalla de esa otra, no una línea
+más en el menú.
+
 ## Guardarraíles
 
 - **Parada obligatoria tras la propuesta.** No se escribe migración sin validación.

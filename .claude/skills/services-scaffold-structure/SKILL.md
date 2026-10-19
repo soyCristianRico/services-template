@@ -52,16 +52,25 @@ no se siembre aquí no lo crea nadie después, y desaparece del clon sin que nad
 
 ## Proceso
 
-### 1 — Leer inventario y fijar la dimensión geográfica
+### 1 — Leer inventario y fijar las dimensiones
 Cargar `inventory.json` y resolver el árbol (padres antes que hijos).
 
-Escribir `SITE_LOCATIONS` en el `.env` con el valor que dejó el mapeo en
-`site.locations` (ver `config/site.php`). En `false`, el sitio no registra la ruta
-`/{slug}`, oculta Ubicaciones y Landings del admin y no expone sus herramientas MCP —
-**sin borrar código**, para que los `cherry-pick` desde el template sigan aplicando.
+Escribir en el `.env` los dos interruptores que dejó el mapeo (ver `config/site.php`):
 
-Con `false`, los pasos 3 y 4 (ubicaciones y landings) se saltan y se dice en el reporte.
-Es un cambio de `.env`: anunciarlo, nunca hacerlo en silencio.
+- `SITE_LOCATIONS` (`site.locations`). En `false` desaparecen Ubicaciones y Landings
+  del admin, sus herramientas MCP y el sub-sitemap de landings. La ruta `/{slug}` se
+  queda: también sirve las páginas (aviso legal, gracias), solo que no encuentra landings.
+- `SITE_CATALOG` (`site.catalog`). En `false` desaparecen Servicios y Categorías del
+  admin, sus herramientas MCP y el tipo «servicio» del conector de Ruk Lab.
+
+Los dos **sin borrar código**, para que los `cherry-pick` desde el template sigan
+aplicando. Con `SITE_LOCATIONS=false` se saltan los pasos 3 y 4; con
+`SITE_CATALOG=false`, los pasos 1 y 2. Se dice en el reporte. Las landings cuelgan de una
+categoría, así que geografía sin catálogo no existe.
+
+Son cambios de `.env`: anunciarlos, nunca hacerlos en silencio. Y van también al
+`.env.production.example`, porque en producción el `.env` se escribe a mano y un
+interruptor olvidado devuelve al admin las secciones vacías.
 
 ### 2 — Generar los dos seeders
 **`CloneStructureSeeder`** — idempotente (upsert por slug, re-ejecutable sin duplicar),
