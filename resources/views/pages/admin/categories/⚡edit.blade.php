@@ -69,6 +69,16 @@ class extends Component
      * puntero a un clic del lápiz de al lado; quien borra ya ha abierto
      * la ficha.
      */
+    /**
+     * Deleting the category takes its services with it (see Category::booted),
+     * so the confirmation has to say how many before anyone clicks.
+     */
+    #[Computed]
+    public function servicesCount(): int
+    {
+        return $this->category?->services()->count() ?? 0;
+    }
+
     public function delete(): void
     {
         $this->category?->delete();
@@ -87,7 +97,7 @@ class extends Component
                 <x-admin.record-menu>
                     <flux:menu.item
                         wire:click="delete"
-                        wire:confirm="¿Eliminar {{ $category->name }}? Sus hijos se quedan sin padre."
+                        wire:confirm="¿Eliminar {{ $category->name }}?{{ $this->servicesCount > 0 ? ' Se borran también sus '.$this->servicesCount.' fichas, con sus fotos.' : '' }} Sus subcategorías se quedan sin padre."
                         icon="trash" variant="danger">
                         Borrar
                     </flux:menu.item>

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Models\Category;
+use App\Models\Service;
 use App\Models\User;
 use Livewire\Livewire;
 
@@ -116,6 +117,25 @@ describe('Admin\\Categories\\Edit', function () {
 
             expect(Category::find($parent->id))->toBeNull();
             expect(Category::find($child->id)->parent_id)->toBeNull();
+        });
+
+        /**
+         * The services go with the category, photos included, so the client
+         * has to read how many before confirming.
+         */
+        it('should say how many services the delete takes with it', function () {
+            $category = Category::factory()->create(['name' => 'Villas']);
+            Service::factory()->count(2)->for($category)->create();
+
+            Livewire::test('pages::admin.categories.edit', ['category' => $category])
+                ->assertSee('Se borran también sus 2 fichas, con sus fotos.');
+        });
+
+        it('should not mention services when the category has none', function () {
+            $category = Category::factory()->create();
+
+            Livewire::test('pages::admin.categories.edit', ['category' => $category])
+                ->assertDontSee('Se borran también');
         });
     });
 });
