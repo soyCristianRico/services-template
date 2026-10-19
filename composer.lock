@@ -5232,7 +5232,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/soyCristianRico/toolkit",
-                "reference": "00d3bc88392c8ceba06132cadf3c433c67a8240a"
+                "reference": "8072f4742efd124fdef87a3b1495f51f351d35a6"
             },
             "require": {
                 "illuminate/console": "^11.0|^12.0|^13.0",
@@ -5244,6 +5244,7 @@
                 "php": "^8.2"
             },
             "require-dev": {
+                "laravel/pint": "^1.32",
                 "mockery/mockery": "^1.6",
                 "orchestra/testbench": "^9.0|^10.0",
                 "pestphp/pest": "^2.0|^3.0",
@@ -5295,6 +5296,9 @@
                 ],
                 "test-coverage": [
                     "vendor/bin/pest --coverage"
+                ],
+                "format": [
+                    "vendor/bin/pint"
                 ]
             },
             "license": [
@@ -5307,7 +5311,7 @@
                 }
             ],
             "description": "Shared toolkit for Ruk Lab's custom-built websites: server monitoring & security, the connector to the Ruk Lab platform, and Markdown for AI agents (llms.txt + content negotiation).",
-            "time": "2026-10-17T17:02:35+00:00"
+            "time": "2026-10-19T17:14:47+00:00"
         },
         {
             "name": "spatie/db-dumper",
