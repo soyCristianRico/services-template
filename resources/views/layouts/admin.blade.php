@@ -1,10 +1,11 @@
+@inject('adminNavigation', App\Services\Admin\AdminNavigation::class)
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'Admin') · {{ config('app.name') }}</title>
+    <title>@yield('title', $adminNavigation->current()?->label() ?? 'Admin') · {{ config('app.name') }}</title>
     <meta name="robots" content="noindex, follow">
 
     {{-- Sin esto el navegador se cae a `/favicon.ico`, que es el de 0 bytes que
@@ -29,26 +30,25 @@
             <flux:brand href="{{ url('/admin') }}" name="{{ config('app.name') }} admin" class="px-2" />
         @endif
 
+        {{-- The sidebar comes from AdminSection, filtered by AdminNavigation:
+             rename, regroup or hide a section there, not here. --}}
         <flux:navlist variant="outline">
-            <flux:navlist.item icon="home" href="{{ url('/admin') }}">Dashboard</flux:navlist.item>
-            <flux:navlist.group expandable heading="Catálogo" :expanded="request()->is('admin/categories*', 'admin/services*')">
-                <flux:navlist.item href="{{ url('/admin/categories') }}">Categorías</flux:navlist.item>
-                <flux:navlist.item href="{{ url('/admin/services') }}">Servicios</flux:navlist.item>
-            </flux:navlist.group>
-            <flux:navlist.group expandable heading="SEO" :expanded="request()->is('admin/locations*', 'admin/landings*', 'admin/redirects*')">
-                @if (config('site.locations'))
-                    <flux:navlist.item href="{{ url('/admin/locations') }}">Ubicaciones</flux:navlist.item>
-                    <flux:navlist.item href="{{ url('/admin/landings') }}">Landings</flux:navlist.item>
+            @foreach ($adminNavigation->entries() as $entry)
+                @if ($entry['group'])
+                    <flux:navlist.group :heading="$entry['group']->label()" class="mt-4">
+                        @foreach ($entry['sections'] as $section)
+                            <flux:navlist.item :href="route($section->routeName())" :current="$adminNavigation->isCurrent($section)">
+                                {{ $section->label() }}
+                            </flux:navlist.item>
+                        @endforeach
+                    </flux:navlist.group>
+                @else
+                    @php($section = $entry['sections'][0])
+                    <flux:navlist.item :icon="$section->icon()" :href="route($section->routeName())" :current="$adminNavigation->isCurrent($section)">
+                        {{ $section->label() }}
+                    </flux:navlist.item>
                 @endif
-                <flux:navlist.item href="{{ url('/admin/redirects') }}">Redirecciones</flux:navlist.item>
-                <flux:navlist.item href="{{ url('/admin/redirects/404') }}">Direcciones rotas</flux:navlist.item>
-            </flux:navlist.group>
-            <flux:navlist.group expandable heading="Contenido" :expanded="request()->is('admin/blog*', 'admin/pages*', 'admin/menus*')">
-                <flux:navlist.item href="{{ url('/admin/blog') }}">Blog</flux:navlist.item>
-                <flux:navlist.item href="{{ url('/admin/pages') }}">Páginas</flux:navlist.item>
-                <flux:navlist.item href="{{ url('/admin/menus') }}">Menús</flux:navlist.item>
-            </flux:navlist.group>
-            <flux:navlist.item icon="inbox" href="{{ url('/admin/leads') }}">Leads</flux:navlist.item>
+            @endforeach
         </flux:navlist>
 
         <flux:spacer />

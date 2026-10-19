@@ -42,7 +42,7 @@ class extends Component
 
 <div class="mx-auto max-w-3xl space-y-6 p-8">
     <div class="flex items-center justify-between">
-        <flux:heading size="xl">Lead #{{ $lead->id }}</flux:heading>
+        <flux:heading size="xl">Contacto #{{ $lead->id }}</flux:heading>
         <flux:button :href="route('admin.leads.index')" variant="ghost" icon="arrow-left">Volver</flux:button>
     </div>
 

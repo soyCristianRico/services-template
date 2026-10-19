@@ -39,8 +39,10 @@ describe('site.locations', function () {
     });
 
     describe('disabled', function () {
-        it('should not register the public landing catch-all', function () {
-            expect(routesWithoutLocations())->not->toContain('landing');
+        // The catch-all is not geographic: it also serves the CMS pages (the
+        // legal texts, a thank-you page), so it stays and only finds no landing.
+        it('should keep the catch-all that serves the pages', function () {
+            expect(routesWithoutLocations())->toContain('landing');
         });
 
         it('should not register the admin routes for locations and landings', function () {
@@ -108,6 +110,8 @@ function routesWithoutLocations(): array
 
     $router->setRoutes(new RouteCollection);
     require base_path('routes/web.php');
+    // Without this the name index stays empty and every "not contain" passes.
+    $router->getRoutes()->refreshNameLookups();
     $names = array_keys($router->getRoutes()->getRoutesByName());
 
     $router->setRoutes($original);

@@ -29,13 +29,15 @@ Route::middleware('auth')->prefix('admin')->name('admin.')->group(function (): v
         Route::livewire('/locations/{location}/edit', 'pages::admin.locations.edit')->name('locations.edit');
     }
 
-    Route::livewire('/categories', 'pages::admin.categories.index')->name('categories.index');
-    Route::livewire('/categories/create', 'pages::admin.categories.edit')->name('categories.create');
-    Route::livewire('/categories/{category}/edit', 'pages::admin.categories.edit')->name('categories.edit');
+    if (config('site.catalog')) {
+        Route::livewire('/categories', 'pages::admin.categories.index')->name('categories.index');
+        Route::livewire('/categories/create', 'pages::admin.categories.edit')->name('categories.create');
+        Route::livewire('/categories/{category}/edit', 'pages::admin.categories.edit')->name('categories.edit');
 
-    Route::livewire('/services', 'pages::admin.services.index')->name('services.index');
-    Route::livewire('/services/create', 'pages::admin.services.edit')->name('services.create');
-    Route::livewire('/services/{service}/edit', 'pages::admin.services.edit')->name('services.edit');
+        Route::livewire('/services', 'pages::admin.services.index')->name('services.index');
+        Route::livewire('/services/create', 'pages::admin.services.edit')->name('services.create');
+        Route::livewire('/services/{service}/edit', 'pages::admin.services.edit')->name('services.edit');
+    }
 
     if (config('site.locations')) {
         Route::livewire('/landings', 'pages::admin.landings.index')->name('landings.index');

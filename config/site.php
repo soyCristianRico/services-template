@@ -30,6 +30,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Catalog (categories and services)
+    |--------------------------------------------------------------------------
+    |
+    | The template's catalog: a tree of categories and one record per service,
+    | for sites whose offering is a list of things to browse. A site that has
+    | none — its offering lives in hand-built pages, or in its own entities —
+    | would otherwise show the client two empty admin sections that nothing on
+    | the site reads. Off, the catalog leaves the admin, its MCP tools and the
+    | Ruk Lab connector, WITHOUT removing any code, exactly like `locations`.
+    |
+    | Landings hang from a category, so `locations` needs the catalog on.
+    |
+    */
+
+    'catalog' => env('SITE_CATALOG', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | Menu dynamic blocks
     |--------------------------------------------------------------------------
     |

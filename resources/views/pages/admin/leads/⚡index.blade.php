@@ -69,7 +69,7 @@ class extends Component
 ?>
 
 <div class="space-y-6 p-8">
-    <flux:heading size="xl">Leads</flux:heading>
+    <flux:heading size="xl">Contactos</flux:heading>
 
     <div class="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
         <flux:input wire:model.live.debounce.300ms="search" type="search" placeholder="Buscar por email, nombre o teléfono…" icon="magnifying-glass" />

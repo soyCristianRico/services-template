@@ -43,8 +43,8 @@ class extends Component
     </div>
 
     <flux:text class="text-zinc-600">
-        Páginas estáticas con vista compartida: aviso legal, política de privacidad, contacto-gracias, sobre nosotros…
-        Para páginas con diseño custom (home, hero del servicio…), edita el Blade directamente.
+        Las páginas de solo texto: aviso legal, privacidad, cookies, gracias… El resto de la web (portada,
+        fichas, landings) tiene diseño propio y se cambia en el código: pídelo al equipo.
     </flux:text>
 
     <flux:input wire:model.live.debounce.300ms="search" type="search" placeholder="Buscar por título o slug…" icon="magnifying-glass" class="max-w-md" />

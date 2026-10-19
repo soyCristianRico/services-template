@@ -120,8 +120,9 @@ class ServicesServer extends Server
     protected array $prompts = [];
 
     /**
-     * Drop the geographic tools on sites with no locations, so the agent is not
-     * offered tools for a dimension the site does not have.
+     * Drop the geographic tools on sites with no locations, and the catalog
+     * tools on sites with no catalog, so the agent is not offered tools for
+     * something the site does not have.
      */
     protected function boot(): void
     {
@@ -137,6 +138,18 @@ class ServicesServer extends Server
                 CreateLandingTool::class,
                 UpdateLandingTool::class,
                 BulkCreateLandingsTool::class,
+            ]));
+        }
+
+        if (! config('site.catalog')) {
+            $this->tools = array_values(array_diff($this->tools, [
+                ListCategoriesTool::class,
+                CreateCategoryTool::class,
+                UpdateCategoryTool::class,
+                ListServicesTool::class,
+                GetServiceTool::class,
+                CreateServiceTool::class,
+                UpdateServiceTool::class,
             ]));
         }
     }

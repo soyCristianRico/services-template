@@ -106,10 +106,12 @@ return [
             url: '/{slug}',
         ),
 
+        // Sin catálogo (`site.catalog`) el tipo no se ofrece. Va con env() y no con
+        // config() porque este fichero carga antes que config/site.php.
         // El slug de un servicio cuelga de enlaces y de campañas: se lee, no
         // se toca. Los campos propios de cada web viven en `custom_fields`,
         // que no está mapeado y por tanto no se puede ni nombrar.
-        'servicio' => ContentType::make(
+        ...(env('SITE_CATALOG', true) ? ['servicio' => ContentType::make(
             model: Service::class,
             label: 'Servicios',
             fields: [
@@ -122,7 +124,7 @@ return [
             ],
             status: 'is_active',
             readonly: ['slug'],
-        ),
+        )] : []),
 
     ],
 

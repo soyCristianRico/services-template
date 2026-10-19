@@ -11,18 +11,25 @@ use Illuminate\Http\Request;
  */
 function renderAdminLayout(string $path): string
 {
-    app()->instance('request', Request::create($path));
+    $request = Request::create($path);
+    $request->setRouteResolver(fn () => rescue(fn () => app('router')->getRoutes()->match($request), report: false));
+    app()->instance('request', $request);
 
     return (string) view('layouts.admin', ['slot' => ''])->render();
 }
 
 /**
- * How many nav groups the sidebar renders open, counted on the markup Flux
- * emits: `<ui-disclosure ... open data-flux-navlist-group>`.
+ * The labels of the sidebar entries marked as the current one, read from the
+ * `data-current` Flux puts on them.
+ *
+ * @return list<string>
  */
-function openNavGroups(string $html): int
+function currentNavEntries(string $html): array
 {
-    return preg_match_all('/open\s+data-flux-navlist-group/', $html);
+    // The attribute, not the `data-current:` variants every entry has in its class.
+    preg_match_all('/<a\b(?=[^>]*\sdata-current(?:=|\s|>))[^>]*data-flux-navlist-item[^>]*>(.*?)<\/a>/s', $html, $matches);
+
+    return array_map(fn (string $inner): string => trim(preg_replace('/\s+/', ' ', strip_tags($inner))), $matches[1]);
 }
 
 describe('AdminLayout', function (): void {
@@ -78,19 +85,35 @@ describe('AdminLayout', function (): void {
         });
     });
 
-    describe('nav_groups', function (): void {
-        it('should keep every group collapsed outside its section', function (): void {
-            expect(openNavGroups(renderAdminLayout('/admin')))->toBe(0);
+    describe('sidebar', function (): void {
+        it('should mark the entry of the current section, and only that one', function (string $url, string $entry): void {
+            expect(currentNavEntries(renderAdminLayout($url)))->toBe([$entry]);
+        })->with([
+            'summary' => ['/admin', 'Resumen'],
+            'a record' => ['/admin/blog/create', 'Blog'],
+            'redirects' => ['/admin/redirects', 'Redirecciones'],
+            'broken addresses, not redirects' => ['/admin/redirects/404', 'Direcciones rotas'],
+            'a catalog record' => ['/admin/services/create', 'Servicios'],
+        ]);
+
+        it('should print the group headings in the client\'s words', function (): void {
+            expect(renderAdminLayout('/admin'))
+                ->toContain('Web')
+                ->toContain('Posicionamiento')
+                ->not->toContain('>Contenido<');
+        });
+    });
+
+    describe('title', function (): void {
+        it('should name the current section in the browser tab', function (): void {
+            expect(renderAdminLayout('/admin/redirects/404'))->toContain('<title>Direcciones rotas · ');
         });
 
-        it('should expand only the group holding the current page', function (string $url): void {
-            expect(openNavGroups(renderAdminLayout($url)))->toBe(1);
-        })->with([
-            'catálogo' => '/admin/categories',
-            'seo' => '/admin/redirects',
-            'contenido' => '/admin/blog',
-        ]);
+        it('should fall back to Admin outside any section', function (): void {
+            expect(renderAdminLayout('/admin/does-not-exist'))->toContain('<title>Admin · ');
+        });
     });
+
     describe('favicon', function (): void {
         /**
          * The public layout links the icon; the admin used to link nothing, so
