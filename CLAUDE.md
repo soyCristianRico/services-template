@@ -440,6 +440,35 @@ async saveItem() {
 }
 ```
 
+## Instant UI Feedback
+
+A click that only shows, hides or counts something on screen must not wait for the
+server: on a slow connection a `wire:model.live` round trip makes the screen feel
+broken. Reach for this whenever the answer is already in the browser.
+
+- Keep the input deferred (`wire:model`, no `.live`) when the server does not need the
+  value until an action runs; the value travels with that action.
+- Show and hide in the browser: Alpine state (`x-show`, `x-text`) for state Alpine owns,
+  or a CSS `:has()` rule on the state Flux already puts in the DOM (`data-checked`,
+  `aria-expanded`...).
+- Use `.live` only when the server has to answer each change: a filter that reloads the
+  list, a select that depends on another, a count that comes from the database.
+- When the change is a write, save in the background with the optimistic pattern above.
+
+**`$wire.<array>` filled by `wire:model` on a checkbox group does not wake Alpine
+effects**: `x-show="$wire.selected.length > 0"` never updates (Livewire 4.3, seen in the
+fees list of cierzo-formacion). Show the bulk actions with CSS instead:
+
+```blade
+<div class="group/list space-y-6">
+    <div class="hidden group-has-[[data-flux-checkbox][data-checked]]/list:flex">
+        <flux:button wire:click="markSelectedPaid">Marcar como pagadas</flux:button>
+    </div>
+
+    <flux:checkbox wire:model="selected" value="{{ $row->id }}" />
+</div>
+```
+
 ## Component Communication
 - Dispatch: `window.dispatchEvent(new CustomEvent('event-name', { detail: { data } }))`
 - Listen: `window.addEventListener('event-name', (e) => { ... })`
