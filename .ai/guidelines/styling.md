@@ -18,3 +18,13 @@
   stay compact.
 - To change a heading size, edit `app.css` (single source of truth). NEVER add
   per-heading `text-*!`/`font-*!` utilities.
+
+## Admin type scale
+
+- The admin reads at Flux's own scale — inputs, tables and badges are built around
+  it. Do NOT push single components off it with unlayered `font-size` rules on
+  the `data-flux-*` hooks: they beat every Tailwind utility, so a deliberate
+  `text-xs` label silently ends up at body size.
+- Headings: `<flux:heading size="xl">` for a page title (see `x-admin.page-header`),
+  `size="lg"` for a form section. No per-heading `text-*` utilities.
+- Screen layout criteria (lists, forms, widths, save bar) live in `ui.md`.
