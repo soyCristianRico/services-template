@@ -6,6 +6,7 @@ namespace App\Services\Admin;
 
 use App\Enums\AdminGroup;
 use App\Enums\AdminSection;
+use App\Models\Lead;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -75,6 +76,21 @@ class AdminNavigation
         };
 
         return $enabled && Route::has($section->routeName());
+    }
+
+    /**
+     * What waits in a section, shown beside its entry so the sidebar says what
+     * there is to do today. Nothing for an empty queue or a section that is not
+     * a queue.
+     */
+    public function badge(AdminSection $section): ?string
+    {
+        $count = match ($section) {
+            AdminSection::Leads => Lead::new()->count(),
+            default => 0,
+        };
+
+        return $count > 0 ? (string) $count : null;
     }
 
     /**

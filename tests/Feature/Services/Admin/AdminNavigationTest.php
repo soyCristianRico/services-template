@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Enums\AdminGroup;
 use App\Enums\AdminSection;
+use App\Enums\LeadStatus;
+use App\Models\Lead;
 use App\Services\Admin\AdminNavigation;
 use Illuminate\Http\Request;
 
@@ -99,6 +101,20 @@ describe('AdminNavigation', function () {
 
             expect($navigation->isCurrent(AdminSection::Services))->toBeTrue()
                 ->and($navigation->isCurrent(AdminSection::Categories))->toBeFalse();
+        });
+    });
+
+    describe('badge', function () {
+        it('should show how many contacts wait for an answer', function () {
+            Lead::factory()->count(2)->create();
+            Lead::factory()->ofStatus(LeadStatus::Contacted)->create();
+
+            expect(navigationAt()->badge(AdminSection::Leads))->toBe('2');
+        });
+
+        it('should show nothing for an empty queue or a section that is not a queue', function () {
+            expect(navigationAt()->badge(AdminSection::Leads))->toBeNull()
+                ->and(navigationAt()->badge(AdminSection::Pages))->toBeNull();
         });
     });
 });

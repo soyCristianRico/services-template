@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', $adminNavigation->current()?->label() ?? 'Admin') · {{ config('app.name') }}</title>
+    <title>{{ $title ?? View::yieldContent('title', $adminNavigation->current()?->label() ?? 'Admin') }} · {{ config('app.name') }}</title>
     <meta name="robots" content="noindex, follow">
 
     {{-- Sin esto el navegador se cae a `/favicon.ico`, que es el de 0 bytes que
@@ -37,16 +37,17 @@
                 @if ($entry['group'])
                     <flux:navlist.group :heading="$entry['group']->label()" class="mt-4">
                         @foreach ($entry['sections'] as $section)
-                            <flux:navlist.item :href="route($section->routeName())" :current="$adminNavigation->isCurrent($section)">
+                            <flux:navlist.item :href="route($section->routeName())" :current="$adminNavigation->isCurrent($section)" :badge="$adminNavigation->badge($section)">
                                 {{ $section->label() }}
                             </flux:navlist.item>
                         @endforeach
                     </flux:navlist.group>
                 @else
-                    @php($section = $entry['sections'][0])
-                    <flux:navlist.item :icon="$section->icon()" :href="route($section->routeName())" :current="$adminNavigation->isCurrent($section)">
-                        {{ $section->label() }}
-                    </flux:navlist.item>
+                    @foreach ($entry['sections'] as $section)
+                        <flux:navlist.item :icon="$section->icon()" :href="route($section->routeName())" :current="$adminNavigation->isCurrent($section)" :badge="$adminNavigation->badge($section)">
+                            {{ $section->label() }}
+                        </flux:navlist.item>
+                    @endforeach
                 @endif
             @endforeach
         </flux:navlist>
@@ -86,6 +87,10 @@
         {{ $slot ?? '' }}
         @yield('content')
     </flux:main>
+
+    @persist('toast')
+        <flux:toast />
+    @endpersist
 
     @fluxScripts
 </body>

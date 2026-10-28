@@ -2,9 +2,11 @@
 
 declare(strict_types=1);
 
+use App\Enums\LeadStatus;
 use App\Models\Lead;
 use App\Models\Service;
 use App\Models\User;
+use Livewire\Livewire;
 
 beforeEach(function (): void {
     $this->actingAs(User::factory()->create(['name' => 'Ana']));
@@ -47,6 +49,28 @@ describe('Admin\\Dashboard', function (): void {
             auth()->logout();
 
             $this->get('/admin')->assertRedirect(route('login'));
+        });
+    });
+
+    describe('unansweredLeads', function (): void {
+        it('should list the contacts nobody has answered, the oldest first', function (): void {
+            Lead::factory()->create(['name' => 'Reciente']);
+            Lead::factory()->create(['name' => 'La que espera', 'created_at' => now()->subDays(5)]);
+            Lead::factory()->ofStatus(LeadStatus::Contacted)->create(['name' => 'Respondida']);
+
+            $names = Livewire::test('pages::admin.dashboard')->get('unansweredLeads')->pluck('name')->all();
+
+            expect($names)->toBe(['La que espera', 'Reciente']);
+        });
+    });
+
+    describe('leadsPerWeek', function (): void {
+        it('should chart the contacts of the last twelve weeks', function (): void {
+            Lead::factory()->count(2)->create();
+
+            $this->get('/admin')->assertSee('Contactos que entran, por semana');
+
+            expect(Livewire::test('pages::admin.dashboard')->get('leadsPerWeek'))->toHaveCount(12);
         });
     });
 });
