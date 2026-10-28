@@ -47,6 +47,37 @@ describe('Admin\\Redirects\\NotFound', function (): void {
         });
     });
 
+    describe('sort', function (): void {
+        it('should sort by the most recent visit when asked', function (): void {
+            NotFoundLog::factory()->create(['path' => '/antigua', 'hits' => 900, 'last_seen_at' => now()->subMonth()]);
+            NotFoundLog::factory()->create(['path' => '/reciente', 'hits' => 1, 'last_seen_at' => now()]);
+
+            $paths = Livewire::test('pages::admin.redirects.not-found')
+                ->call('sort', 'last_seen_at')
+                ->call('sort', 'last_seen_at')
+                ->assertSet('sortDirection', 'desc')
+                ->get('logs')->pluck('path')->all();
+
+            expect($paths)->toBe(['/reciente', '/antigua']);
+        });
+
+        it('should ignore a column that cannot be sorted', function (): void {
+            Livewire::test('pages::admin.redirects.not-found')
+                ->call('sort', 'last_referrer')
+                ->assertSet('sortBy', '');
+        });
+    });
+
+    describe('clearFilter', function (): void {
+        it('should show the resolved ones as a chip and clear it', function (): void {
+            Livewire::test('pages::admin.redirects.not-found')
+                ->set('showResolved', true)
+                ->assertSee('Incluye las resueltas')
+                ->call('clearFilter', 'showResolved')
+                ->assertSet('showResolved', false);
+        });
+    });
+
     describe('dismiss', function (): void {
         it('should stop an address from nagging without redirecting it', function (): void {
             $log = NotFoundLog::factory()->create();
@@ -54,6 +85,14 @@ describe('Admin\\Redirects\\NotFound', function (): void {
             Livewire::test('pages::admin.redirects.not-found')->call('dismiss', $log->id);
 
             expect($log->fresh()->resolved_at)->not->toBeNull();
+        });
+
+        it('should confirm it with a toast', function (): void {
+            $log = NotFoundLog::factory()->create();
+
+            Livewire::test('pages::admin.redirects.not-found')
+                ->call('dismiss', $log->id)
+                ->assertDispatched('toast-show');
         });
     });
 

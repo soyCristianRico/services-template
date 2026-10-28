@@ -42,6 +42,41 @@ describe('Admin\\Redirects\\Edit', function (): void {
             $this->get('/curso-antiguo')->assertRedirect(url('/blog'));
         });
 
+        it('should open the new redirect with a toast after creating it', function (): void {
+            Livewire::test('pages::admin.redirects.edit')
+                ->set('form.source', '/curso-antiguo')
+                ->set('form.destination', '/blog')
+                ->call('save')
+                ->assertRedirect(route('admin.redirects.edit', Redirect::query()->sole()));
+
+            expect(session('status'))->toBe('Redirección creada.');
+
+            Livewire::test('pages::admin.redirects.edit', ['redirect' => Redirect::query()->sole()])
+                ->assertDispatched('toast-show');
+        });
+
+        it('should stay on the screen and confirm with a toast when editing', function (): void {
+            $redirect = Redirect::factory()->create(['source' => '/vieja', 'destination' => '/blog']);
+
+            Livewire::test('pages::admin.redirects.edit', ['redirect' => $redirect])
+                ->set('form.destination', '/legal')
+                ->call('save')
+                ->assertHasNoErrors()
+                ->assertNoRedirect()
+                ->assertDispatched('toast-show');
+
+            expect($redirect->fresh()->destination)->toBe('/legal');
+        });
+
+        it('should show the saved source in the title, not what is being typed', function (): void {
+            $redirect = Redirect::factory()->create(['source' => '/vieja', 'destination' => '/blog']);
+
+            Livewire::test('pages::admin.redirects.edit', ['redirect' => $redirect])
+                ->set('form.source', '/renombrada')
+                ->call('save')
+                ->assertSet('redirect.source', '/renombrada');
+        });
+
         it('should tick off the broken address it came from', function (): void {
             $log = NotFoundLog::factory()->create(['path' => '/curso-antiguo']);
 

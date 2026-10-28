@@ -53,6 +53,16 @@ class PageForm extends Form
         ];
     }
 
+    /**
+     * Saves only the title, edited in the screen's own heading.
+     */
+    public function rename(): void
+    {
+        $this->validateOnly('title');
+
+        Page::findOrFail($this->id)->update(['title' => $this->title]);
+    }
+
     public function save(): Page
     {
         $this->validate();

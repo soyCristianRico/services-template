@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 use App\Enums\LeadStatus;
 use App\Models\Lead;
+use Illuminate\Validation\Rule;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new
 #[Layout('layouts.admin')]
+#[Title('Contacto')]
 class extends Component
 {
     public Lead $lead;
@@ -21,173 +25,190 @@ class extends Component
         $this->status = $lead->status->value;
     }
 
+    /**
+     * The status is the screen's main action: picking one saves it.
+     */
+    public function updatedStatus(): void
+    {
+        $this->updateStatus();
+    }
+
     public function updateStatus(): void
     {
         $this->validate([
-            'status' => ['required', \Illuminate\Validation\Rule::enum(LeadStatus::class)],
+            'status' => ['required', Rule::enum(LeadStatus::class)],
         ]);
 
         $this->lead->update(['status' => LeadStatus::from($this->status)]);
         $this->lead->refresh();
-        session()->flash('status', 'Estado actualizado a '.$this->lead->status->label().'.');
+
+        Flux::toast(text: 'Estado actualizado a '.$this->lead->status->label().'.', variant: 'success');
     }
 
     public function deleteLead(): void
     {
         $this->lead->delete();
-        $this->redirectRoute('admin.leads.index');
+
+        session()->flash('status', 'Contacto eliminado.');
+
+        $this->redirectRoute('admin.leads.index', navigate: true);
+    }
+
+    /**
+     * @return list<LeadStatus>
+     */
+    public function statuses(): array
+    {
+        return LeadStatus::cases();
+    }
+
+    #[Computed]
+    public function payloadJson(): string
+    {
+        return (string) json_encode($this->lead->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
     }
 };
 ?>
 
-<div class="mx-auto max-w-3xl space-y-6 p-8">
-    <div class="flex items-center justify-between">
-        <flux:heading size="xl">Contacto #{{ $lead->id }}</flux:heading>
-        <flux:button :href="route('admin.leads.index')" variant="ghost" icon="arrow-left">Volver</flux:button>
-    </div>
+<div class="mx-auto max-w-3xl space-y-10 p-8">
+    <x-admin.page-header :breadcrumbs="[
+        ['label' => 'Contactos', 'href' => route('admin.leads.index')],
+        ['label' => $lead->name],
+    ]">
+        {{ $lead->name }}
 
-    @session('status')
-        <flux:callout icon="check-circle" color="green">{{ $value }}</flux:callout>
-    @endsession
+        <x-slot:actions>
+            <div class="w-40">
+                <flux:select variant="listbox" wire:model.live="status" aria-label="Estado">
+                    @foreach ($this->statuses() as $option)
+                        <flux:select.option :value="$option->value">{{ $option->label() }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+            </div>
+            <x-admin.record-menu>
+                <flux:menu.item
+                    wire:click="deleteLead"
+                    wire:confirm="¿Eliminar este contacto? Acción irreversible."
+                    icon="trash" variant="danger">
+                    Borrar
+                </flux:menu.item>
+            </x-admin.record-menu>
+        </x-slot:actions>
+    </x-admin.page-header>
 
-    <flux:card>
-        <div class="grid grid-cols-2 gap-4">
+    <flux:error name="status" />
+
+    <section class="space-y-4">
+        <flux:heading size="lg">Datos de contacto</flux:heading>
+
+        <dl class="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
             <div>
-                <flux:text class="text-xs uppercase tracking-wide text-zinc-500">Nombre</flux:text>
-                <flux:text class="font-medium">{{ $lead->name }}</flux:text>
+                <dt class="text-zinc-500">Email</dt>
+                <dd><a href="mailto:{{ $lead->email }}" class="font-medium text-blue-600 hover:underline">{{ $lead->email }}</a></dd>
             </div>
             <div>
-                <flux:text class="text-xs uppercase tracking-wide text-zinc-500">Email</flux:text>
-                <a href="mailto:{{ $lead->email }}" class="font-medium text-blue-600 hover:underline">{{ $lead->email }}</a>
+                <dt class="text-zinc-500">Teléfono</dt>
+                <dd class="font-medium">{{ $lead->phone ?? '—' }}</dd>
             </div>
             <div>
-                <flux:text class="text-xs uppercase tracking-wide text-zinc-500">Teléfono</flux:text>
-                <flux:text class="font-medium">{{ $lead->phone ?? '—' }}</flux:text>
+                <dt class="text-zinc-500">Fecha</dt>
+                <dd class="font-medium">{{ $lead->created_at?->format('d/m/Y H:i') }}</dd>
             </div>
-            <div>
-                <flux:text class="text-xs uppercase tracking-wide text-zinc-500">Fecha</flux:text>
-                <flux:text class="font-medium">{{ $lead->created_at?->format('d/m/Y H:i') }}</flux:text>
-            </div>
-        </div>
+        </dl>
 
         @if ($lead->message)
-            <div class="mt-6">
-                <flux:text class="text-xs uppercase tracking-wide text-zinc-500">Mensaje</flux:text>
-                <flux:text class="mt-1 whitespace-pre-line">{{ $lead->message }}</flux:text>
+            <div class="text-sm">
+                <div class="text-zinc-500">Mensaje</div>
+                <p class="mt-1 whitespace-pre-line">{{ $lead->message }}</p>
             </div>
         @endif
-    </flux:card>
+    </section>
 
     @if ($lead->landing)
-        <flux:card>
+        <section class="space-y-4">
             <flux:heading size="lg">Landing de origen</flux:heading>
-            <div class="mt-3 space-y-2 text-sm">
-                <div>
-                    <span class="text-zinc-500">URL:</span>
-                    <a href="{{ url('/'.$lead->landing->slug) }}" target="_blank" class="text-blue-600 hover:underline">
-                        {{ url('/'.$lead->landing->slug) }}
-                    </a>
+
+            <dl class="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                    <dt class="text-zinc-500">URL</dt>
+                    <dd><a href="{{ url('/'.$lead->landing->slug) }}" target="_blank" class="break-all text-blue-600 hover:underline">{{ url('/'.$lead->landing->slug) }}</a></dd>
                 </div>
-                <div><span class="text-zinc-500">Categoría:</span> {{ $lead->landing->category?->name ?? '—' }}</div>
-                <div><span class="text-zinc-500">Ubicación:</span> {{ $lead->landing->location?->name ?? '— (sólo servicio)' }}</div>
-            </div>
-        </flux:card>
+                <div><dt class="text-zinc-500">Categoría</dt><dd>{{ $lead->landing->category?->name ?? '—' }}</dd></div>
+                <div><dt class="text-zinc-500">Ubicación</dt><dd>{{ $lead->landing->location?->name ?? '— (sólo servicio)' }}</dd></div>
+            </dl>
+        </section>
     @elseif ($lead->source_url)
-        <flux:card>
+        <section class="space-y-4">
             <flux:heading size="lg">Origen</flux:heading>
-            <flux:text class="mt-2 text-sm">
-                <a href="{{ $lead->source_url }}" target="_blank" class="text-blue-600 hover:underline">
-                    {{ $lead->source_url }}
-                </a>
-            </flux:text>
-        </flux:card>
+
+            <dl class="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                    <dt class="text-zinc-500">Página</dt>
+                    <dd><a href="{{ $lead->source_url }}" target="_blank" class="break-all text-blue-600 hover:underline">{{ $lead->source_url }}</a></dd>
+                </div>
+            </dl>
+        </section>
     @endif
 
     {{-- Cómo llegó a la web, que no es lo mismo que en qué formulario escribió.
          Un lead nacido fuera de una visita no tiene sesión detrás y no trae
-         nada de esto: la tarjeta no se pinta. --}}
+         nada de esto: la sección no se pinta. --}}
     @if ($lead->channel)
-        <flux:card>
+        <section class="space-y-4">
             <div class="flex items-center gap-3">
                 <flux:heading size="lg">Atribución</flux:heading>
                 <flux:badge :color="$lead->channel->color()" size="sm">{{ $lead->channel->label() }}</flux:badge>
             </div>
 
-            <div class="mt-3 space-y-2 text-sm">
+            <dl class="grid gap-x-6 gap-y-4 text-sm sm:grid-cols-2">
                 @if ($lead->utm_source || $lead->utm_medium || $lead->utm_campaign)
-                    <div><span class="text-zinc-500">Fuente / medio:</span> {{ $lead->utm_source ?? '—' }} / {{ $lead->utm_medium ?? '—' }}</div>
+                    <div><dt class="text-zinc-500">Fuente / medio</dt><dd>{{ $lead->utm_source ?? '—' }} / {{ $lead->utm_medium ?? '—' }}</dd></div>
                     @if ($lead->utm_campaign)
-                        <div><span class="text-zinc-500">Campaña:</span> {{ $lead->utm_campaign }}</div>
+                        <div><dt class="text-zinc-500">Campaña</dt><dd>{{ $lead->utm_campaign }}</dd></div>
                     @endif
                     @if ($lead->utm_term || $lead->utm_content)
-                        <div><span class="text-zinc-500">Término / contenido:</span> {{ $lead->utm_term ?? '—' }} / {{ $lead->utm_content ?? '—' }}</div>
+                        <div><dt class="text-zinc-500">Término / contenido</dt><dd>{{ $lead->utm_term ?? '—' }} / {{ $lead->utm_content ?? '—' }}</dd></div>
                     @endif
                 @endif
 
                 @if ($lead->click_id)
-                    <div><span class="text-zinc-500">ID de clic:</span> <code class="break-all text-xs">{{ $lead->click_id }}</code></div>
+                    <div class="sm:col-span-2"><dt class="text-zinc-500">ID de clic</dt><dd><code class="break-all text-xs">{{ $lead->click_id }}</code></dd></div>
                 @endif
 
-                <div>
-                    <span class="text-zinc-500">Venía de:</span>
-                    @if ($lead->referrer)
-                        <a href="{{ $lead->referrer }}" target="_blank" rel="noopener noreferrer nofollow" class="break-all text-blue-600 hover:underline">
-                            {{ $lead->referrer }}
-                        </a>
-                    @else
-                        <span class="text-zinc-400">sin referrer (directo, o una app que no lo manda)</span>
-                    @endif
+                <div class="sm:col-span-2">
+                    <dt class="text-zinc-500">Venía de</dt>
+                    <dd>
+                        @if ($lead->referrer)
+                            <a href="{{ $lead->referrer }}" target="_blank" rel="noopener noreferrer nofollow" class="break-all text-blue-600 hover:underline">{{ $lead->referrer }}</a>
+                        @else
+                            <span class="text-zinc-400">sin referrer (directo, o una app que no lo manda)</span>
+                        @endif
+                    </dd>
                 </div>
 
                 @if ($lead->landing_url)
-                    <div>
-                        <span class="text-zinc-500">Entró por:</span>
-                        <a href="{{ $lead->landing_url }}" target="_blank" class="break-all text-blue-600 hover:underline">
-                            {{ $lead->landing_url }}
-                        </a>
+                    <div class="sm:col-span-2">
+                        <dt class="text-zinc-500">Entró por</dt>
+                        <dd><a href="{{ $lead->landing_url }}" target="_blank" class="break-all text-blue-600 hover:underline">{{ $lead->landing_url }}</a></dd>
                     </div>
                 @endif
-            </div>
-        </flux:card>
+            </dl>
+        </section>
     @endif
 
     @if (! empty($lead->payload))
-        <flux:card>
+        <section class="space-y-4">
             <flux:heading size="lg">Datos extra</flux:heading>
-            <pre class="mt-2 overflow-x-auto rounded bg-zinc-50 p-3 text-xs">{{ json_encode($lead->payload, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</pre>
-        </flux:card>
+            <pre class="overflow-x-auto rounded-lg bg-zinc-50 p-3 text-xs">{{ $this->payloadJson }}</pre>
+        </section>
     @endif
 
-    <flux:card>
-        <flux:heading size="lg">Cambiar estado</flux:heading>
-        <form wire:submit="updateStatus" class="mt-4 flex items-end gap-3">
-            <flux:field class="flex-1">
-                <flux:select wire:model="status">
-                    @foreach (LeadStatus::cases() as $option)
-                        <flux:select.option value="{{ $option->value }}">{{ $option->label() }}</flux:select.option>
-                    @endforeach
-                </flux:select>
-                <flux:error name="status" />
-            </flux:field>
-            <flux:button type="submit" variant="primary">Guardar</flux:button>
-        </form>
-    </flux:card>
+    <section class="space-y-4">
+        <flux:heading size="lg">Detalles técnicos</flux:heading>
 
-    <details class="rounded-lg border border-zinc-200 p-4">
-        <summary class="cursor-pointer text-sm font-medium text-zinc-700">Detalles técnicos</summary>
-        <div class="mt-3 space-y-1 text-xs text-zinc-600">
-            <div><span class="text-zinc-400">IP:</span> <code>{{ $lead->ip ?? '—' }}</code></div>
-            <div><span class="text-zinc-400">User-Agent:</span> <code class="break-all">{{ $lead->user_agent ?? '—' }}</code></div>
-        </div>
-    </details>
-
-    <div class="flex justify-end">
-        <flux:button
-            wire:click="deleteLead"
-            wire:confirm="¿Eliminar este lead? Acción irreversible."
-            variant="danger"
-            icon="trash">
-            Eliminar lead
-        </flux:button>
-    </div>
+        <dl class="space-y-2 text-xs text-zinc-600">
+            <div><dt class="inline text-zinc-400">IP:</dt> <dd class="inline"><code>{{ $lead->ip ?? '—' }}</code></dd></div>
+            <div><dt class="inline text-zinc-400">User-Agent:</dt> <dd class="inline"><code class="break-all">{{ $lead->user_agent ?? '—' }}</code></dd></div>
+        </dl>
+    </section>
 </div>

@@ -96,4 +96,14 @@ class LocationForm extends Form
 
         return $location;
     }
+
+    /**
+     * Saves only the name, edited in the title of the record.
+     */
+    public function rename(): void
+    {
+        $this->validateOnly('name');
+
+        Location::findOrFail($this->id)->update(['name' => $this->name]);
+    }
 }

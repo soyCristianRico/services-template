@@ -51,6 +51,23 @@ describe('Admin\\Redirects\\Index', function (): void {
                 ->assertDontSee('/muy-usada');
         });
 
+        it('should filter by status code', function (): void {
+            Redirect::factory()->create(['source' => '/permanente', 'status_code' => 301]);
+            Redirect::factory()->create(['source' => '/temporal', 'status_code' => 302]);
+
+            Livewire::test('pages::admin.redirects.index')
+                ->set('code', '302')
+                ->assertSee('/temporal')
+                ->assertDontSee('/permanente');
+        });
+
+        it('should show the outcome of an import as a toast', function (): void {
+            session()->flash('status', 'Importadas: 2 nuevas.');
+
+            Livewire::test('pages::admin.redirects.index')
+                ->assertDispatched('toast-show');
+        });
+
         it('should point out the broken addresses waiting for a decision', function (): void {
             NotFoundLog::factory()->count(3)->create();
 
@@ -66,6 +83,52 @@ describe('Admin\\Redirects\\Index', function (): void {
         });
     });
 
+    describe('sort', function (): void {
+        it('should put the most used first by default', function (): void {
+            Redirect::factory()->create(['source' => '/poco', 'hits' => 1]);
+            Redirect::factory()->create(['source' => '/mucho', 'hits' => 900]);
+
+            $sources = Livewire::test('pages::admin.redirects.index')
+                ->get('redirects')->pluck('source')->all();
+
+            expect($sources)->toBe(['/mucho', '/poco']);
+        });
+
+        it('should sort by the old address and flip the direction on a second click', function (): void {
+            Redirect::factory()->create(['source' => '/b-vieja', 'hits' => 900]);
+            Redirect::factory()->create(['source' => '/a-vieja', 'hits' => 1]);
+
+            $component = Livewire::test('pages::admin.redirects.index')->call('sort', 'source');
+
+            expect($component->get('redirects')->pluck('source')->all())->toBe(['/a-vieja', '/b-vieja']);
+
+            $component->call('sort', 'source')->assertSet('sortDirection', 'desc');
+
+            expect($component->get('redirects')->pluck('source')->all())->toBe(['/b-vieja', '/a-vieja']);
+        });
+
+        it('should ignore a column that cannot be sorted', function (): void {
+            Livewire::test('pages::admin.redirects.index')
+                ->call('sort', 'destination')
+                ->assertSet('sortBy', '');
+        });
+    });
+
+    describe('clearFilter', function (): void {
+        it('should show each active filter as a chip and clear it', function (): void {
+            Livewire::test('pages::admin.redirects.index')
+                ->set('type', 'prefix')
+                ->set('state', 'unused')
+                ->assertSee('Por prefijo')
+                ->assertSee('Sin usar nunca')
+                ->call('clearFilter', 'type')
+                ->assertSet('type', '')
+                ->assertSet('state', 'unused')
+                ->call('clearAll')
+                ->assertSet('state', '');
+        });
+    });
+
     describe('toggleActive', function (): void {
         it('should switch a redirect off without deleting it', function (): void {
             $redirect = Redirect::factory()->create();
@@ -74,6 +137,14 @@ describe('Admin\\Redirects\\Index', function (): void {
                 ->call('toggleActive', $redirect->id);
 
             expect($redirect->fresh()->is_active)->toBeFalse();
+        });
+
+        it('should confirm the change with a toast', function (): void {
+            $redirect = Redirect::factory()->create();
+
+            Livewire::test('pages::admin.redirects.index')
+                ->call('toggleActive', $redirect->id)
+                ->assertDispatched('toast-show');
         });
 
         it('should stop redirecting straight away', function (): void {

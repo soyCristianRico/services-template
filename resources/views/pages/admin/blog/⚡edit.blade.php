@@ -5,13 +5,19 @@ declare(strict_types=1);
 use App\Livewire\Forms\Blog\BlogPostForm;
 use App\Models\BlogPost;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Toolkit\Images\ImagePreparer;
 
 new
 #[Layout('layouts.admin')]
+#[Title('Artículo')]
 class extends Component
 {
     use WithFileUploads;
@@ -19,6 +25,9 @@ class extends Component
     public BlogPostForm $form;
 
     public ?BlogPost $post = null;
+
+    #[Url(as: 'tab')]
+    public string $tab = 'content';
 
     public bool $slugManuallyEdited = false;
 
@@ -30,6 +39,10 @@ class extends Component
             $this->post = $post;
             $this->form->setPost($post);
             $this->slugManuallyEdited = true;
+        }
+
+        if (session()->has('status')) {
+            Flux::toast(text: session('status'), variant: 'success');
         }
     }
 
@@ -68,21 +81,76 @@ class extends Component
 
         $this->newHero = null;
         $this->post->refresh();
+        unset($this->hero);
     }
 
     public function deleteHero(): void
     {
         $this->post?->getFirstMedia('hero')?->delete();
         $this->post?->refresh();
+        unset($this->hero);
+    }
+
+    #[Computed]
+    public function hero(): ?Media
+    {
+        return $this->post?->getFirstMedia('hero');
     }
 
     public function save(): void
     {
-        $post = $this->form->save();
+        try {
+            $post = $this->form->save();
+        } catch (ValidationException $exception) {
+            $this->tab = $this->tabForField((string) array_key_first($exception->errors()));
 
-        session()->flash('status', $this->post ? 'Artículo actualizado.' : 'Artículo creado.');
+            throw $exception;
+        }
+
+        if ($this->post) {
+            $this->post->refresh();
+            Flux::toast(text: 'Artículo guardado.', variant: 'success');
+
+            return;
+        }
+
+        session()->flash('status', 'Artículo creado.');
 
         $this->redirectRoute('admin.blog.edit', $post);
+    }
+
+    public function rename(): void
+    {
+        $this->form->rename();
+        $this->post?->refresh();
+
+        Flux::toast(text: 'Título actualizado.', variant: 'success');
+    }
+
+    /**
+     * What the public sees of the post, derived from its activation and its date.
+     *
+     * @return array{label: string, color: string}
+     */
+    #[Computed]
+    public function state(): array
+    {
+        return match (true) {
+            $this->post === null => ['label' => '', 'color' => 'zinc'],
+            ! $this->post->is_active => ['label' => 'Inactivo', 'color' => 'zinc'],
+            $this->post->published_at === null => ['label' => 'Borrador', 'color' => 'amber'],
+            $this->post->published_at->isFuture() => ['label' => 'Programado', 'color' => 'blue'],
+            default => ['label' => 'Publicado', 'color' => 'green'],
+        };
+    }
+
+    protected function tabForField(string $field): string
+    {
+        return match (explode('.', $field)[1] ?? $field) {
+            'published_at', 'is_active', 'author_name', 'tagsCsv' => 'publication',
+            'meta_title', 'meta_description' => 'seo',
+            default => 'content',
+        };
     }
 
     /**
@@ -101,13 +169,30 @@ class extends Component
 };
 ?>
 
-<div class="mx-auto max-w-3xl space-y-6 p-8">
-    <x-admin.page-header :back="route('admin.blog.index')">
-            {{ $post ? 'Editar artículo: '.$post->title : 'Nuevo artículo' }}
+<div class="mx-auto max-w-3xl space-y-10 p-8 pb-28">
+    <x-admin.page-header :breadcrumbs="[
+        ['label' => 'Blog', 'href' => route('admin.blog.index')],
+        ['label' => $post?->title ?? 'Nuevo artículo'],
+    ]">
+        @if ($post)
+            <input
+                type="text"
+                wire:model="form.title"
+                wire:change="rename"
+                aria-label="Título"
+                class="[font:inherit] -mx-2 w-full rounded-md border border-transparent bg-transparent px-2 py-1 hover:border-zinc-300 focus:border-zinc-400 focus:outline-none"
+            />
+        @else
+            Nuevo artículo
+        @endif
 
         @if ($post)
             <x-slot:actions>
+                <flux:badge :color="$this->state['color']">{{ $this->state['label'] }}</flux:badge>
                 <x-admin.record-menu>
+                    <flux:menu.item :href="url('/blog/'.$post->slug)" target="_blank" icon="arrow-top-right-on-square">
+                        Ver en la web
+                    </flux:menu.item>
                     <flux:menu.item
                         wire:click="delete"
                         wire:confirm="¿Eliminar el artículo {{ $post->title }}?"
@@ -119,123 +204,36 @@ class extends Component
         @endif
     </x-admin.page-header>
 
-    @session('status')
-        <flux:callout icon="check-circle" color="green">{{ $value }}</flux:callout>
-    @endsession
-
     @if ($post)
-        <flux:callout icon="link" color="zinc">
-            <flux:callout.text>
-                <flux:callout.link :href="url('/blog/'.$post->slug)" external>{{ url('/blog/'.$post->slug) }}</flux:callout.link>
-            </flux:callout.text>
-        </flux:callout>
-    @endif
+        <flux:error name="form.title" />
 
-    <form wire:submit="save" class="space-y-6">
-        <flux:field>
-            <flux:label>Título</flux:label>
-            <flux:input wire:model.live.debounce.300ms="form.title" required />
-            <flux:error name="form.title" />
-        </flux:field>
+        <flux:tab.group>
+            <flux:tabs wire:model="tab" scrollable scrollable:scrollbar="hide">
+                <flux:tab name="content">Contenido</flux:tab>
+                <flux:tab name="publication">Publicación</flux:tab>
+                <flux:tab name="image">Imagen</flux:tab>
+                <flux:tab name="seo">SEO</flux:tab>
+            </flux:tabs>
 
-        <flux:field>
-            <flux:label>Slug</flux:label>
-            <flux:input wire:model="form.slug" required />
-            <flux:description>URL: /blog/{slug}. Sólo minúsculas, números y guiones.</flux:description>
-            <flux:error name="form.slug" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Excerpt</flux:label>
-            <flux:textarea wire:model="form.excerpt" rows="2" placeholder="Una entradilla corta (320 chars)" />
-            <flux:error name="form.excerpt" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Cuerpo (HTML)</flux:label>
-            <x-admin.rich-editor wire:model="form.body" />
-            <flux:error name="form.body" />
-        </flux:field>
-
-        <div class="grid gap-4 md:grid-cols-2">
-            <flux:field>
-                <flux:label>Autor</flux:label>
-                <flux:input wire:model="form.author_name" placeholder="Nombre que aparece bajo el título" />
-                <flux:error name="form.author_name" />
-            </flux:field>
-
-            <flux:field>
-                <flux:label>Tags (separados por coma)</flux:label>
-                <flux:input wire:model="form.tagsCsv" placeholder="seo, generadores, comparativa" />
-                <flux:error name="form.tagsCsv" />
-            </flux:field>
-        </div>
-
-        <div class="grid gap-4 md:grid-cols-2">
-            <flux:field>
-                <flux:label>Publicado en</flux:label>
-                <flux:input type="datetime-local" wire:model="form.published_at" />
-                <flux:description>Vacío = borrador. Futuro = programado. Pasado = público.</flux:description>
-                <flux:error name="form.published_at" />
-            </flux:field>
-
-            <flux:field>
-                <flux:label>Activo</flux:label>
-                <flux:switch wire:model="form.is_active" />
-                <flux:description>Si está inactivo, no sale aunque tenga fecha.</flux:description>
-            </flux:field>
-        </div>
-
-        <flux:separator />
-        <flux:heading size="lg">SEO</flux:heading>
-
-        <flux:field>
-            <flux:label>Meta título (override)</flux:label>
-            <flux:input wire:model="form.meta_title" placeholder="Vacío = usa el título" />
-            <flux:error name="form.meta_title" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Meta descripción</flux:label>
-            <flux:textarea wire:model="form.meta_description" rows="3" placeholder="Vacío = usa el excerpt" />
-            <flux:error name="form.meta_description" />
-        </flux:field>
-
-        <div class="flex justify-end gap-3">
-            <flux:button :href="route('admin.blog.index')" variant="ghost">Cancelar</flux:button>
-            <flux:button type="submit" variant="primary">
-                {{ $post ? 'Guardar cambios' : 'Crear artículo' }}
-            </flux:button>
-        </div>
-    </form>
-
-    @if ($post)
-        <flux:separator />
-        <flux:heading size="lg">Imagen destacada</flux:heading>
-
-        @if ($post->getFirstMediaUrl('hero'))
-            <div class="space-y-3">
-                <img src="{{ $post->getFirstMediaUrl('hero') }}" alt="Hero" class="aspect-[16/9] w-full rounded-lg object-cover">
-                <flux:button wire:click="deleteHero" wire:confirm="¿Eliminar la imagen destacada?" variant="ghost" size="sm" icon="trash">
-                    Eliminar hero
-                </flux:button>
-            </div>
-        @else
-            <flux:text class="text-zinc-600">Sin imagen destacada todavía.</flux:text>
-        @endif
-
-        <div>
-            <input
-                type="file"
-                wire:model="newHero"
-                accept="image/jpeg,image/png,image/webp"
-                class="block w-full text-sm text-zinc-700 file:mr-4 file:rounded file:border-0 file:bg-zinc-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-zinc-800">
-            <flux:error name="newHero" />
-            <div wire:loading wire:target="newHero" class="mt-2 text-sm text-zinc-500">Subiendo…</div>
-        </div>
+            <flux:tab.panel name="content" class="space-y-10">@include('pages.admin.blog.partials.content')</flux:tab.panel>
+            <flux:tab.panel name="publication" class="space-y-10">@include('pages.admin.blog.partials.publication')</flux:tab.panel>
+            <flux:tab.panel name="image" class="space-y-10">@include('pages.admin.blog.partials.image')</flux:tab.panel>
+            <flux:tab.panel name="seo" class="space-y-10">@include('pages.admin.blog.partials.seo')</flux:tab.panel>
+        </flux:tab.group>
     @else
+        @include('pages.admin.blog.partials.content')
+        @include('pages.admin.blog.partials.publication')
+        @include('pages.admin.blog.partials.seo')
+
         <flux:callout icon="information-circle" color="zinc">
-            Guarda el artículo para poder subir la imagen destacada.
+            Crea el artículo para poder subir la imagen destacada.
         </flux:callout>
     @endif
+
+    <div class="fixed inset-x-0 bottom-0 z-10 border-t border-zinc-200 bg-zinc-50 lg:start-64">
+        <div class="mx-auto flex max-w-3xl justify-end gap-3 px-8 py-4">
+            <flux:button :href="route('admin.blog.index')" variant="ghost">Cancelar</flux:button>
+            <flux:button wire:click="save" variant="primary">{{ $post ? 'Guardar' : 'Crear artículo' }}</flux:button>
+        </div>
+    </div>
 </div>

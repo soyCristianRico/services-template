@@ -111,6 +111,16 @@ class ServiceForm extends Form
     }
 
     /**
+     * Saves only the name, from the heading of the edit screen.
+     */
+    public function rename(): void
+    {
+        $this->validateOnly('name');
+
+        Service::findOrFail($this->id)->update(['name' => $this->name]);
+    }
+
+    /**
      * The extra categories to persist, never duplicating the primary `category_id`.
      *
      * @return array<int, int>

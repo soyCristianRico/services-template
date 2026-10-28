@@ -10,10 +10,12 @@ use App\Models\Redirect;
 use App\Services\Seo\RedirectPath;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new
 #[Layout('layouts.admin')]
+#[Title('Redirección')]
 class extends Component
 {
     public RedirectForm $form;
@@ -29,7 +31,13 @@ class extends Component
             $this->redirect = $redirect;
             $this->form->setRedirect($redirect);
             $this->testPath = $redirect->match_type === RedirectMatchType::Exact ? $redirect->source : '';
+        }
 
+        if (session()->has('status')) {
+            Flux::toast(text: session('status'), variant: 'success');
+        }
+
+        if ($this->redirect) {
             return;
         }
 
@@ -54,7 +62,14 @@ class extends Component
             ->whereNull('resolved_at')
             ->update(['resolved_at' => now()]);
 
-        session()->flash('status', $this->redirect ? 'Redirección actualizada.' : 'Redirección creada.');
+        if ($this->redirect) {
+            $this->redirect->refresh();
+            Flux::toast(text: 'Redirección guardada.', variant: 'success');
+
+            return;
+        }
+
+        session()->flash('status', 'Redirección creada.');
 
         $this->redirectRoute('admin.redirects.edit', $redirect);
     }
@@ -113,12 +128,20 @@ class extends Component
 };
 ?>
 
-<div class="mx-auto max-w-3xl space-y-6 p-8">
-    <x-admin.page-header :back="route('admin.redirects.index')">
-            {{ $redirect ? 'Editar redirección' : 'Nueva redirección' }}
+<div class="mx-auto max-w-2xl space-y-10 p-8 pb-28">
+    <x-admin.page-header :breadcrumbs="[
+        ['label' => 'Redirecciones', 'href' => route('admin.redirects.index')],
+        ['label' => $redirect?->source ?? 'Nueva redirección'],
+    ]">
+        @if ($redirect)
+            <span class="block truncate font-mono" title="{{ $redirect->source }}">{{ $redirect->source }}</span>
+        @else
+            Nueva redirección
+        @endif
 
         @if ($redirect)
             <x-slot:actions>
+                <flux:badge :color="$redirect->is_active ? 'green' : 'zinc'">{{ $redirect->is_active ? 'Activa' : 'Desactivada' }}</flux:badge>
                 <x-admin.record-menu>
                     <flux:menu.item
                         wire:click="delete"
@@ -131,112 +154,115 @@ class extends Component
         @endif
     </x-admin.page-header>
 
-    @session('status')
-        <flux:callout icon="check-circle" color="green">{{ $value }}</flux:callout>
-    @endsession
+    <form wire:submit="save" class="space-y-10">
+        <section class="space-y-6">
+            <flux:heading size="lg">Origen y destino</flux:heading>
 
-    <form wire:submit="save" class="space-y-6">
-        <flux:field>
-            <flux:label>Dirección antigua</flux:label>
-            <flux:input wire:model.live.debounce.500ms="form.source" required placeholder="/curso-antiguo" class="font-mono" />
-            <flux:description>
-                La que ya no existe o va a dejar de existir. Puedes pegar la dirección completa
-                (<code>https://…/curso-antiguo/</code>): se guarda solo la parte final.
-            </flux:description>
-            <flux:error name="form.source" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Cómo se compara</flux:label>
-            <flux:select wire:model.live="form.match_type">
-                @foreach (RedirectMatchType::cases() as $case)
-                    <flux:select.option value="{{ $case->value }}">{{ $case->label() }}</flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:description>{{ $form->matchType()->description() }}</flux:description>
-            <flux:error name="form.match_type" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Qué respondemos</flux:label>
-            <flux:select wire:model.live="form.status_code">
-                @foreach (RedirectStatusCode::cases() as $case)
-                    <flux:select.option value="{{ $case->value }}">{{ $case->label() }}</flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:description>{{ RedirectStatusCode::from($form->status_code)->description() }}</flux:description>
-            <flux:error name="form.status_code" />
-        </flux:field>
-
-        @unless ($form->isGone())
             <flux:field>
-                <flux:label>Dirección nueva</flux:label>
-                <flux:input wire:model.live.debounce.500ms="form.destination" placeholder="/cursos/curso-nuevo" class="font-mono" />
+                <flux:label>Dirección antigua</flux:label>
+                <flux:input wire:model.live.debounce.500ms="form.source" required placeholder="/curso-antiguo" class="font-mono" />
                 <flux:description>
-                    Empieza por <code>/</code> para una página de esta web, o pon la dirección completa con
-                    <code>https://</code> para enviar a otro sitio.
-                    @if ($form->matchType() === RedirectMatchType::Regex)
-                        Con expresión regular puedes colocar aquí lo capturado usando <code>$1</code>, <code>$2</code>…
-                    @endif
+                    La que ya no existe o va a dejar de existir. Puedes pegar la dirección completa
+                    (<code>https://…/curso-antiguo/</code>): se guarda solo la parte final.
                 </flux:description>
-                <flux:error name="form.destination" />
+                <flux:error name="form.source" />
             </flux:field>
-        @endunless
 
-        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-4 space-y-3">
-            <flux:heading size="sm">Probar antes de guardar</flux:heading>
-            <flux:input wire:model.live.debounce.500ms="testPath" placeholder="/una-direccion-para-probar" class="font-mono" />
+            <flux:field>
+                <flux:label>Cómo se compara</flux:label>
+                <flux:select variant="listbox" wire:model.live="form.match_type">
+                    @foreach (RedirectMatchType::cases() as $case)
+                        <flux:select.option :value="$case->value">{{ $case->label() }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:description>{{ $form->matchType()->description() }}</flux:description>
+                <flux:error name="form.match_type" />
+            </flux:field>
 
-            @if ($testPath !== '')
-                @if ($this->testResult['matches'])
-                    @if ($form->isGone())
-                        <flux:badge color="amber" size="sm">Coincide · respondería «contenido eliminado» (410)</flux:badge>
+            <flux:field>
+                <flux:label>Qué respondemos</flux:label>
+                <flux:select variant="listbox" wire:model.live="form.status_code">
+                    @foreach (RedirectStatusCode::cases() as $case)
+                        <flux:select.option :value="$case->value">{{ $case->label() }}</flux:select.option>
+                    @endforeach
+                </flux:select>
+                <flux:description>{{ RedirectStatusCode::from($form->status_code)->description() }}</flux:description>
+                <flux:error name="form.status_code" />
+            </flux:field>
+
+            @unless ($form->isGone())
+                <flux:field>
+                    <flux:label>Dirección nueva</flux:label>
+                    <flux:input wire:model.live.debounce.500ms="form.destination" placeholder="/cursos/curso-nuevo" class="font-mono" />
+                    <flux:description>
+                        Empieza por <code>/</code> para una página de esta web, o pon la dirección completa con
+                        <code>https://</code> para enviar a otro sitio.
+                        @if ($form->matchType() === RedirectMatchType::Regex)
+                            Con expresión regular puedes colocar aquí lo capturado usando <code>$1</code>, <code>$2</code>…
+                        @endif
+                    </flux:description>
+                    <flux:error name="form.destination" />
+                </flux:field>
+            @endunless
+        </section>
+
+        <section class="space-y-6">
+            <flux:heading size="lg">Probar antes de guardar</flux:heading>
+
+            <flux:field>
+                <flux:label badge="Opcional">Dirección de prueba</flux:label>
+                <flux:input wire:model.live.debounce.500ms="testPath" placeholder="/una-direccion-para-probar" class="font-mono" />
+                <flux:description>
+                    @if ($testPath === '')
+                        Escribe una dirección y te decimos si esta regla la atraparía y a dónde la mandaría.
+                    @elseif ($this->testResult['matches'])
+                        @if ($form->isGone())
+                            <flux:badge color="amber" size="sm">Coincide · respondería «contenido eliminado» (410)</flux:badge>
+                        @else
+                            <flux:badge color="green" size="sm">
+                                Coincide · iría a <span class="font-mono">{{ $this->testResult['destination'] }}</span>
+                            </flux:badge>
+                        @endif
                     @else
-                        <flux:badge color="green" size="sm">
-                            Coincide · iría a <span class="font-mono">{{ $this->testResult['destination'] }}</span>
-                        </flux:badge>
+                        <flux:badge color="zinc" size="sm">No coincide: esta dirección seguiría igual que ahora</flux:badge>
                     @endif
-                @else
-                    <flux:badge color="zinc" size="sm">No coincide: esta dirección seguiría igual que ahora</flux:badge>
-                @endif
-            @else
-                <flux:text size="sm" class="text-zinc-500">
-                    Escribe una dirección y te decimos si esta regla la atraparía y a dónde la mandaría.
-                </flux:text>
-            @endif
-        </div>
-
-        <flux:separator />
-
-        <flux:field variant="inline">
-            <flux:switch wire:model="form.is_active" />
-            <flux:label>Activa</flux:label>
-            <flux:description>Desactivada se conserva pero no hace nada.</flux:description>
-        </flux:field>
-
-        @unless ($form->isGone())
-            <flux:field variant="inline">
-                <flux:switch wire:model="form.preserve_query" />
-                <flux:label>Conservar los parámetros de la dirección</flux:label>
-                <flux:description>
-                    Arrastra al destino lo que venga después de <code>?</code>. Déjalo activado: es lo que hace que
-                    los enlaces de campañas sigan midiéndose bien.
                 </flux:description>
             </flux:field>
-        @endunless
+        </section>
 
-        <flux:field>
-            <flux:label>Nota interna</flux:label>
-            <flux:textarea wire:model="form.notes" rows="2" placeholder="Por qué existe esta redirección" />
-            <flux:description>No la ve nadie de fuera. Dentro de un año será lo único que explique esta regla.</flux:description>
-            <flux:error name="form.notes" />
-        </flux:field>
+        <section class="space-y-6">
+            <flux:heading size="lg">Funcionamiento</flux:heading>
 
-        <div class="flex justify-end gap-3">
-            <flux:button :href="route('admin.redirects.index')" variant="ghost">Cancelar</flux:button>
-            <flux:button type="submit" variant="primary">
-                {{ $redirect ? 'Guardar cambios' : 'Crear redirección' }}
-            </flux:button>
+            <flux:field>
+                <flux:label>Activa</flux:label>
+                <flux:description>Desactivada se conserva pero no hace nada.</flux:description>
+                <flux:switch wire:model="form.is_active" />
+            </flux:field>
+
+            @unless ($form->isGone())
+                <flux:field>
+                    <flux:label>Conservar los parámetros de la dirección</flux:label>
+                    <flux:description>
+                        Arrastra al destino lo que venga después de <code>?</code>. Déjalo activado: es lo que hace que
+                        los enlaces de campañas sigan midiéndose bien.
+                    </flux:description>
+                    <flux:switch wire:model="form.preserve_query" />
+                </flux:field>
+            @endunless
+
+            <flux:field>
+                <flux:label badge="Opcional">Nota interna</flux:label>
+                <flux:textarea wire:model="form.notes" rows="2" placeholder="Por qué existe esta redirección" />
+                <flux:description>No la ve nadie de fuera. Dentro de un año será lo único que explique esta regla.</flux:description>
+                <flux:error name="form.notes" />
+            </flux:field>
+        </section>
+
+        <div class="fixed inset-x-0 bottom-0 z-10 border-t border-zinc-200 bg-zinc-50 lg:start-64">
+            <div class="mx-auto flex max-w-2xl justify-end gap-3 px-8 py-4">
+                <flux:button :href="route('admin.redirects.index')" variant="ghost">Cancelar</flux:button>
+                <flux:button type="submit" variant="primary">{{ $redirect ? 'Guardar' : 'Crear redirección' }}</flux:button>
+            </div>
         </div>
     </form>
 </div>

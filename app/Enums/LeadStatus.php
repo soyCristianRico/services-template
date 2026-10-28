@@ -20,4 +20,14 @@ enum LeadStatus: string
             self::Lost => 'Perdido',
         };
     }
+
+    public function color(): string
+    {
+        return match ($this) {
+            self::New => 'blue',
+            self::Contacted => 'amber',
+            self::Qualified => 'green',
+            self::Lost => 'red',
+        };
+    }
 }

@@ -69,6 +69,16 @@ class BlogPostForm extends Form
         ];
     }
 
+    /**
+     * Saves only the title, edited in the screen's own heading.
+     */
+    public function rename(): void
+    {
+        $this->validateOnly('title');
+
+        BlogPost::findOrFail($this->id)->update(['title' => $this->title]);
+    }
+
     public function save(): BlogPost
     {
         $this->validate();

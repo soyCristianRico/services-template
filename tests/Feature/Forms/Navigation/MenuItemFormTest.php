@@ -161,6 +161,33 @@ describe('MenuItemForm', function (): void {
         });
     });
 
+    describe('rename', function (): void {
+        it('should save only the label', function (): void {
+            $item = MenuItem::factory()->create(['label' => 'Catálogo', 'position' => 3]);
+
+            Livewire::test(MenuItemFormTestComponent::class, ['menuItem' => $item])
+                ->set('form.label', 'Servicios')
+                ->set('form.position', 9)
+                ->call('rename')
+                ->assertHasNoErrors();
+
+            expect($item->fresh())
+                ->label->toBe('Servicios')
+                ->position->toBe(3);
+        });
+
+        it('should refuse an empty label', function (): void {
+            $item = MenuItem::factory()->create(['label' => 'Catálogo']);
+
+            Livewire::test(MenuItemFormTestComponent::class, ['menuItem' => $item])
+                ->set('form.label', '')
+                ->call('rename')
+                ->assertHasErrors(['form.label']);
+
+            expect($item->fresh()->label)->toBe('Catálogo');
+        });
+    });
+
     describe('validation', function (): void {
         it('should require a label', function (): void {
             Livewire::test(MenuItemFormTestComponent::class)

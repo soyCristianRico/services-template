@@ -5,13 +5,16 @@ declare(strict_types=1);
 use App\Enums\LocationType;
 use App\Livewire\Forms\Catalog\LocationForm;
 use App\Models\Location;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new
 #[Layout('layouts.admin')]
+#[Title('Ubicación')]
 class extends Component
 {
     public LocationForm $form;
@@ -26,6 +29,10 @@ class extends Component
             $this->location = $location;
             $this->form->setLocation($location);
             $this->slugManuallyEdited = true;
+        }
+
+        if (session()->has('status')) {
+            Flux::toast(text: session('status'), variant: 'success');
         }
     }
 
@@ -45,16 +52,39 @@ class extends Component
     {
         $location = $this->form->save();
 
-        session()->flash('status', $this->location ? 'Ubicación actualizada.' : 'Ubicación creada.');
+        if ($this->location) {
+            $this->location->refresh();
+            Flux::toast(text: 'Ubicación guardada.', variant: 'success');
+
+            return;
+        }
+
+        session()->flash('status', 'Ubicación creada.');
 
         $this->redirectRoute('admin.locations.edit', $location);
     }
 
+    public function rename(): void
+    {
+        $this->form->rename();
+        $this->location?->refresh();
+
+        Flux::toast(text: 'Nombre actualizado.', variant: 'success');
+    }
+
     /**
-     * @return \Illuminate\Support\Collection<int, array{id: int, label: string}>
+     * @return list<LocationType>
+     */
+    public function types(): array
+    {
+        return LocationType::cases();
+    }
+
+    /**
+     * @return Collection<int, array{id: int, label: string}>
      */
     #[Computed]
-    public function parentOptions(): \Illuminate\Support\Collection
+    public function parentOptions(): Collection
     {
         return Location::query()
             ->when($this->form->id, fn ($q) => $q->where('id', '!=', $this->form->id))
@@ -79,12 +109,26 @@ class extends Component
 };
 ?>
 
-<div class="mx-auto max-w-3xl space-y-6 p-8">
-    <x-admin.page-header :back="route('admin.locations.index')">
-            {{ $location ? 'Editar ubicación: '.$location->name : 'Nueva ubicación' }}
+<div class="mx-auto max-w-2xl space-y-10 p-8 pb-28">
+    <x-admin.page-header :breadcrumbs="[
+        ['label' => 'Ubicaciones', 'href' => route('admin.locations.index')],
+        ['label' => $location?->name ?? 'Nueva ubicación'],
+    ]">
+        @if ($location)
+            <input
+                type="text"
+                wire:model="form.name"
+                wire:change="rename"
+                aria-label="Nombre"
+                class="[font:inherit] -mx-2 w-full rounded-md border border-transparent bg-transparent px-2 py-1 hover:border-zinc-300 focus:border-zinc-400 focus:outline-none"
+            />
+        @else
+            Nueva ubicación
+        @endif
 
         @if ($location)
             <x-slot:actions>
+                <flux:badge>{{ $location->type->label() }}</flux:badge>
                 <x-admin.record-menu>
                     <flux:menu.item
                         wire:click="delete"
@@ -97,16 +141,20 @@ class extends Component
         @endif
     </x-admin.page-header>
 
-    @session('status')
-        <flux:callout icon="check-circle" color="green">{{ $value }}</flux:callout>
-    @endsession
+    @if ($location)
+        <flux:error name="form.name" />
+    @endif
 
-    <form wire:submit="save" class="space-y-6">
-        <flux:field>
-            <flux:label>Nombre</flux:label>
-            <flux:input wire:model.live.debounce.300ms="form.name" required />
-            <flux:error name="form.name" />
-        </flux:field>
+    <section class="space-y-6">
+        <flux:heading size="lg">Datos</flux:heading>
+
+        @unless ($location)
+            <flux:field>
+                <flux:label>Nombre</flux:label>
+                <flux:input wire:model.live.debounce.300ms="form.name" required />
+                <flux:error name="form.name" />
+            </flux:field>
+        @endunless
 
         <flux:field>
             <flux:label>Slug</flux:label>
@@ -115,69 +163,69 @@ class extends Component
             <flux:error name="form.slug" />
         </flux:field>
 
-        <div class="grid gap-4 md:grid-cols-2">
+        <div class="grid gap-6 md:grid-cols-2">
             <flux:field>
                 <flux:label>Tipo</flux:label>
-                <flux:select wire:model="form.type">
-                    @foreach (LocationType::cases() as $option)
-                        <flux:select.option value="{{ $option->value }}">{{ $option->label() }}</flux:select.option>
+                <flux:select variant="listbox" wire:model="form.type">
+                    @foreach ($this->types() as $option)
+                        <flux:select.option :value="$option->value">{{ $option->label() }}</flux:select.option>
                     @endforeach
                 </flux:select>
                 <flux:error name="form.type" />
             </flux:field>
 
             <flux:field>
-                <flux:label>Padre</flux:label>
-                <flux:select wire:model="form.parent_id" placeholder="— Sin padre (raíz) —">
-                    <flux:select.option value="">— Sin padre (raíz) —</flux:select.option>
+                <flux:label badge="Opcional">Padre</flux:label>
+                <flux:select variant="listbox" searchable clearable wire:model="form.parent_id" placeholder="Sin padre (raíz)">
                     @foreach ($this->parentOptions as $option)
-                        <flux:select.option value="{{ $option['id'] }}">{{ $option['label'] }}</flux:select.option>
+                        <flux:select.option :value="$option['id']">{{ $option['label'] }}</flux:select.option>
                     @endforeach
                 </flux:select>
                 <flux:error name="form.parent_id" />
             </flux:field>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-3">
+        <div class="grid gap-6 md:grid-cols-3">
             <flux:field>
-                <flux:label>Población</flux:label>
+                <flux:label badge="Opcional">Población</flux:label>
                 <flux:input type="number" wire:model="form.population" min="0" />
                 <flux:error name="form.population" />
             </flux:field>
 
             <flux:field>
-                <flux:label>Latitud</flux:label>
+                <flux:label badge="Opcional">Latitud</flux:label>
                 <flux:input wire:model="form.latitude" placeholder="40.4168" />
                 <flux:error name="form.latitude" />
             </flux:field>
 
             <flux:field>
-                <flux:label>Longitud</flux:label>
+                <flux:label badge="Opcional">Longitud</flux:label>
                 <flux:input wire:model="form.longitude" placeholder="-3.7038" />
                 <flux:error name="form.longitude" />
             </flux:field>
         </div>
+    </section>
 
-        <flux:separator />
+    <section class="space-y-6">
         <flux:heading size="lg">SEO</flux:heading>
 
         <flux:field>
-            <flux:label>Meta título</flux:label>
+            <flux:label badge="Opcional">Meta título</flux:label>
             <flux:input wire:model="form.meta_title" placeholder="Título mostrado en Google" />
             <flux:error name="form.meta_title" />
         </flux:field>
 
         <flux:field>
-            <flux:label>Meta descripción</flux:label>
+            <flux:label badge="Opcional">Meta descripción</flux:label>
             <flux:textarea wire:model="form.meta_description" rows="3" placeholder="150-160 caracteres" />
             <flux:error name="form.meta_description" />
         </flux:field>
+    </section>
 
-        <div class="flex justify-end gap-3">
+    <div class="fixed inset-x-0 bottom-0 z-10 border-t border-zinc-200 bg-zinc-50 lg:start-64">
+        <div class="mx-auto flex max-w-2xl justify-end gap-3 px-8 py-4">
             <flux:button :href="route('admin.locations.index')" variant="ghost">Cancelar</flux:button>
-            <flux:button type="submit" variant="primary">
-                {{ $location ? 'Guardar cambios' : 'Crear ubicación' }}
-            </flux:button>
+            <flux:button wire:click="save" variant="primary">{{ $location ? 'Guardar' : 'Crear ubicación' }}</flux:button>
         </div>
-    </form>
+    </div>
 </div>

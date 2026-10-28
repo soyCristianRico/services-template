@@ -58,6 +58,7 @@ describe('Admin\\Landings\\Edit', function (): void {
             $landing = Landing::where('slug', 'test-slug')->first();
             expect($landing)->not->toBeNull();
             expect($landing->status)->toBe(LandingStatus::Draft);
+            expect(session('status'))->toBe('Landing creada.');
         });
 
         it('should schedule the landing when a publish date is set', function (): void {
@@ -134,13 +135,14 @@ describe('Admin\\Landings\\Edit', function (): void {
             expect($component->get('form.contentJson'))->toContain('"hero"');
         });
 
-        it('should update an existing landing', function (): void {
+        it('should update an existing landing and stay on the screen', function (): void {
             $landing = Landing::factory()->create();
 
             Livewire::test('pages::admin.landings.edit', ['landing' => $landing])
                 ->set('form.title', 'Nuevo título')
                 ->call('save')
-                ->assertHasNoErrors();
+                ->assertHasNoErrors()
+                ->assertNoRedirect();
 
             expect($landing->refresh()->title)->toBe('Nuevo título');
         });
@@ -155,6 +157,18 @@ describe('Admin\\Landings\\Edit', function (): void {
             $landing->refresh();
             expect($landing->status)->toBe(LandingStatus::Published)
                 ->and($landing->publish_at)->toBeNull();
+        });
+
+        it('should keep the form in step after publishing so a later save does not undo it', function (): void {
+            $landing = Landing::factory()->draft()->create();
+
+            Livewire::test('pages::admin.landings.edit', ['landing' => $landing])
+                ->call('publishNow')
+                ->assertSet('form.status', LandingStatus::Published)
+                ->call('save')
+                ->assertHasNoErrors();
+
+            expect($landing->refresh()->status)->toBe(LandingStatus::Published);
         });
 
         it('should unpublish a landing back to draft', function (): void {

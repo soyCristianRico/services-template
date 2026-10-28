@@ -89,7 +89,9 @@ describe('Admin\\Locations\\Edit', function () {
             Livewire::test('pages::admin.locations.edit', ['location' => $location])
                 ->set('form.name', 'Madrid (actualizado)')
                 ->call('save')
-                ->assertRedirect();
+                ->assertHasNoErrors()
+                ->assertNoRedirect()
+                ->assertDispatched('toast-show');
 
             expect($location->refresh()->name)->toBe('Madrid (actualizado)');
             expect(Location::where('slug', 'madrid')->count())->toBe(1);
@@ -105,8 +107,51 @@ describe('Admin\\Locations\\Edit', function () {
         });
     });
 
-    describe('parent options', function () {
-        it('should exclude self from parent options to prevent loops', function () {
+    describe('save', function (): void {
+        it('should open the new location after creating it and toast there', function (): void {
+            Livewire::test('pages::admin.locations.edit')
+                ->set('form.name', 'Zaragoza')
+                ->set('form.slug', 'zaragoza')
+                ->call('save')
+                ->assertRedirect(route('admin.locations.edit', Location::firstWhere('slug', 'zaragoza')));
+
+            expect(session('status'))->toBe('Ubicación creada.');
+
+            Livewire::test('pages::admin.locations.edit', ['location' => Location::firstWhere('slug', 'zaragoza')])
+                ->assertDispatched('toast-show');
+        });
+    });
+
+    describe('rename', function (): void {
+        it('should save only the name edited in the title', function (): void {
+            $location = Location::factory()->create(['name' => 'Madrid', 'population' => 100]);
+
+            Livewire::test('pages::admin.locations.edit', ['location' => $location])
+                ->set('form.population', 999)
+                ->set('form.name', 'Madrid capital')
+                ->call('rename')
+                ->assertHasNoErrors()
+                ->assertDispatched('toast-show');
+
+            expect($location->fresh())
+                ->name->toBe('Madrid capital')
+                ->population->toBe(100);
+        });
+
+        it('should refuse an empty name', function (): void {
+            $location = Location::factory()->create(['name' => 'Madrid']);
+
+            Livewire::test('pages::admin.locations.edit', ['location' => $location])
+                ->set('form.name', '')
+                ->call('rename')
+                ->assertHasErrors(['form.name']);
+
+            expect($location->fresh()->name)->toBe('Madrid');
+        });
+    });
+
+    describe('parent options', function (): void {
+        it('should exclude self from parent options to prevent loops', function (): void {
             $location = Location::factory()->create();
             Location::factory()->count(3)->create();
 

@@ -85,4 +85,14 @@ class CategoryForm extends Form
 
         return $category;
     }
+
+    /**
+     * Saves only the name, edited in the title of the record.
+     */
+    public function rename(): void
+    {
+        $this->validateOnly('name');
+
+        Category::findOrFail($this->id)->update(['name' => $this->name]);
+    }
 }

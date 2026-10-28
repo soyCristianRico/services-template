@@ -34,6 +34,13 @@ describe('Admin\\Menus\\Index', function (): void {
                 ->assertSee('Explora');
         });
 
+        it('should link each label to its edit screen', function (): void {
+            $item = MenuItem::factory()->create(['label' => 'Contacto']);
+
+            Livewire::test('pages::admin.menus.index')
+                ->assertSeeHtml(route('admin.menus.edit', $item));
+        });
+
         it('should show hidden items too, so they can be brought back', function (): void {
             MenuItem::factory()->create(['label' => 'Empresas', 'is_active' => false]);
 
@@ -140,5 +147,4 @@ describe('Admin\\Menus\\Index', function (): void {
             expect($last->fresh()->position)->toBe(2);
         });
     });
-
 });

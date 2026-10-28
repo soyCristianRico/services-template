@@ -79,4 +79,37 @@ describe('Admin\\Blog\\Index', function () {
         });
     });
 
+    describe('sort', function (): void {
+        it('should sort by title and flip the direction on a second click', function (): void {
+            BlogPost::factory()->create(['title' => 'Beta']);
+            BlogPost::factory()->create(['title' => 'Alfa']);
+
+            $component = Livewire::test('pages::admin.blog.index')->call('sort', 'title');
+
+            expect($component->get('posts')->pluck('title')->all())->toBe(['Alfa', 'Beta']);
+
+            $component->call('sort', 'title')->assertSet('sortDirection', 'desc');
+
+            expect($component->get('posts')->pluck('title')->all())->toBe(['Beta', 'Alfa']);
+        });
+
+        it('should ignore a column that cannot be sorted', function (): void {
+            Livewire::test('pages::admin.blog.index')
+                ->call('sort', 'is_active')
+                ->assertSet('sortBy', '');
+        });
+    });
+
+    describe('clearFilter', function (): void {
+        it('should show the status as a chip and clear it', function (): void {
+            Livewire::test('pages::admin.blog.index')
+                ->set('status', 'draft')
+                ->assertSee('Borradores')
+                ->call('clearFilter', 'status')
+                ->assertSet('status', 'all')
+                ->set('search', 'algo')
+                ->call('clearAll')
+                ->assertSet('search', '');
+        });
+    });
 });

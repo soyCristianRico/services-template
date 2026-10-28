@@ -5,16 +5,23 @@ declare(strict_types=1);
 use App\Livewire\Forms\Catalog\PageForm;
 use App\Models\Page;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
 
 new
 #[Layout('layouts.admin')]
+#[Title('Página')]
 class extends Component
 {
     public PageForm $form;
 
     public ?Page $page = null;
+
+    #[Url(as: 'tab')]
+    public string $tab = 'content';
 
     public bool $slugManuallyEdited = false;
 
@@ -24,6 +31,10 @@ class extends Component
             $this->page = $page;
             $this->form->setPage($page);
             $this->slugManuallyEdited = true;
+        }
+
+        if (session()->has('status')) {
+            Flux::toast(text: session('status'), variant: 'success');
         }
     }
 
@@ -41,11 +52,32 @@ class extends Component
 
     public function save(): void
     {
-        $page = $this->form->save();
+        try {
+            $page = $this->form->save();
+        } catch (ValidationException $exception) {
+            $this->tab = $this->tabForField((string) array_key_first($exception->errors()));
 
-        session()->flash('status', $this->page ? 'Página actualizada.' : 'Página creada.');
+            throw $exception;
+        }
+
+        if ($this->page) {
+            $this->page->refresh();
+            Flux::toast(text: 'Página guardada.', variant: 'success');
+
+            return;
+        }
+
+        session()->flash('status', 'Página creada.');
 
         $this->redirectRoute('admin.pages.edit', $page);
+    }
+
+    public function rename(): void
+    {
+        $this->form->rename();
+        $this->page?->refresh();
+
+        Flux::toast(text: 'Título actualizado.', variant: 'success');
     }
 
     /**
@@ -61,16 +93,41 @@ class extends Component
 
         $this->redirectRoute('admin.pages.index', navigate: true);
     }
+
+    protected function tabForField(string $field): string
+    {
+        return match (explode('.', $field)[1] ?? $field) {
+            'meta_title', 'meta_description' => 'seo',
+            default => 'content',
+        };
+    }
 };
 ?>
 
-<div class="mx-auto max-w-3xl space-y-6 p-8">
-    <x-admin.page-header :back="route('admin.pages.index')">
-            {{ $page ? 'Editar página: '.$page->title : 'Nueva página' }}
+<div class="mx-auto max-w-3xl space-y-10 p-8 pb-28">
+    <x-admin.page-header :breadcrumbs="[
+        ['label' => 'Páginas', 'href' => route('admin.pages.index')],
+        ['label' => $page?->title ?? 'Nueva página'],
+    ]">
+        @if ($page)
+            <input
+                type="text"
+                wire:model="form.title"
+                wire:change="rename"
+                aria-label="Título"
+                class="[font:inherit] -mx-2 w-full rounded-md border border-transparent bg-transparent px-2 py-1 hover:border-zinc-300 focus:border-zinc-400 focus:outline-none"
+            />
+        @else
+            Nueva página
+        @endif
 
         @if ($page)
             <x-slot:actions>
+                <flux:badge :color="$page->is_active ? 'green' : 'zinc'">{{ $page->is_active ? 'Activa' : 'Inactiva' }}</flux:badge>
                 <x-admin.record-menu>
+                    <flux:menu.item :href="url('/'.$page->slug)" target="_blank" icon="arrow-top-right-on-square">
+                        Ver en la web
+                    </flux:menu.item>
                     <flux:menu.item
                         wire:click="delete"
                         wire:confirm="¿Eliminar la página /{{ $page->slug }}? La URL devolverá 404."
@@ -82,68 +139,27 @@ class extends Component
         @endif
     </x-admin.page-header>
 
-    @session('status')
-        <flux:callout icon="check-circle" color="green">{{ $value }}</flux:callout>
-    @endsession
-
     @if ($page)
-        <flux:callout icon="link" color="zinc">
-            <flux:callout.text>
-                <flux:callout.link :href="url('/'.$page->slug)" external>{{ url('/'.$page->slug) }}</flux:callout.link>
-            </flux:callout.text>
-        </flux:callout>
+        <flux:error name="form.title" />
+
+        <flux:tab.group>
+            <flux:tabs wire:model="tab" scrollable scrollable:scrollbar="hide">
+                <flux:tab name="content">Contenido</flux:tab>
+                <flux:tab name="seo">SEO</flux:tab>
+            </flux:tabs>
+
+            <flux:tab.panel name="content" class="space-y-10">@include('pages.admin.pages.partials.content')</flux:tab.panel>
+            <flux:tab.panel name="seo" class="space-y-10">@include('pages.admin.pages.partials.seo')</flux:tab.panel>
+        </flux:tab.group>
+    @else
+        @include('pages.admin.pages.partials.content')
+        @include('pages.admin.pages.partials.seo')
     @endif
 
-    <form wire:submit="save" class="space-y-6">
-        <flux:field>
-            <flux:label>Título</flux:label>
-            <flux:input wire:model.live.debounce.300ms="form.title" required />
-            <flux:error name="form.title" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Slug</flux:label>
-            <flux:input wire:model="form.slug" required />
-            <flux:description>Sólo minúsculas, números y guiones. Aparece como <code>/{slug}</code>.</flux:description>
-            <flux:error name="form.slug" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Activa</flux:label>
-            <flux:switch wire:model="form.is_active" />
-            <flux:description>Si está inactiva, la URL devuelve 404 y no sale en el sitemap.</flux:description>
-        </flux:field>
-
-        <flux:separator />
-        <flux:heading size="lg">Contenido</flux:heading>
-
-        <flux:field>
-            <flux:label>Cuerpo</flux:label>
-            <x-admin.rich-editor wire:model="form.body" />
-            <flux:description>HTML enriquecido. Se renderiza tal cual en la página pública dentro del wrapper <code>.prose</code>.</flux:description>
-            <flux:error name="form.body" />
-        </flux:field>
-
-        <flux:separator />
-        <flux:heading size="lg">SEO</flux:heading>
-
-        <flux:field>
-            <flux:label>Meta título (override)</flux:label>
-            <flux:input wire:model="form.meta_title" placeholder="Vacío = usa el título" />
-            <flux:error name="form.meta_title" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Meta descripción</flux:label>
-            <flux:textarea wire:model="form.meta_description" rows="3" placeholder="150-160 caracteres" />
-            <flux:error name="form.meta_description" />
-        </flux:field>
-
-        <div class="flex justify-end gap-3">
+    <div class="fixed inset-x-0 bottom-0 z-10 border-t border-zinc-200 bg-zinc-50 lg:start-64">
+        <div class="mx-auto flex max-w-3xl justify-end gap-3 px-8 py-4">
             <flux:button :href="route('admin.pages.index')" variant="ghost">Cancelar</flux:button>
-            <flux:button type="submit" variant="primary">
-                {{ $page ? 'Guardar cambios' : 'Crear página' }}
-            </flux:button>
+            <flux:button wire:click="save" variant="primary">{{ $page ? 'Guardar' : 'Crear página' }}</flux:button>
         </div>
-    </form>
+    </div>
 </div>

@@ -38,7 +38,8 @@ describe('Admin\\Services\\Edit', function () {
                 ->assertRedirect();
 
             $service = Service::where('slug', 'sdmo-100-kva')->first();
-            expect($service)->not->toBeNull();
+            expect($service)->not->toBeNull()
+                ->and(session('status'))->toBe('Servicio creado.');
             expect($service->category_id)->toBe($category->id);
         });
 
@@ -125,15 +126,84 @@ describe('Admin\\Services\\Edit', function () {
             expect($component->get('form.customFieldsJson'))->toContain('"power_kva"');
         });
 
-        it('should update an existing service', function () {
+        it('should update an existing service and stay on the screen', function () {
             $service = Service::factory()->create();
 
             Livewire::test('pages::admin.services.edit', ['service' => $service])
-                ->set('form.name', 'Renombrado')
+                ->set('form.short_description', 'Nueva línea')
                 ->call('save')
+                ->assertHasNoErrors()
+                ->assertNoRedirect();
+
+            expect($service->refresh()->short_description)->toBe('Nueva línea');
+        });
+
+        it('should open on the general tab and keep the tab from the URL', function () {
+            $service = Service::factory()->create();
+
+            Livewire::test('pages::admin.services.edit', ['service' => $service])
+                ->assertSet('tab', 'general');
+
+            Livewire::withQueryParams(['tab' => 'gallery'])
+                ->test('pages::admin.services.edit', ['service' => $service])
+                ->assertSet('tab', 'gallery');
+        });
+
+        it('should jump to the tab of the first field with an error', function () {
+            $service = Service::factory()->create();
+
+            Livewire::test('pages::admin.services.edit', ['service' => $service])
+                ->set('tab', 'gallery')
+                ->set('form.customFieldsJson', 'not-json {')
+                ->call('save')
+                ->assertHasErrors(['form.customFieldsJson'])
+                ->assertSet('tab', 'data');
+        });
+
+        it('should jump back to the general tab when the slug is invalid', function () {
+            $service = Service::factory()->create();
+
+            Livewire::test('pages::admin.services.edit', ['service' => $service])
+                ->set('tab', 'data')
+                ->set('form.slug', 'Con Espacios')
+                ->call('save')
+                ->assertHasErrors(['form.slug'])
+                ->assertSet('tab', 'general');
+        });
+    });
+
+    describe('rename', function () {
+        it('should save only the name from the heading', function () {
+            $service = Service::factory()->create(['name' => 'Viejo', 'short_description' => 'Original']);
+
+            Livewire::test('pages::admin.services.edit', ['service' => $service])
+                ->set('form.short_description', 'Sin guardar')
+                ->set('form.name', 'Nuevo nombre')
+                ->call('rename')
                 ->assertHasNoErrors();
 
-            expect($service->refresh()->name)->toBe('Renombrado');
+            $service->refresh();
+            expect($service->name)->toBe('Nuevo nombre')
+                ->and($service->short_description)->toBe('Original');
+        });
+
+        it('should keep the slug when the name changes on an existing service', function () {
+            $service = Service::factory()->create(['slug' => 'slug-fijo']);
+
+            Livewire::test('pages::admin.services.edit', ['service' => $service])
+                ->set('form.name', 'Otro nombre')
+                ->assertSet('form.slug', 'slug-fijo');
+        });
+
+        it('should refuse an empty name', function () {
+            $service = Service::factory()->create(['name' => 'Viejo']);
+
+            Livewire::test('pages::admin.services.edit', ['service' => $service])
+                ->set('form.name', '')
+                ->call('rename')
+                ->assertHasErrors(['form.name']);
+
+            expect($service->refresh()->name)->toBe('Viejo');
         });
     });
 

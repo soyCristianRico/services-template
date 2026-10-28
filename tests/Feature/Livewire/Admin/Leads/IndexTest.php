@@ -18,7 +18,7 @@ describe('Admin\\Leads\\Index', function () {
         it('should render an empty state when no leads exist', function () {
             Livewire::test('pages::admin.leads.index')
                 ->assertOk()
-                ->assertSee('No hay leads con esos filtros');
+                ->assertSee('No hay contactos con esos filtros');
         });
 
         it('should list leads ordered by most recent first', function () {
@@ -106,6 +106,66 @@ describe('Admin\\Leads\\Index', function () {
                 ->get('leads');
 
             expect($leads)->toHaveCount(1);
+        });
+    });
+
+    describe('sort', function (): void {
+        it('should sort the status in the order a lead walks through it', function (): void {
+            Lead::factory()->ofStatus(LeadStatus::Lost)->create(['name' => 'Perdida']);
+            Lead::factory()->create(['name' => 'Nueva']);
+            Lead::factory()->ofStatus(LeadStatus::Contacted)->create(['name' => 'Contactada']);
+
+            $names = Livewire::test('pages::admin.leads.index')
+                ->call('sort', 'status')
+                ->get('leads')->pluck('name')->all();
+
+            expect($names)->toBe(['Nueva', 'Contactada', 'Perdida']);
+        });
+
+        it('should sort by name and flip the direction on a second click', function (): void {
+            Lead::factory()->create(['name' => 'Beatriz']);
+            Lead::factory()->create(['name' => 'Alberto']);
+
+            $component = Livewire::test('pages::admin.leads.index')->call('sort', 'name');
+            expect($component->get('leads')->pluck('name')->all())->toBe(['Alberto', 'Beatriz']);
+
+            $component->call('sort', 'name')->assertSet('sortDirection', 'desc');
+            expect($component->get('leads')->pluck('name')->all())->toBe(['Beatriz', 'Alberto']);
+        });
+
+        it('should ignore a column that cannot be sorted', function (): void {
+            Livewire::test('pages::admin.leads.index')
+                ->call('sort', 'email')
+                ->assertSet('sortBy', '');
+        });
+    });
+
+    describe('clearFilter', function (): void {
+        it('should show each active filter as a chip and clear it', function (): void {
+            $landing = Landing::factory()->create(['slug' => 'alquiler-gruas-toledo']);
+
+            Livewire::test('pages::admin.leads.index')
+                ->set('landingId', $landing->id)
+                ->set('statusFilter', LeadStatus::Contacted->value)
+                ->set('channelFilter', 'none')
+                ->assertSee('/alquiler-gruas-toledo')
+                ->assertSee('Sin canal')
+                ->call('clearFilter', 'landingId')
+                ->assertSet('landingId', null)
+                ->assertSet('statusFilter', LeadStatus::Contacted->value)
+                ->call('clearFilter', 'channelFilter')
+                ->assertSet('channelFilter', 'all')
+                ->call('clearAll')
+                ->assertSet('statusFilter', 'all');
+        });
+    });
+
+    describe('mount', function (): void {
+        it('should toast the message left by the screen that redirected here', function (): void {
+            session()->flash('status', 'Contacto eliminado.');
+
+            Livewire::test('pages::admin.leads.index')
+                ->assertDispatched('toast-show');
         });
     });
 });

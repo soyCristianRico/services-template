@@ -54,6 +54,24 @@ describe('Admin\\Landings\\Matrix', function (): void {
         });
     });
 
+    describe('updatedLocationIds', function (): void {
+        it('should reload the ticked cells when the picked locations change', function (): void {
+            $category = Category::factory()->create();
+            $location = Location::factory()->create();
+            Landing::factory()->forCategory($category)->inLocation($location)->create();
+            $key = $category->id.'-'.$location->id;
+
+            $component = Livewire::test('pages::admin.landings.matrix')
+                ->set('locationIds', []);
+
+            expect($component->get('checked')[$key] ?? false)->toBeFalse();
+
+            $component->set('locationIds', [$location->id]);
+
+            expect($component->get('checked')[$key] ?? false)->toBeTrue();
+        });
+    });
+
     describe('applyChanges', function (): void {
         it('should create new Landings for marked cells without an existing row', function (): void {
             $service = Category::factory()->create();

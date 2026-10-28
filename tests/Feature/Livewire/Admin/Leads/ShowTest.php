@@ -13,9 +13,18 @@ beforeEach(function () {
     $this->actingAs(User::factory()->create());
 });
 
-describe('Admin\\Leads\\Show', function () {
-    describe('rendering', function () {
-        it('should show where the visit came from', function () {
+describe('Admin\\Leads\\Show', function (): void {
+    describe('rendering', function (): void {
+        it('should lead back to the contacts list from the breadcrumbs', function (): void {
+            $lead = Lead::factory()->create(['name' => 'Lucía Pérez']);
+
+            Livewire::test('pages::admin.leads.show', ['lead' => $lead])
+                ->assertSee('Contactos')
+                ->assertSee(route('admin.leads.index'))
+                ->assertSee('Lucía Pérez');
+        });
+
+        it('should show where the visit came from', function (): void {
             $lead = Lead::factory()->create([
                 'channel' => LeadChannel::Ads,
                 'utm_source' => 'google',
@@ -89,12 +98,24 @@ describe('Admin\\Leads\\Show', function () {
 
             Livewire::test('pages::admin.leads.show', ['lead' => $lead])
                 ->set('status', LeadStatus::Qualified->value)
-                ->call('updateStatus');
+                ->call('updateStatus')
+                ->assertDispatched('toast-show');
 
             expect($lead->refresh()->status)->toBe(LeadStatus::Qualified);
         });
 
-        it('should reject invalid status values', function () {
+        it('should save the status as soon as it is picked', function (): void {
+            $lead = Lead::factory()->create();
+
+            Livewire::test('pages::admin.leads.show', ['lead' => $lead])
+                ->set('status', LeadStatus::Contacted->value)
+                ->assertHasNoErrors()
+                ->assertDispatched('toast-show');
+
+            expect($lead->refresh()->status)->toBe(LeadStatus::Contacted);
+        });
+
+        it('should reject invalid status values', function (): void {
             $lead = Lead::factory()->create();
 
             Livewire::test('pages::admin.leads.show', ['lead' => $lead])
@@ -114,7 +135,8 @@ describe('Admin\\Leads\\Show', function () {
                 ->call('deleteLead')
                 ->assertRedirect(route('admin.leads.index'));
 
-            expect(Lead::find($lead->id))->toBeNull();
+            expect(Lead::find($lead->id))->toBeNull()
+                ->and(session('status'))->toBe('Contacto eliminado.');
         });
     });
 });

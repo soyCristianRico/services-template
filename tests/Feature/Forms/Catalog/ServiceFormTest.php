@@ -55,4 +55,31 @@ describe('ServiceForm', function (): void {
                 ->assertSet('form.additional_category_ids', [$extra->id]);
         });
     });
+
+    describe('rename', function (): void {
+        it('should save only the name', function (): void {
+            $service = Service::factory()->create(['name' => 'Viejo', 'description' => 'Original']);
+
+            Livewire::test(ServiceFormTestComponent::class, ['service' => $service])
+                ->set('form.name', 'Nuevo')
+                ->set('form.description', 'Cambiada sin guardar')
+                ->call('rename')
+                ->assertHasNoErrors();
+
+            $service->refresh();
+            expect($service->name)->toBe('Nuevo')
+                ->and($service->description)->toBe('Original');
+        });
+
+        it('should reject an empty name', function (): void {
+            $service = Service::factory()->create(['name' => 'Viejo']);
+
+            Livewire::test(ServiceFormTestComponent::class, ['service' => $service])
+                ->set('form.name', '')
+                ->call('rename')
+                ->assertHasErrors(['form.name']);
+
+            expect($service->refresh()->name)->toBe('Viejo');
+        });
+    });
 });

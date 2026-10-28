@@ -88,14 +88,59 @@ describe('Admin\\Categories\\Edit', function () {
             Livewire::test('pages::admin.categories.edit', ['category' => $service])
                 ->set('form.name', 'Alquiler renombrado')
                 ->call('save')
-                ->assertHasNoErrors();
+                ->assertHasNoErrors()
+                ->assertNoRedirect()
+                ->assertDispatched('toast-show');
 
             expect($service->refresh()->name)->toBe('Alquiler renombrado');
         });
     });
 
-    describe('parent options', function () {
-        it('should exclude self from parent options', function () {
+    describe('save', function (): void {
+        it('should open the new category after creating it and toast there', function (): void {
+            Livewire::test('pages::admin.categories.edit')
+                ->set('form.name', 'Alquiler de grúas')
+                ->set('form.slug', 'alquiler-de-gruas')
+                ->call('save')
+                ->assertRedirect(route('admin.categories.edit', Category::firstWhere('slug', 'alquiler-de-gruas')));
+
+            expect(session('status'))->toBe('Categoría creada.');
+
+            Livewire::test('pages::admin.categories.edit', ['category' => Category::firstWhere('slug', 'alquiler-de-gruas')])
+                ->assertDispatched('toast-show');
+        });
+    });
+
+    describe('rename', function (): void {
+        it('should save only the name edited in the title', function (): void {
+            $category = Category::factory()->create(['name' => 'Alquiler', 'icon' => 'bolt']);
+
+            Livewire::test('pages::admin.categories.edit', ['category' => $category])
+                ->set('form.icon', 'truck')
+                ->set('form.name', 'Alquiler de grúas')
+                ->call('rename')
+                ->assertHasNoErrors()
+                ->assertDispatched('toast-show');
+
+            expect($category->fresh())
+                ->name->toBe('Alquiler de grúas')
+                ->icon->toBe('bolt');
+        });
+
+        it('should refuse an empty name', function (): void {
+            $category = Category::factory()->create(['name' => 'Alquiler']);
+
+            Livewire::test('pages::admin.categories.edit', ['category' => $category])
+                ->set('form.name', '')
+                ->call('rename')
+                ->assertHasErrors(['form.name']);
+
+            expect($category->fresh()->name)->toBe('Alquiler');
+        });
+    });
+
+    describe('parent options', function (): void {
+        it('should exclude self from parent options', function (): void {
             $service = Category::factory()->create();
             Category::factory()->count(2)->create();
 
@@ -106,6 +151,7 @@ describe('Admin\\Categories\\Edit', function () {
             expect($options)->toHaveCount(2);
         });
     });
+
     describe('record_actions', function (): void {
         it('should delete a category and demote its children to roots', function () {
             $parent = Category::factory()->create();
@@ -128,7 +174,7 @@ describe('Admin\\Categories\\Edit', function () {
             Service::factory()->count(2)->for($category)->create();
 
             Livewire::test('pages::admin.categories.edit', ['category' => $category])
-                ->assertSee('Se borran también sus 2 fichas, con sus fotos.');
+                ->assertSee('Se borran también sus 2 servicios, con sus fotos.');
         });
 
         it('should not mention services when the category has none', function () {

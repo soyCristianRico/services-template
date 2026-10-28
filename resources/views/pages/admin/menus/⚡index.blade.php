@@ -9,21 +9,18 @@ use App\Models\MenuItem;
 use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new
 #[Layout('layouts.admin')]
+#[Title('Menús')]
 class extends Component
 {
     public function toggleActive(int $id): void
     {
         $item = MenuItem::findOrFail($id);
         $item->update(['is_active' => ! $item->is_active]);
-    }
-
-    public function deleteItem(int $id): void
-    {
-        MenuItem::findOrFail($id)->delete();
     }
 
     public function moveUp(int $id): void
@@ -37,25 +34,39 @@ class extends Component
     }
 
     /**
-     * Every menu with its items already nested, so the whole navigation reads
-     * in one screen instead of one location at a time.
+     * Every menu with its items already flattened in reading order (each parent
+     * followed by its submenu), so the whole navigation reads in one screen
+     * instead of one location at a time.
      *
-     * @return array<string, Collection<int, MenuItem>>
+     * @return list<array{location: MenuLocation, rows: Collection<int, MenuItem>}>
      */
     #[Computed]
     public function menus(): array
     {
-        $menus = [];
+        return collect(MenuLocation::cases())
+            ->map(fn (MenuLocation $location): array => [
+                'location' => $location,
+                'rows' => MenuItem::query()
+                    ->in($location)
+                    ->roots()
+                    ->with('children')
+                    ->get()
+                    ->flatMap(fn (MenuItem $item): array => [$item, ...$item->children]),
+            ])
+            ->all();
+    }
 
-        foreach (MenuLocation::cases() as $location) {
-            $menus[$location->value] = MenuItem::query()
-                ->in($location)
-                ->roots()
-                ->with('children')
-                ->get();
+    /**
+     * What a row points at: the block's name, its address, or nothing when it
+     * is only a column title.
+     */
+    public function destinationOf(MenuItem $item): ?string
+    {
+        if ($item->type === MenuItemType::DynamicBlock) {
+            return MenuItemForm::blocks()[$item->source] ?? $item->source;
         }
 
-        return $menus;
+        return $item->url;
     }
 
     /**
@@ -91,24 +102,26 @@ class extends Component
 };
 ?>
 
-<div class="space-y-8 p-8">
-    <div class="flex items-center justify-between">
-        <div class="space-y-1">
-            <flux:heading size="xl">Menús</flux:heading>
-            <flux:text class="text-zinc-600">
-                Los enlaces de la cabecera y del pie del sitio público. El orden de esta pantalla es el orden que se ve.
-            </flux:text>
-        </div>
-        <flux:button :href="route('admin.menus.create')" variant="primary" icon="plus">Nuevo ítem</flux:button>
+<div class="space-y-10 p-8">
+    <div class="space-y-2">
+        <x-admin.page-header>
+            Menús
+
+            <x-slot:actions>
+                <flux:button :href="route('admin.menus.create')" variant="primary" icon="plus">Nuevo ítem</flux:button>
+            </x-slot:actions>
+        </x-admin.page-header>
+
+        <flux:text>
+            Los enlaces de la cabecera y del pie del sitio público. El orden de esta pantalla es el orden que se ve.
+        </flux:text>
     </div>
 
-    @foreach (MenuLocation::cases() as $location)
-        @php($items = $this->menus[$location->value])
-
-        <div wire:key="location-{{ $location->value }}" class="space-y-3">
-            <div class="flex items-center justify-between">
-                <flux:heading size="lg">{{ $location->label() }}</flux:heading>
-                <flux:button :href="route('admin.menus.create', ['location' => $location->value])"
+    @foreach ($this->menus as $menu)
+        <section wire:key="location-{{ $menu['location']->value }}" class="space-y-3">
+            <div class="flex items-center justify-between gap-4">
+                <flux:heading size="lg">{{ $menu['location']->label() }}</flux:heading>
+                <flux:button :href="route('admin.menus.create', ['location' => $menu['location']->value])"
                     size="sm" variant="ghost" icon="plus">
                     Añadir aquí
                 </flux:button>
@@ -120,61 +133,49 @@ class extends Component
                     <flux:table.column>Destino</flux:table.column>
                     <flux:table.column>Estado</flux:table.column>
                     <flux:table.column>Orden</flux:table.column>
-                    <flux:table.column>Acciones</flux:table.column>
                 </flux:table.columns>
                 <flux:table.rows>
-                    @forelse ($items as $item)
-                        @foreach ([$item, ...$item->children] as $row)
-                            @php($isChild = $row->parent_id !== null)
-                            <flux:table.row wire:key="item-{{ $row->id }}">
-                                <flux:table.cell>
-                                    <span @class(['pl-6' => $isChild, 'inline-flex items-center gap-2'])>
-                                        @if ($isChild)
-                                            <span class="text-zinc-300">└</span>
-                                        @endif
-                                        {{ $row->label }}
-                                    </span>
-                                </flux:table.cell>
-                                <flux:table.cell>
-                                    @if ($row->type === MenuItemType::DynamicBlock)
-                                        <flux:badge size="sm" color="purple">
-                                            {{ MenuItemForm::blocks()[$row->source] ?? $row->source }}
-                                        </flux:badge>
-                                    @elseif ($row->url)
-                                        <code class="text-xs">{{ $row->url }}</code>
-                                    @else
-                                        <span class="text-zinc-400">— sólo rótulo —</span>
+                    @forelse ($menu['rows'] as $row)
+                        <flux:table.row wire:key="item-{{ $row->id }}">
+                            <flux:table.cell class="max-w-96">
+                                <span @class(['flex min-w-0 items-center gap-2', 'pl-6' => $row->parent_id !== null])>
+                                    @if ($row->parent_id !== null)
+                                        <span class="text-zinc-300">└</span>
                                     @endif
-                                </flux:table.cell>
-                                <flux:table.cell>
-                                    <flux:button
-                                        wire:click="toggleActive({{ $row->id }})"
-                                        size="xs" variant="ghost"
-                                        :icon="$row->is_active ? 'eye' : 'eye-slash'">
-                                        {{ $row->is_active ? 'Visible' : 'Oculto' }}
-                                    </flux:button>
-                                </flux:table.cell>
-                                <flux:table.cell class="flex gap-1">
+                                    <x-admin.record-link :href="route('admin.menus.edit', $row)" class="truncate">{{ $row->label }}</x-admin.record-link>
+                                </span>
+                            </flux:table.cell>
+                            <flux:table.cell class="max-w-72 truncate">
+                                @if ($row->type === MenuItemType::DynamicBlock)
+                                    <flux:badge size="sm" color="purple">{{ $this->destinationOf($row) }}</flux:badge>
+                                @elseif ($row->url)
+                                    <code class="text-xs">{{ $row->url }}</code>
+                                @else
+                                    <span class="text-zinc-400">— sólo rótulo —</span>
+                                @endif
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <flux:button
+                                    wire:click="toggleActive({{ $row->id }})"
+                                    size="xs" variant="ghost"
+                                    :icon="$row->is_active ? 'eye' : 'eye-slash'">
+                                    {{ $row->is_active ? 'Visible' : 'Oculto' }}
+                                </flux:button>
+                            </flux:table.cell>
+                            <flux:table.cell>
+                                <div class="flex gap-1">
                                     <flux:button wire:click="moveUp({{ $row->id }})" size="xs" variant="ghost"
                                         icon="arrow-up" aria-label="Subir" />
                                     <flux:button wire:click="moveDown({{ $row->id }})" size="xs" variant="ghost"
                                         icon="arrow-down" aria-label="Bajar" />
-                                </flux:table.cell>
-                                <flux:table.cell class="flex gap-2">
-                                    <flux:button :href="route('admin.menus.edit', $row)" size="xs" variant="ghost"
-                                        icon="pencil-square" aria-label="Editar" />
-                                    <flux:button
-                                        wire:click="deleteItem({{ $row->id }})"
-                                        wire:confirm="¿Eliminar «{{ $row->label }}»?{{ $row->children->isNotEmpty() ? ' Su desplegable se va con él.' : '' }}"
-                                        size="xs" variant="ghost" icon="trash" aria-label="Eliminar" />
-                                </flux:table.cell>
-                            </flux:table.row>
-                        @endforeach
+                                </div>
+                            </flux:table.cell>
+                        </flux:table.row>
                     @empty
                         <flux:table.row>
-                            <flux:table.cell colspan="5" class="text-center text-zinc-500">
+                            <flux:table.cell colspan="4" class="text-center text-zinc-500">
                                 Este menú está vacío.
-                                <a href="{{ route('admin.menus.create', ['location' => $location->value]) }}" class="underline">
+                                <a href="{{ route('admin.menus.create', ['location' => $menu['location']->value]) }}" class="underline">
                                     Añade el primer ítem
                                 </a>.
                             </flux:table.cell>
@@ -182,6 +183,6 @@ class extends Component
                     @endforelse
                 </flux:table.rows>
             </flux:table>
-        </div>
+        </section>
     @endforeach
 </div>

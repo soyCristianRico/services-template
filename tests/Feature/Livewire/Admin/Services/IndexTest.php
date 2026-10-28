@@ -72,6 +72,64 @@ describe('Admin\\Services\\Index', function () {
         });
     });
 
+    describe('sort', function () {
+        it('should sort by name and flip the direction on a second click', function () {
+            $category = Category::factory()->create();
+            Service::factory()->inCategory($category)->create(['name' => 'Beta', 'position' => 0]);
+            Service::factory()->inCategory($category)->create(['name' => 'Alfa', 'position' => 1]);
+
+            $component = Livewire::test('pages::admin.services.index')
+                ->call('sort', 'name')
+                ->assertSet('sortBy', 'name')
+                ->assertSet('sortDirection', 'asc');
+
+            expect($component->get('services')->pluck('name')->all())->toBe(['Alfa', 'Beta']);
+
+            $component->call('sort', 'name')->assertSet('sortDirection', 'desc');
+
+            expect($component->get('services')->pluck('name')->all())->toBe(['Beta', 'Alfa']);
+        });
+
+        it('should ignore a column that is not sortable', function () {
+            Livewire::test('pages::admin.services.index')
+                ->call('sort', 'category_id')
+                ->assertSet('sortBy', '');
+        });
+    });
+
+    describe('clearFilter', function () {
+        it('should show active filters as chips and clear one at a time', function () {
+            $category = Category::factory()->create(['name' => 'Generadores']);
+
+            $component = Livewire::test('pages::admin.services.index')
+                ->set('categoryId', $category->id)
+                ->set('status', 'inactive');
+
+            expect($component->get('chips')->pluck('label')->all())->toBe(['Generadores', 'Inactivos']);
+
+            $component->call('clearFilter', 'categoryId')
+                ->assertSet('categoryId', null)
+                ->assertSet('status', 'inactive');
+        });
+    });
+
+    describe('clearAll', function () {
+        it('should reset search, filters and sort', function () {
+            $category = Category::factory()->create();
+
+            Livewire::test('pages::admin.services.index')
+                ->set('search', 'x')
+                ->set('categoryId', $category->id)
+                ->set('status', 'active')
+                ->call('sort', 'position')
+                ->call('clearAll')
+                ->assertSet('search', '')
+                ->assertSet('categoryId', null)
+                ->assertSet('status', 'all')
+                ->assertSet('sortBy', '');
+        });
+    });
+
     describe('actions', function () {
         it('should toggle is_active', function () {
             $service = Service::factory()->create(['is_active' => true]);

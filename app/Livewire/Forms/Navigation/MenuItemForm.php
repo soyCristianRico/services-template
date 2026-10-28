@@ -87,6 +87,16 @@ class MenuItemForm extends Form
         ];
     }
 
+    /**
+     * Saves only the label, edited in the screen's own heading.
+     */
+    public function rename(): void
+    {
+        $this->validateOnly('label');
+
+        MenuItem::findOrFail($this->id)->update(['label' => $this->label]);
+    }
+
     public function save(): MenuItem
     {
         $this->validate();

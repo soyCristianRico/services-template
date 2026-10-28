@@ -22,6 +22,13 @@ describe('Admin\\Redirects\\Import', function (): void {
             expect(Redirect::query()->count())->toBe(0);
         });
 
+        it('should warn with a toast when there is nothing to review', function (): void {
+            Livewire::test('pages::admin.redirects.import')
+                ->set('raw', '   ')
+                ->call('review')
+                ->assertDispatched('toast-show');
+        });
+
         it('should warn that an existing redirect would be left alone', function (): void {
             Redirect::factory()->create(['source' => '/vieja']);
 

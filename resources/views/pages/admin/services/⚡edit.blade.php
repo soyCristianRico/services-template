@@ -2,18 +2,25 @@
 
 declare(strict_types=1);
 
+use App\Enums\AdminSection;
 use App\Livewire\Forms\Catalog\ServiceForm;
 use App\Models\Category;
 use App\Models\Service;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
+use Livewire\Attributes\Url;
 use Livewire\Component;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 use Livewire\WithFileUploads;
 use Toolkit\Images\ImagePreparer;
 
 new
 #[Layout('layouts.admin')]
+#[Title('Servicio')]
 class extends Component
 {
     use WithFileUploads;
@@ -22,9 +29,12 @@ class extends Component
 
     public ?Service $service = null;
 
+    #[Url(as: 'tab')]
+    public string $tab = 'general';
+
     public bool $slugManuallyEdited = false;
 
-    /** @var array<int, \Livewire\Features\SupportFileUploads\TemporaryUploadedFile> */
+    /** @var array<int, TemporaryUploadedFile> */
     public array $newImages = [];
 
     public function mount(?Service $service = null): void
@@ -33,6 +43,10 @@ class extends Component
             $this->service = $service;
             $this->form->setService($service);
             $this->slugManuallyEdited = true;
+        }
+
+        if (session()->has('status')) {
+            Flux::toast(text: session('status'), variant: 'success');
         }
     }
 
@@ -82,6 +96,15 @@ class extends Component
         $this->service->refresh();
     }
 
+    /**
+     * @return Collection<int, \Spatie\MediaLibrary\MediaCollections\Models\Media>
+     */
+    #[Computed]
+    public function gallery(): Collection
+    {
+        return $this->service?->getMedia('gallery') ?? collect();
+    }
+
     public function deleteImage(int $mediaId): void
     {
         if ($this->service === null) {
@@ -96,18 +119,47 @@ class extends Component
 
     public function save(): void
     {
-        $service = $this->form->save();
+        try {
+            $service = $this->form->save();
+        } catch (ValidationException $exception) {
+            $this->tab = $this->tabForField((string) array_key_first($exception->errors()));
 
-        session()->flash('status', $this->service ? 'Servicio actualizado.' : 'Servicio creado.');
+            throw $exception;
+        }
+
+        if ($this->service) {
+            $this->service->refresh();
+            Flux::toast(text: 'Servicio guardado.', variant: 'success');
+
+            return;
+        }
+
+        session()->flash('status', 'Servicio creado.');
 
         $this->redirectRoute('admin.services.edit', $service);
     }
 
+    public function rename(): void
+    {
+        $this->form->rename();
+        $this->service?->refresh();
+
+        Flux::toast(text: 'Nombre actualizado.', variant: 'success');
+    }
+
+    protected function tabForField(string $field): string
+    {
+        return match (explode('.', $field)[1] ?? $field) {
+            'customFieldsJson' => 'data',
+            default => 'general',
+        };
+    }
+
     /**
-     * @return \Illuminate\Support\Collection<int, Category>
+     * @return Collection<int, Category>
      */
     #[Computed]
-    public function categories(): \Illuminate\Support\Collection
+    public function categories(): Collection
     {
         return Category::orderBy('name')->get(['id', 'name']);
     }
@@ -128,12 +180,26 @@ class extends Component
 };
 ?>
 
-<div class="mx-auto max-w-3xl space-y-6 p-8">
-    <x-admin.page-header :back="route('admin.services.index')">
-            {{ $service ? 'Editar servicio: '.$service->name : 'Nuevo servicio' }}
+<div class="mx-auto max-w-3xl space-y-10 p-8 pb-28">
+    <x-admin.page-header :breadcrumbs="[
+        ['label' => AdminSection::Services->label(), 'href' => route('admin.services.index')],
+        ['label' => $service?->name ?? 'Nuevo servicio'],
+    ]">
+        @if ($service)
+            <input
+                type="text"
+                wire:model="form.name"
+                wire:change="rename"
+                aria-label="Nombre"
+                class="[font:inherit] -mx-2 w-full rounded-md border border-transparent bg-transparent px-2 py-1 hover:border-zinc-300 focus:border-zinc-400 focus:outline-none"
+            />
+        @else
+            Nuevo servicio
+        @endif
 
         @if ($service)
             <x-slot:actions>
+                <flux:badge :color="$service->is_active ? 'green' : 'zinc'">{{ $service->is_active ? 'Activo' : 'Inactivo' }}</flux:badge>
                 <x-admin.record-menu>
                     <flux:menu.item
                         wire:click="delete"
@@ -146,133 +212,33 @@ class extends Component
         @endif
     </x-admin.page-header>
 
-    @session('status')
-        <flux:callout icon="check-circle" color="green">{{ $value }}</flux:callout>
-    @endsession
-
-    <form wire:submit="save" class="space-y-6">
-        <flux:field>
-            <flux:label>Categoría</flux:label>
-            <flux:select wire:model="form.category_id" required>
-                <flux:select.option value="">— Selecciona —</flux:select.option>
-                @foreach ($this->categories as $category)
-                    <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:error name="form.category_id" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Categorías adicionales</flux:label>
-            <flux:select variant="listbox" searchable multiple wire:model="form.additional_category_ids" placeholder="— Ninguna —">
-                @foreach ($this->categories as $category)
-                    <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
-                @endforeach
-            </flux:select>
-            <flux:description>El servicio también aparecerá en estas categorías, además de la principal.</flux:description>
-            <flux:error name="form.additional_category_ids" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Nombre</flux:label>
-            <flux:input wire:model.live.debounce.300ms="form.name" required />
-            <flux:error name="form.name" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Slug</flux:label>
-            <flux:input wire:model="form.slug" required />
-            <flux:description>Sólo minúsculas, números y guiones.</flux:description>
-            <flux:error name="form.slug" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Descripción corta</flux:label>
-            <flux:input wire:model="form.short_description" placeholder="Una línea (255 caracteres)" />
-            <flux:error name="form.short_description" />
-        </flux:field>
-
-        <flux:field>
-            <flux:label>Descripción larga</flux:label>
-            <flux:textarea wire:model="form.description" rows="6" />
-            <flux:error name="form.description" />
-        </flux:field>
-
-        <div class="grid gap-4 md:grid-cols-2">
-            <flux:field>
-                <flux:label>Activo</flux:label>
-                <flux:switch wire:model="form.is_active" />
-            </flux:field>
-
-            <flux:field>
-                <flux:label>Posición (orden)</flux:label>
-                <flux:input type="number" wire:model="form.position" min="0" />
-                <flux:description>Más bajo aparece antes en el listado.</flux:description>
-                <flux:error name="form.position" />
-            </flux:field>
-        </div>
-
-        <flux:separator />
-        <flux:heading size="lg">Campos custom (JSON)</flux:heading>
-
-        <flux:field>
-            <flux:label>Specs / atributos</flux:label>
-            <flux:textarea wire:model="form.customFieldsJson" rows="10" class="font-mono text-sm" placeholder='{"power_kva": 100, "fuel": "diesel", "autonomy_h": 14}' />
-            <flux:description>
-                JSON con los campos específicos del servicio. Cada sitio define su propio esquema (kVA/dB/fuel para generadores; m³/lockable para contenedores; …).
-            </flux:description>
-            <flux:error name="form.customFieldsJson" />
-        </flux:field>
-
-        <div class="flex justify-end gap-3">
-            <flux:button :href="route('admin.services.index')" variant="ghost">Cancelar</flux:button>
-            <flux:button type="submit" variant="primary">
-                {{ $service ? 'Guardar cambios' : 'Crear servicio' }}
-            </flux:button>
-        </div>
-    </form>
-
     @if ($service)
-        <flux:separator />
-        <flux:heading size="lg">Galería</flux:heading>
-        <flux:text class="text-zinc-600">JPG, PNG, WEBP o GIF, hasta 5 MB por imagen.</flux:text>
+        <flux:error name="form.name" />
 
-        <div>
-            <input
-                type="file"
-                wire:model="newImages"
-                multiple
-                accept="image/*"
-                class="block w-full text-sm text-zinc-700 file:mr-4 file:rounded file:border-0 file:bg-zinc-900 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-zinc-800">
-            <flux:error name="newImages.*" />
+        <flux:tab.group>
+            <flux:tabs wire:model="tab" scrollable scrollable:scrollbar="hide">
+                <flux:tab name="general">General</flux:tab>
+                <flux:tab name="data">Campos custom</flux:tab>
+                <flux:tab name="gallery">Galería</flux:tab>
+            </flux:tabs>
 
-            <div wire:loading wire:target="newImages" class="mt-2 text-sm text-zinc-500">Subiendo…</div>
-        </div>
-
-        @if ($service->getMedia('gallery')->isNotEmpty())
-            <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-                @foreach ($service->getMedia('gallery') as $media)
-                    <div wire:key="media-{{ $media->id }}" class="group relative overflow-hidden rounded-lg border border-zinc-200 bg-white">
-                        <x-toolkit::image :media="$media" :alt="$media->name" sizes="240px" class="aspect-square w-full object-cover" />
-                        <button
-                            type="button"
-                            wire:click="deleteImage({{ $media->id }})"
-                            wire:confirm="¿Eliminar esta imagen?"
-                            class="absolute right-2 top-2 rounded-full bg-white/90 p-1 text-zinc-700 opacity-0 shadow transition-opacity hover:bg-red-600 hover:text-white group-hover:opacity-100"
-                            aria-label="Eliminar imagen">
-                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                @endforeach
-            </div>
-        @else
-            <flux:callout icon="photo" color="zinc">Aún no hay imágenes. Sube la primera arriba.</flux:callout>
-        @endif
+            <flux:tab.panel name="general" class="space-y-10">@include('pages.admin.services.partials.general')</flux:tab.panel>
+            <flux:tab.panel name="data" class="space-y-10">@include('pages.admin.services.partials.data')</flux:tab.panel>
+            <flux:tab.panel name="gallery">@include('pages.admin.services.partials.gallery')</flux:tab.panel>
+        </flux:tab.group>
     @else
+        @include('pages.admin.services.partials.general')
+        @include('pages.admin.services.partials.data')
+
         <flux:callout icon="information-circle" color="zinc">
             Guarda el servicio antes para poder subir imágenes.
         </flux:callout>
     @endif
+
+    <div class="fixed inset-x-0 bottom-0 z-10 border-t border-zinc-200 bg-zinc-50 lg:start-64">
+        <div class="mx-auto flex max-w-3xl justify-end gap-3 px-8 py-4">
+            <flux:button :href="route('admin.services.index')" variant="ghost">Cancelar</flux:button>
+            <flux:button wire:click="save" variant="primary">{{ $service ? 'Guardar' : 'Crear servicio' }}</flux:button>
+        </div>
+    </div>
 </div>

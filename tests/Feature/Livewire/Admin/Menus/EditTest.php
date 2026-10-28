@@ -50,7 +50,7 @@ describe('Admin\\Menus\\Edit', function (): void {
 
             $this->get(route('admin.menus.edit', $item))
                 ->assertSuccessful()
-                ->assertSee('Editar ítem: Catálogo');
+                ->assertSee('Catálogo');
         });
 
         it('should preload the form when mounted with an item', function (): void {
@@ -66,19 +66,47 @@ describe('Admin\\Menus\\Edit', function (): void {
                 ->assertSet('form.label', 'Contacto')
                 ->assertSet('form.url', '/contacto/')
                 ->assertSet('form.position', 4)
-                ->assertSee('Editar ítem: Contacto');
+                ->assertSee('Contacto');
         });
 
-        it('should save changes onto the same item', function (): void {
+        it('should save changes onto the same item and stay on it', function (): void {
             $item = MenuItem::factory()->create(['label' => 'Catálogo']);
 
             Livewire::test('pages::admin.menus.edit', ['menuItem' => $item])
                 ->set('form.label', 'Servicios')
                 ->call('save')
-                ->assertHasNoErrors();
+                ->assertHasNoErrors()
+                ->assertNoRedirect();
 
             expect(MenuItem::count())->toBe(1)
                 ->and($item->fresh()->label)->toBe('Servicios');
+        });
+    });
+
+    describe('rename', function (): void {
+        it('should save only the label edited in the heading', function (): void {
+            $item = MenuItem::factory()->create(['label' => 'Catálogo', 'url' => '/catalogo/']);
+
+            Livewire::test('pages::admin.menus.edit', ['menuItem' => $item])
+                ->set('form.label', 'Servicios')
+                ->set('form.url', '/sin-guardar/')
+                ->call('rename')
+                ->assertHasNoErrors();
+
+            expect($item->fresh())
+                ->label->toBe('Servicios')
+                ->url->toBe('/catalogo/');
+        });
+
+        it('should refuse an empty label', function (): void {
+            $item = MenuItem::factory()->create(['label' => 'Catálogo']);
+
+            Livewire::test('pages::admin.menus.edit', ['menuItem' => $item])
+                ->set('form.label', '')
+                ->call('rename')
+                ->assertHasErrors(['form.label']);
+
+            expect($item->fresh()->label)->toBe('Catálogo');
         });
     });
 

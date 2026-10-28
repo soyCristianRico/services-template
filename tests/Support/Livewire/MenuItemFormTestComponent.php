@@ -27,6 +27,11 @@ class MenuItemFormTestComponent extends Component
         $this->form->save();
     }
 
+    public function rename(): void
+    {
+        $this->form->rename();
+    }
+
     public function render(): string
     {
         return <<<'BLADE'

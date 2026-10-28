@@ -35,4 +35,45 @@ describe('Admin\\Categories\\Index', function () {
         });
     });
 
+    describe('search', function (): void {
+        it('should flatten results and match the slug too', function (): void {
+            $parent = Category::factory()->create(['name' => 'Seguridad']);
+            Category::factory()->childOf($parent)->create(['name' => 'Policía Nacional', 'slug' => 'cnp']);
+            Category::factory()->childOf($parent)->create(['name' => 'Guardia Civil', 'slug' => 'guardia-civil']);
+
+            $rows = Livewire::test('pages::admin.categories.index')
+                ->set('search', 'cnp')
+                ->get('tree');
+
+            expect($rows)->toHaveCount(1);
+            expect($rows[0]['category']->name)->toBe('Policía Nacional');
+            expect($rows[0]['depth'])->toBe(0);
+        });
+    });
+
+    describe('sort', function (): void {
+        it('should flatten the tree and sort by name', function (): void {
+            $parent = Category::factory()->create(['name' => 'Seguridad']);
+            Category::factory()->childOf($parent)->create(['name' => 'Agente de policía']);
+
+            $component = Livewire::test('pages::admin.categories.index')
+                ->call('sort', 'name')
+                ->assertSet('sortBy', 'name')
+                ->assertSet('sortDirection', 'asc');
+
+            expect(collect($component->get('tree'))->map(fn (array $row): string => $row['category']->name)->all())
+                ->toBe(['Agente de policía', 'Seguridad']);
+
+            $component->call('sort', 'name')->assertSet('sortDirection', 'desc');
+
+            expect(collect($component->get('tree'))->map(fn (array $row): string => $row['category']->name)->all())
+                ->toBe(['Seguridad', 'Agente de policía']);
+        });
+
+        it('should ignore a column that cannot be sorted', function (): void {
+            Livewire::test('pages::admin.categories.index')
+                ->call('sort', 'icon')
+                ->assertSet('sortBy', '');
+        });
+    });
 });

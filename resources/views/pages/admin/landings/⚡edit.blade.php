@@ -2,17 +2,21 @@
 
 declare(strict_types=1);
 
+use App\Enums\AdminSection;
 use App\Enums\LandingStatus;
 use App\Livewire\Forms\Catalog\LandingForm;
 use App\Models\Category;
-use App\Models\Location;
 use App\Models\Landing;
+use App\Models\Location;
+use Illuminate\Support\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new
 #[Layout('layouts.admin')]
+#[Title('Landing')]
 class extends Component
 {
     public LandingForm $form;
@@ -27,6 +31,10 @@ class extends Component
             $this->landing = $landing;
             $this->form->setLanding($landing);
             $this->slugManuallyEdited = true;
+        }
+
+        if (session()->has('status')) {
+            Flux::toast(text: session('status'), variant: 'success');
         }
     }
 
@@ -79,25 +87,40 @@ class extends Component
     {
         $landing = $this->form->save();
 
-        session()->flash('status', $this->landing ? 'Landing actualizada.' : 'Landing creada.');
+        if ($this->landing) {
+            $this->landing->refresh();
+            Flux::toast(text: 'Landing guardada.', variant: 'success');
+
+            return;
+        }
+
+        session()->flash('status', 'Landing creada.');
 
         $this->redirectRoute('admin.landings.edit', $landing);
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, Category>
+     * @return list<LandingStatus>
+     */
+    public function statuses(): array
+    {
+        return LandingStatus::cases();
+    }
+
+    /**
+     * @return Collection<int, Category>
      */
     #[Computed]
-    public function categories(): \Illuminate\Support\Collection
+    public function categories(): Collection
     {
         return Category::orderBy('name')->get(['id', 'name']);
     }
 
     /**
-     * @return \Illuminate\Support\Collection<int, Location>
+     * @return Collection<int, Location>
      */
     #[Computed]
-    public function locations(): \Illuminate\Support\Collection
+    public function locations(): Collection
     {
         return Location::orderBy('name')->get(['id', 'name']);
     }
@@ -109,7 +132,9 @@ class extends Component
             'publish_at' => null,
         ]);
 
-        $this->landing?->refresh();
+        $this->refreshLanding();
+
+        Flux::toast(text: 'Landing despublicada.', variant: 'success');
     }
 
     public function publishNow(): void
@@ -119,7 +144,24 @@ class extends Component
             'publish_at' => null,
         ]);
 
-        $this->landing?->refresh();
+        $this->refreshLanding();
+
+        Flux::toast(text: 'Landing publicada.', variant: 'success');
+    }
+
+    /**
+     * Reloads the record and keeps the form's status and date in step with it,
+     * so a later Guardar does not undo a publish from the menu.
+     */
+    protected function refreshLanding(): void
+    {
+        if ($this->landing === null) {
+            return;
+        }
+
+        $this->landing->refresh();
+        $this->form->status = $this->landing->status;
+        $this->form->publish_at = $this->landing->publish_at?->format('Y-m-d');
     }
 
     /**
@@ -138,14 +180,19 @@ class extends Component
 };
 ?>
 
-<div class="mx-auto max-w-3xl space-y-6 p-8">
-    <x-admin.page-header :back="route('admin.landings.index')">
-            {{ $landing ? 'Editar landing' : 'Nueva landing' }}
+<div class="mx-auto max-w-2xl space-y-10 p-8 pb-28">
+    <x-admin.page-header :breadcrumbs="[
+        ['label' => AdminSection::Landings->label(), 'href' => route('admin.landings.index')],
+        ['label' => $landing ? '/'.$landing->slug : 'Nueva landing'],
+    ]">
+        {{ $landing ? '/'.$landing->slug : 'Nueva landing' }}
 
         @if ($landing)
             <x-slot:actions>
+                <flux:badge :color="$landing->status->color()">{{ $landing->status->label() }}</flux:badge>
+                <flux:button :href="url('/'.$landing->slug)" target="_blank" variant="ghost" size="sm" icon="arrow-top-right-on-square" aria-label="Ver en la web" />
                 <x-admin.record-menu>
-                    @if ($landing->status === \App\Enums\LandingStatus::Published)
+                    @if ($landing->isPublished())
                         <flux:menu.item wire:click="unpublish" icon="eye-slash">Despublicar</flux:menu.item>
                     @else
                         <flux:menu.item wire:click="publishNow" icon="rocket-launch">Publicar ahora</flux:menu.item>
@@ -161,35 +208,25 @@ class extends Component
         @endif
     </x-admin.page-header>
 
-    @session('status')
-        <flux:callout icon="check-circle" color="green">{{ $value }}</flux:callout>
-    @endsession
+    <section class="space-y-6">
+        <flux:heading size="lg">Página</flux:heading>
 
-    @if ($landing)
-        <flux:callout icon="link" color="zinc">
-            <flux:callout.text>
-                <flux:callout.link :href="url('/'.$landing->slug)" external>{{ url('/'.$landing->slug) }}</flux:callout.link>
-            </flux:callout.text>
-        </flux:callout>
-    @endif
-
-    <form wire:submit="save" class="space-y-6">
-        <div class="grid gap-4 md:grid-cols-2">
+        <div class="grid gap-6 md:grid-cols-2">
             <flux:field>
                 <flux:label>Categoría</flux:label>
-                <flux:select variant="listbox" searchable wire:model.live="form.category_id" placeholder="— Selecciona categoría —">
+                <flux:select variant="listbox" searchable wire:model.live="form.category_id" placeholder="Elige la categoría">
                     @foreach ($this->categories as $category)
-                        <flux:select.option value="{{ $category->id }}">{{ $category->name }}</flux:select.option>
+                        <flux:select.option :value="$category->id">{{ $category->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
                 <flux:error name="form.category_id" />
             </flux:field>
 
             <flux:field>
-                <flux:label>Ubicación (opcional)</flux:label>
-                <flux:select variant="listbox" searchable clearable wire:model.live="form.location_id" placeholder="— Sin ubicación (sólo categoría) —">
+                <flux:label badge="Opcional">Ubicación</flux:label>
+                <flux:select variant="listbox" searchable clearable wire:model.live="form.location_id" placeholder="Sin ubicación (sólo categoría)">
                     @foreach ($this->locations as $location)
-                        <flux:select.option value="{{ $location->id }}">{{ $location->name }}</flux:select.option>
+                        <flux:select.option :value="$location->id">{{ $location->name }}</flux:select.option>
                     @endforeach
                 </flux:select>
                 <flux:error name="form.location_id" />
@@ -204,13 +241,17 @@ class extends Component
             </flux:description>
             <flux:error name="form.slug" />
         </flux:field>
+    </section>
 
-        <div class="grid gap-4 md:grid-cols-2">
+    <section class="space-y-6">
+        <flux:heading size="lg">Publicación</flux:heading>
+
+        <div class="grid gap-6 md:grid-cols-2">
             <flux:field>
                 <flux:label>Estado</flux:label>
-                <flux:select wire:model.live="form.status">
-                    @foreach (LandingStatus::cases() as $status)
-                        <flux:select.option value="{{ $status->value }}">{{ $status->label() }}</flux:select.option>
+                <flux:select variant="listbox" wire:model.live="form.status">
+                    @foreach ($this->statuses() as $status)
+                        <flux:select.option :value="$status->value">{{ $status->label() }}</flux:select.option>
                     @endforeach
                 </flux:select>
                 <flux:description>Sólo las publicadas responden 200 y salen en el sitemap.</flux:description>
@@ -218,45 +259,47 @@ class extends Component
             </flux:field>
 
             <flux:field>
-                <flux:label>Fecha de publicación</flux:label>
-                <flux:date-picker wire:model.live="form.publish_at" />
+                <flux:label badge="Opcional">Fecha de publicación</flux:label>
+                <flux:input type="date" wire:model.live="form.publish_at" />
                 <flux:description>Al fijar una fecha, la landing pasa a "Programada"; al quitarla, vuelve a "Borrador".</flux:description>
                 <flux:error name="form.publish_at" />
             </flux:field>
         </div>
+    </section>
 
-        <flux:separator />
+    <section class="space-y-6">
         <flux:heading size="lg">SEO</flux:heading>
 
         <flux:field>
-            <flux:label>Title (override)</flux:label>
+            <flux:label badge="Opcional">Title</flux:label>
             <flux:input wire:model="form.title" placeholder="Vacío = se autogenera de categoría + ubicación" />
             <flux:error name="form.title" />
         </flux:field>
 
         <flux:field>
-            <flux:label>Meta descripción</flux:label>
+            <flux:label badge="Opcional">Meta descripción</flux:label>
             <flux:textarea wire:model="form.meta_description" rows="3" placeholder="150-160 caracteres" />
             <flux:error name="form.meta_description" />
         </flux:field>
+    </section>
 
-        <flux:separator />
+    <section class="space-y-6">
         <flux:heading size="lg">Contenido (JSON)</flux:heading>
 
         <flux:field>
-            <flux:label>Secciones</flux:label>
+            <flux:label badge="Opcional">Secciones</flux:label>
             <flux:textarea wire:model="form.contentJson" rows="14" class="font-mono text-sm" placeholder='{"hero": {"title": "...", "body": "..."}}' />
             <flux:description>
                 JSON con las secciones que la vista pública interpreta. Cada sitio define su propio esquema.
             </flux:description>
             <flux:error name="form.contentJson" />
         </flux:field>
+    </section>
 
-        <div class="flex justify-end gap-3">
+    <div class="fixed inset-x-0 bottom-0 z-10 border-t border-zinc-200 bg-zinc-50 lg:start-64">
+        <div class="mx-auto flex max-w-2xl justify-end gap-3 px-8 py-4">
             <flux:button :href="route('admin.landings.index')" variant="ghost">Cancelar</flux:button>
-            <flux:button type="submit" variant="primary">
-                {{ $landing ? 'Guardar cambios' : 'Crear landing' }}
-            </flux:button>
+            <flux:button wire:click="save" variant="primary">{{ $landing ? 'Guardar' : 'Crear landing' }}</flux:button>
         </div>
-    </form>
+    </div>
 </div>

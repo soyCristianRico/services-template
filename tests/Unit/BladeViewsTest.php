@@ -15,11 +15,6 @@ function bladeViewsAllowedToKeepPhp(): array
         'components/cookies/consent-mode-default.blade.php',
         'components/site/admin-bar.blade.php',
         'components/site/pagination-seo-links.blade.php',
-        'layouts/admin.blade.php',
-        'pages/admin/blog/⚡index.blade.php',
-        'pages/admin/categories/⚡index.blade.php',
-        'pages/admin/locations/⚡index.blade.php',
-        'pages/admin/menus/⚡index.blade.php',
         'sitemap/index.blade.php',
         'sitemap/urlset.blade.php',
     ];

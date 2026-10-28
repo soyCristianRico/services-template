@@ -116,6 +116,71 @@ describe('Admin\\Blog\\Edit', function () {
             expect($post->fresh()->getMedia('hero'))->toHaveCount(0);
         });
     });
+    describe('save', function (): void {
+        it('should stay on the post after saving changes', function (): void {
+            $post = BlogPost::factory()->create(['excerpt' => 'Antes']);
+
+            Livewire::test('pages::admin.blog.edit', ['post' => $post])
+                ->set('form.excerpt', 'Después')
+                ->call('save')
+                ->assertHasNoErrors()
+                ->assertNoRedirect();
+
+            expect($post->fresh()->excerpt)->toBe('Después');
+        });
+
+        it('should open the new post after creating it', function (): void {
+            Livewire::test('pages::admin.blog.edit')
+                ->set('form.title', 'Nuevo')
+                ->set('form.slug', 'nuevo')
+                ->call('save')
+                ->assertHasNoErrors()
+                ->assertRedirect(route('admin.blog.edit', BlogPost::firstWhere('slug', 'nuevo')));
+        });
+
+        it('should jump to the tab of the first field with an error', function (string $field, mixed $value, string $tab): void {
+            $post = BlogPost::factory()->create();
+
+            Livewire::test('pages::admin.blog.edit', ['post' => $post])
+                ->set('tab', 'image')
+                ->set($field, $value)
+                ->call('save')
+                ->assertHasErrors([$field])
+                ->assertSet('tab', $tab);
+        })->with([
+            'content' => ['form.slug', 'Con Espacios', 'content'],
+            'publication' => ['form.published_at', 'no es fecha', 'publication'],
+            'seo' => ['form.meta_title', str_repeat('a', 201), 'seo'],
+        ]);
+    });
+
+    describe('rename', function (): void {
+        it('should save only the title edited in the heading', function (): void {
+            $post = BlogPost::factory()->create(['title' => 'Viejo', 'excerpt' => 'Antes']);
+
+            Livewire::test('pages::admin.blog.edit', ['post' => $post])
+                ->set('form.title', 'Nuevo')
+                ->set('form.excerpt', 'Sin guardar')
+                ->call('rename')
+                ->assertHasNoErrors();
+
+            expect($post->fresh())
+                ->title->toBe('Nuevo')
+                ->excerpt->toBe('Antes');
+        });
+
+        it('should refuse an empty title', function (): void {
+            $post = BlogPost::factory()->create(['title' => 'Viejo']);
+
+            Livewire::test('pages::admin.blog.edit', ['post' => $post])
+                ->set('form.title', '')
+                ->call('rename')
+                ->assertHasErrors(['form.title']);
+
+            expect($post->fresh()->title)->toBe('Viejo');
+        });
+    });
+
     describe('record_actions', function (): void {
         it('should delete a post', function () {
             $post = BlogPost::factory()->create();

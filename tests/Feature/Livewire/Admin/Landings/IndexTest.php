@@ -117,4 +117,60 @@ describe('Admin\\Landings\\Index', function (): void {
         });
     });
 
+    describe('sort', function (): void {
+        it('should sort by slug in both directions', function (): void {
+            $category = Category::factory()->create();
+            Landing::factory()->forCategory($category)->create(['slug' => 'bbb']);
+            Landing::factory()->forCategory($category)->create(['slug' => 'aaa']);
+
+            $component = Livewire::test('pages::admin.landings.index')->call('sort', 'slug');
+
+            expect($component->get('landings')->pluck('slug')->all())->toBe(['aaa', 'bbb']);
+
+            $component->call('sort', 'slug')->assertSet('sortDirection', 'desc');
+
+            expect($component->get('landings')->pluck('slug')->all())->toBe(['bbb', 'aaa']);
+        });
+
+        it('should ignore a column that is not sortable', function (): void {
+            Livewire::test('pages::admin.landings.index')
+                ->call('sort', 'category_id')
+                ->assertSet('sortBy', '');
+        });
+    });
+
+    describe('clearFilter', function (): void {
+        it('should show active filters as chips and clear one at a time', function (): void {
+            $category = Category::factory()->create(['name' => 'Generadores']);
+            $location = Location::factory()->create(['name' => 'Madrid']);
+
+            $component = Livewire::test('pages::admin.landings.index')
+                ->set('categoryId', $category->id)
+                ->set('locationId', $location->id)
+                ->set('status', 'published');
+
+            expect($component->get('chips')->pluck('label')->all())->toBe(['Generadores', 'Madrid', 'Publicada']);
+
+            $component->call('clearFilter', 'locationId')
+                ->assertSet('locationId', null)
+                ->assertSet('categoryId', $category->id);
+        });
+    });
+
+    describe('clearAll', function (): void {
+        it('should reset search, filters and sort', function (): void {
+            $category = Category::factory()->create();
+
+            Livewire::test('pages::admin.landings.index')
+                ->set('search', 'madrid')
+                ->set('categoryId', $category->id)
+                ->set('status', 'draft')
+                ->call('sort', 'updated_at')
+                ->call('clearAll')
+                ->assertSet('search', '')
+                ->assertSet('categoryId', null)
+                ->assertSet('status', 'all')
+                ->assertSet('sortBy', '');
+        });
+    });
 });

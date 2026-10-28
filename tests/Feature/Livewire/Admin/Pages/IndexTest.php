@@ -48,6 +48,26 @@ describe('Admin\\Pages\\Index', function () {
 
             expect($page->refresh()->is_active)->toBeFalse();
         });
+    });
 
+    describe('sort', function (): void {
+        it('should sort by title descending on a second click', function (): void {
+            Page::factory()->create(['title' => 'Aviso legal']);
+            Page::factory()->create(['title' => 'Privacidad']);
+
+            $pages = Livewire::test('pages::admin.pages.index')
+                ->call('sort', 'title')
+                ->call('sort', 'title')
+                ->assertSet('sortDirection', 'desc')
+                ->get('pages');
+
+            expect($pages->pluck('title')->all())->toBe(['Privacidad', 'Aviso legal']);
+        });
+
+        it('should ignore a column that cannot be sorted', function (): void {
+            Livewire::test('pages::admin.pages.index')
+                ->call('sort', 'body')
+                ->assertSet('sortBy', '');
+        });
     });
 });
