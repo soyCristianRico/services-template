@@ -19,7 +19,8 @@ describe('Admin\\Profile', function (): void {
             $this->actingAs($this->user)
                 ->get('/admin/profile')
                 ->assertSuccessful()
-                ->assertSee('Tu perfil');
+                ->assertSee('Perfil')
+                ->assertDontSee('Tu perfil');
         });
 
         it('should send a guest to the login screen', function (): void {
@@ -35,9 +36,23 @@ describe('Admin\\Profile', function (): void {
                 ->set('form.name', 'Cristian Rico')
                 ->call('save')
                 ->assertHasNoErrors()
-                ->assertSet('status', 'Datos de la cuenta guardados.');
+                ->assertDispatched('toast-show', fn (string $event, array $params): bool => $params['slots']['text'] === 'Datos guardados.'
+                    && $params['dataset']['variant'] === 'success');
 
             expect($this->user->refresh()->name)->toBe('Cristian Rico');
+        });
+
+        it('should not save nor toast when the email is taken by another account', function (): void {
+            User::factory()->create(['email' => 'ocupado@example.com']);
+
+            Livewire::actingAs($this->user)
+                ->test('pages::admin.profile')
+                ->set('form.email', 'ocupado@example.com')
+                ->call('save')
+                ->assertHasErrors(['form.email'])
+                ->assertNotDispatched('toast-show');
+
+            expect($this->user->refresh()->email)->not->toBe('ocupado@example.com');
         });
     });
 
@@ -50,7 +65,8 @@ describe('Admin\\Profile', function (): void {
                 ->set('passwordForm.password_confirmation', 'una-nueva-larga')
                 ->call('savePassword')
                 ->assertHasNoErrors()
-                ->assertSet('status', 'Contraseña actualizada.');
+                ->assertDispatched('toast-show', fn (string $event, array $params): bool => $params['slots']['text'] === 'Contraseña actualizada.'
+                    && $params['dataset']['variant'] === 'success');
 
             expect(Hash::check('una-nueva-larga', $this->user->refresh()->password))->toBeTrue();
         });
@@ -63,7 +79,7 @@ describe('Admin\\Profile', function (): void {
                 ->set('passwordForm.password_confirmation', 'una-nueva-larga')
                 ->call('savePassword')
                 ->assertHasErrors(['passwordForm.current_password'])
-                ->assertSet('status', '');
+                ->assertNotDispatched('toast-show');
 
             expect(Hash::check('la-de-siempre', $this->user->refresh()->password))->toBeTrue();
         });

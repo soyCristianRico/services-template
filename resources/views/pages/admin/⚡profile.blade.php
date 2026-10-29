@@ -5,17 +5,17 @@ declare(strict_types=1);
 use App\Livewire\Forms\Account\PasswordForm;
 use App\Livewire\Forms\Account\ProfileForm;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Title;
 use Livewire\Component;
 
 new
 #[Layout('layouts.admin')]
+#[Title('Perfil')]
 class extends Component
 {
     public ProfileForm $form;
 
     public PasswordForm $passwordForm;
-
-    public string $status = '';
 
     public function mount(): void
     {
@@ -26,30 +26,27 @@ class extends Component
     {
         $this->form->save();
 
-        $this->status = 'Datos de la cuenta guardados.';
+        Flux::toast(text: 'Datos guardados.', variant: 'success');
     }
 
+    /**
+     * A separate action from `save()`: changing the password asks for the current
+     * one, so it never travels with an edit of the name or the email.
+     */
     public function savePassword(): void
     {
         $this->passwordForm->save();
 
-        $this->status = 'Contraseña actualizada.';
+        Flux::toast(text: 'Contraseña actualizada.', variant: 'success');
     }
 };
 ?>
 
-<div class="mx-auto max-w-2xl space-y-6 p-8">
-    <div class="flex items-center justify-between">
-        <flux:heading size="xl">Tu perfil</flux:heading>
-        <flux:button :href="route('admin.dashboard')" variant="ghost" icon="arrow-left">Volver</flux:button>
-    </div>
-
-    @if ($status)
-        <flux:callout icon="check-circle" color="green">{{ $status }}</flux:callout>
-    @endif
+<div class="mx-auto max-w-2xl space-y-10 p-8">
+    <x-admin.page-header>Perfil</x-admin.page-header>
 
     <form wire:submit="save" class="space-y-6">
-        <flux:heading size="lg">Datos de la cuenta</flux:heading>
+        <flux:heading size="lg">Datos</flux:heading>
 
         <flux:field>
             <flux:label>Nombre</flux:label>
@@ -65,11 +62,9 @@ class extends Component
         </flux:field>
 
         <div class="flex justify-end">
-            <flux:button type="submit" variant="primary">Guardar cambios</flux:button>
+            <flux:button type="submit" variant="primary">Guardar</flux:button>
         </div>
     </form>
-
-    <flux:separator />
 
     <form wire:submit="savePassword" class="space-y-6">
         <flux:heading size="lg">Contraseña</flux:heading>
