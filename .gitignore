@@ -32,3 +32,6 @@ Thumbs.db
 
 # Playwright MCP output (screenshots, snapshots, console logs)
 .playwright-mcp
+
+# Temporary files of image conversions (left behind by the upload tests)
+/storage/media-library
