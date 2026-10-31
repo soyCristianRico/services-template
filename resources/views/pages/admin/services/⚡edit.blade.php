@@ -90,6 +90,8 @@ class extends Component
                 ->addMedia($prepared['path'])
                 ->usingFileName($prepared['name'])
                 ->toMediaCollection('gallery');
+
+            $image->delete();
         }
 
         $this->newImages = [];

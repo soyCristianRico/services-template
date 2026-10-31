@@ -7,6 +7,7 @@ use App\Models\Service;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportFileUploads\FileUploadConfiguration;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -208,6 +209,21 @@ describe('Admin\\Services\\Edit', function () {
     });
 
     describe('media gallery', function () {
+        it('should remove the temporary upload once the image is in the gallery', function () {
+            Storage::fake(FileUploadConfiguration::disk());
+            Storage::fake('public');
+            $service = Service::factory()->create();
+            $file = UploadedFile::fake()->image('sdmo-100.jpg', 800, 600);
+
+            Livewire::test('pages::admin.services.edit', ['service' => $service])
+                ->set('newImages', [$file]);
+
+            $leftovers = collect(FileUploadConfiguration::storage()->allFiles(FileUploadConfiguration::path()))
+                ->reject(fn (string $path): bool => str_ends_with($path, '.json'));
+
+            expect($leftovers)->toBeEmpty();
+        });
+
         it('should attach uploaded images to the gallery collection', function () {
             Storage::fake('public');
             $service = Service::factory()->create();

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 use App\Models\Redirect;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportFileUploads\FileUploadConfiguration;
 use Livewire\Livewire;
 
 beforeEach(function (): void {
@@ -11,6 +14,21 @@ beforeEach(function (): void {
 });
 
 describe('Admin\\Redirects\\Import', function (): void {
+    describe('updatedFile', function (): void {
+        it('should remove the temporary upload once the file is read', function (): void {
+            Storage::fake(FileUploadConfiguration::disk());
+
+            Livewire::test('pages::admin.redirects.import')
+                ->set('file', UploadedFile::fake()->createWithContent('redirects.csv', '/vieja;/nueva'))
+                ->assertSet('raw', '/vieja;/nueva');
+
+            $leftovers = collect(FileUploadConfiguration::storage()->allFiles(FileUploadConfiguration::path()))
+                ->reject(fn (string $path): bool => str_ends_with($path, '.json'));
+
+            expect($leftovers)->toBeEmpty();
+        });
+    });
+
     describe('review', function (): void {
         it('should say what each line would do before touching anything', function (): void {
             Livewire::test('pages::admin.redirects.import')

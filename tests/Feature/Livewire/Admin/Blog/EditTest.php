@@ -6,6 +6,7 @@ use App\Models\BlogPost;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Features\SupportFileUploads\FileUploadConfiguration;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -83,6 +84,21 @@ describe('Admin\\Blog\\Edit', function () {
     });
 
     describe('hero image', function () {
+        it('should remove the temporary upload once the hero image is stored', function () {
+            Storage::fake(FileUploadConfiguration::disk());
+            Storage::fake('public');
+            $post = BlogPost::factory()->create();
+            $file = UploadedFile::fake()->image('hero.jpg', 1600, 900);
+
+            Livewire::test('pages::admin.blog.edit', ['post' => $post])
+                ->set('newHero', $file);
+
+            $leftovers = collect(FileUploadConfiguration::storage()->allFiles(FileUploadConfiguration::path()))
+                ->reject(fn (string $path): bool => str_ends_with($path, '.json'));
+
+            expect($leftovers)->toBeEmpty();
+        });
+
         it('should attach an uploaded hero image', function () {
             Storage::fake('public');
             $post = BlogPost::factory()->create();

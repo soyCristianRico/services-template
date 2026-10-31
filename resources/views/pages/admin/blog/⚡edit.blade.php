@@ -79,6 +79,7 @@ class extends Component
             ->usingFileName($prepared['name'])
             ->toMediaCollection('hero');
 
+        $this->newHero->delete();
         $this->newHero = null;
         $this->post->refresh();
         unset($this->hero);

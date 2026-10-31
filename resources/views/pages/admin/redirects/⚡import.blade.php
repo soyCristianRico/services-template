@@ -36,6 +36,7 @@ class extends Component
         ], [], ['file' => 'fichero']);
 
         $this->raw = (string) file_get_contents($this->file->getRealPath());
+        $this->file->delete();
         $this->file = null;
         $this->reviewed = true;
     }
