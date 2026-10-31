@@ -84,6 +84,21 @@ public function loadContent(): void
 - Match skeleton spacing to real content spacing (e.g., if parent has `space-y-8`, skeleton group needs `class="space-y-8"`)
 - Reusable skeleton: `<x-admin.product-list-skeleton :rows="6" />`
 
+## File Uploads
+- Livewire does NOT remove a temporary upload when you are done with it. It only purges `livewire-tmp` files older than 24 hours when the next upload finishes, so the last batch stays on disk for good (Marfinques: 223 MB of forgotten camera originals).
+- **Once an upload is handled — stored, imported or read — delete its temporary file**, in the same method. Copying it or handing a copy to the media library leaves the original behind.
+
+```php
+foreach ($this->newImages as $image) {
+    // ...store it...
+    $image->delete();
+}
+
+$this->newImages = [];
+```
+
+- Test it: assert no file is left in `FileUploadConfiguration::path()` on `FileUploadConfiguration::storage()`, ignoring the `.json` sidecar Livewire keeps next to each upload until its own purge.
+
 ## Form Classes
 - Location: `app/Livewire/Forms/{Module}/` → e.g., `app/Livewire/Forms/Catalog/ProductForm.php`
 - Form handles: validation (`rules()`, `messages()` or `#[Validate]` attrs), form state (public properties), save methods (`save()`, `autoSave*()`)
