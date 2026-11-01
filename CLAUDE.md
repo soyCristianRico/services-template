@@ -99,6 +99,23 @@ $this->newImages = [];
 
 - Test it: assert no file is left in `FileUploadConfiguration::path()` on `FileUploadConfiguration::storage()`, ignoring the `.json` sidecar Livewire keeps next to each upload until its own purge.
 
+## Public Properties
+- A request can rewrite any public property, whether or not the view binds it. The snapshot checksum protects the snapshot, not the `updates` sent beside it, and scanners now post arrays to every property they find (Marfinques: `__($label)` crashing on a rewritten `$interestOptions`).
+- **Mark `#[Locked]` every public property no input binds**: IDs, models, what a parent passes in, URLs, flags only the server sets.
+
+```php
+#[Locked]
+public ?string $redirectTo = null;
+
+#[Locked]
+public array $interestOptions = [];
+```
+
+- A property with `wire:model` is user input, and its type is not validation: validate it in the action.
+- `#[Locked]` does not replace authorization: the action still checks access to whatever it touches.
+- Never keep a secret in a public property: the snapshot travels to the browser.
+- Test it: `->set('redirectTo', 'https://example.com')` throws `CannotUpdateLockedPropertyException`. `ruklab/toolkit` does not email that exception, so a `wire:model` on a locked property only fails in the browser: cover the form with a test that sets each bound field.
+
 ## Form Classes
 - Location: `app/Livewire/Forms/{Module}/` → e.g., `app/Livewire/Forms/Catalog/ProductForm.php`
 - Form handles: validation (`rules()`, `messages()` or `#[Validate]` attrs), form state (public properties), save methods (`save()`, `autoSave*()`)
