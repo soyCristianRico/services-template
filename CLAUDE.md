@@ -254,6 +254,28 @@ gone, not just the row.
   rollback is where a missing `down()` or a forgotten index shows up, and the
   re-run is where a non-re-runnable migration shows up.
 
+## What goes inside a transaction
+
+A transaction makes a set of writes all-or-nothing. Two things break that
+promise without any error to show for it.
+
+- **A job, mail or notification queued inside a transaction can run before the
+  commit.** The worker reads the row as it was, decides there is nothing to do,
+  and the work is lost silently. Queue it after the commit: an observer
+  implements `ShouldHandleEventsAfterCommit`, a job `ShouldQueueAfterCommit`, or
+  the dispatch calls `->afterCommit()`. Cierzo lost the Holded invoice of four
+  card payments out of seven in one morning this way.
+- **A secondary call to an outside service does not belong in the transaction
+  that records something already done.** A webhook reporting a payment records
+  the payment; giving campus access, syncing a CRM or sending an email comes
+  after, with its own `try`/`catch` and a logged error. Inside the transaction,
+  that service's failure rolls back a payment the provider already took, and the
+  provider retries an event that can never succeed. Cierzo left thirteen paid
+  fees pending because the campus answered "already enrolled".
+
+Test both: assert nothing is queued until the transaction commits, and that the
+record survives when the outside service throws.
+
 === .ai/git rules ===
 
 # Git
@@ -337,6 +359,9 @@ Trampas que ya han costado tiempo. Antes de depurar algo raro, mira aquí.
 - **SQLite:** al quitar una columna con índice, quita primero el índice.
 - **Tests que dependen de la fecha de hoy** pueden fallar un día y pasar al siguiente:
   fija la fecha con `Carbon::setTestNow()`.
+- **Columna de fecha sin cast:** llega a la vista como texto y `->format()` da un 500,
+  solo en las filas que tienen valor (un `*_sent_at` que rellena una integración). Cada
+  columna `date`, `datetime` o `timestamp` lleva su cast en `casts()`.
 
 ## Blade y Livewire
 
@@ -383,6 +408,12 @@ contrasta al repasar. Los componentes que las implementan viven en
 - **Filtros:** solo el buscador (`x-admin.search-input`) a la vista. Todo lo demás, el
   estado incluido, va dentro del panel «Filtros» con contador (`x-admin.filter-bar`). Los
   filtros activos son chips con su ×, y «Limpiar todo» al final.
+- **Buscador de personas:** un único scope en el modelo (`matching`) que usan todos los
+  listados (y las tools de MCP, si las hay). Parte el texto en palabras y exige que cada una aparezca en el nombre,
+  los apellidos, el DNI, el email o el teléfono, en cualquier orden. Nunca el texto entero
+  contra una sola columna: «Marta Soriano» no está en ningún campo y no sale nada. El
+  teléfono se compara sin espacios ni prefijo (`+34`). Tildes y mayúsculas ya las ignora la
+  collation `utf8mb4_unicode_ci`: no hace falta normalizarlas.
 - **Columnas:** ordenables solo si el valor se guarda y se compara tal cual (fechas,
   importes, nombres, plazas). Sin orden en campos calculados. El orden por defecto es
   el más útil para el equipo, no el alfabético; un estado se ordena en el orden en que
@@ -478,6 +509,9 @@ describe('ClassName', function () {
 - Search before creating: `find tests -name "*Name*Test.php"`
 - Flux UI modals/toasts: test state changes, not visual behavior
 - First `describe()` = class name, nested `describe()` = method name
+- Find the row under test by a value only it has (DNI, email, id), never by a name:
+  Faker repeats first names, so a test that picks "the row named Marta" among 30 random
+  students fails once in a while.
 - NEVER put `it()` directly under the class-level `describe()`
 
 ## Test Maintenance

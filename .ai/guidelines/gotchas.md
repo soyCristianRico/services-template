@@ -15,6 +15,9 @@ Trampas que ya han costado tiempo. Antes de depurar algo raro, mira aquí.
 - **SQLite:** al quitar una columna con índice, quita primero el índice.
 - **Tests que dependen de la fecha de hoy** pueden fallar un día y pasar al siguiente:
   fija la fecha con `Carbon::setTestNow()`.
+- **Columna de fecha sin cast:** llega a la vista como texto y `->format()` da un 500,
+  solo en las filas que tienen valor (un `*_sent_at` que rellena una integración). Cada
+  columna `date`, `datetime` o `timestamp` lleva su cast en `casts()`.
 
 ## Blade y Livewire
 

@@ -112,3 +112,25 @@ gone, not just the row.
 - Verify by running the migration, rolling it back and running it again. The
   rollback is where a missing `down()` or a forgotten index shows up, and the
   re-run is where a non-re-runnable migration shows up.
+
+## What goes inside a transaction
+
+A transaction makes a set of writes all-or-nothing. Two things break that
+promise without any error to show for it.
+
+- **A job, mail or notification queued inside a transaction can run before the
+  commit.** The worker reads the row as it was, decides there is nothing to do,
+  and the work is lost silently. Queue it after the commit: an observer
+  implements `ShouldHandleEventsAfterCommit`, a job `ShouldQueueAfterCommit`, or
+  the dispatch calls `->afterCommit()`. Cierzo lost the Holded invoice of four
+  card payments out of seven in one morning this way.
+- **A secondary call to an outside service does not belong in the transaction
+  that records something already done.** A webhook reporting a payment records
+  the payment; giving campus access, syncing a CRM or sending an email comes
+  after, with its own `try`/`catch` and a logged error. Inside the transaction,
+  that service's failure rolls back a payment the provider already took, and the
+  provider retries an event that can never succeed. Cierzo left thirteen paid
+  fees pending because the campus answered "already enrolled".
+
+Test both: assert nothing is queued until the transaction commits, and that the
+record survives when the outside service throws.

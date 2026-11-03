@@ -11,6 +11,12 @@ contrasta al repasar. Los componentes que las implementan viven en
 - **Filtros:** solo el buscador (`x-admin.search-input`) a la vista. Todo lo demás, el
   estado incluido, va dentro del panel «Filtros» con contador (`x-admin.filter-bar`). Los
   filtros activos son chips con su ×, y «Limpiar todo» al final.
+- **Buscador de personas:** un único scope en el modelo (`matching`) que usan todos los
+  listados (y las tools de MCP, si las hay). Parte el texto en palabras y exige que cada una aparezca en el nombre,
+  los apellidos, el DNI, el email o el teléfono, en cualquier orden. Nunca el texto entero
+  contra una sola columna: «Marta Soriano» no está en ningún campo y no sale nada. El
+  teléfono se compara sin espacios ni prefijo (`+34`). Tildes y mayúsculas ya las ignora la
+  collation `utf8mb4_unicode_ci`: no hace falta normalizarlas.
 - **Columnas:** ordenables solo si el valor se guarda y se compara tal cual (fechas,
   importes, nombres, plazas). Sin orden en campos calculados. El orden por defecto es
   el más útil para el equipo, no el alfabético; un estado se ordena en el orden en que

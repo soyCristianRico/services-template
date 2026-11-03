@@ -30,6 +30,9 @@ describe('ClassName', function () {
 - Search before creating: `find tests -name "*Name*Test.php"`
 - Flux UI modals/toasts: test state changes, not visual behavior
 - First `describe()` = class name, nested `describe()` = method name
+- Find the row under test by a value only it has (DNI, email, id), never by a name:
+  Faker repeats first names, so a test that picks "the row named Marta" among 30 random
+  students fails once in a while.
 - NEVER put `it()` directly under the class-level `describe()`
 
 ## Test Maintenance
