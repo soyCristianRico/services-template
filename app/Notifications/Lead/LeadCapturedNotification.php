@@ -61,6 +61,6 @@ class LeadCapturedNotification extends Notification implements ShouldQueue
         $category = $landing->category->name ?? null;
         $location = $landing->location?->name;
 
-        return implode(' · ', array_filter([$category, $location])) ?: 'Landing';
+        return implode(' - ', array_filter([$category, $location])) ?: 'Landing';
     }
 }

@@ -106,11 +106,11 @@ describe('AdminLayout', function (): void {
 
     describe('title', function (): void {
         it('should name the current section in the browser tab', function (): void {
-            expect(renderAdminLayout('/admin/redirects/404'))->toContain('<title>Direcciones rotas · ');
+            expect(renderAdminLayout('/admin/redirects/404'))->toContain('<title>Direcciones rotas - ');
         });
 
         it('should fall back to Admin outside any section', function (): void {
-            expect(renderAdminLayout('/admin/does-not-exist'))->toContain('<title>Admin · ');
+            expect(renderAdminLayout('/admin/does-not-exist'))->toContain('<title>Admin - ');
         });
     });
 

@@ -55,7 +55,7 @@ class extends Component
                 </a>
                 <flux:text class="mt-2 text-sm text-zinc-500">
                     {{ $post->published_at?->format('d/m/Y') }}
-                    @if ($post->author_name) · {{ $post->author_name }} @endif
+                    @if ($post->author_name) - {{ $post->author_name }} @endif
                 </flux:text>
                 @if ($post->excerpt)
                     <flux:text class="mt-3">{{ $post->excerpt }}</flux:text>

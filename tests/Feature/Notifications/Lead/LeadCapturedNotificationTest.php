@@ -46,7 +46,7 @@ describe('LeadCapturedNotification', function () {
             $payload = (new LeadCapturedNotification($lead))->toDiscord(new stdClass)->toArray();
             $origin = collect($payload['embeds'][0]['fields'])->firstWhere('name', 'Origen')['value'];
 
-            expect($origin)->toBe('Alquiler de generadores · Madrid');
+            expect($origin)->toBe('Alquiler de generadores - Madrid');
         });
 
         it('should label the origin as direct contact when there is no landing', function () {

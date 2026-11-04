@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 use App\Enums\RedirectMatchType;
-use App\Enums\RedirectStatusCode;
 use App\Livewire\Forms\Seo\RedirectForm;
 use App\Models\NotFoundLog;
 use App\Models\Redirect;
@@ -217,10 +216,10 @@ class extends Component
                         Escribe una dirección y te decimos si esta regla la atraparía y a dónde la mandaría.
                     @elseif ($this->testResult['matches'])
                         @if ($form->isGone())
-                            <flux:badge color="amber" size="sm">Coincide · respondería «contenido eliminado» (410)</flux:badge>
+                            <flux:badge color="amber" size="sm">Coincide - respondería «contenido eliminado» (410)</flux:badge>
                         @else
                             <flux:badge color="green" size="sm">
-                                Coincide · iría a <span class="font-mono">{{ $this->testResult['destination'] }}</span>
+                                Coincide - iría a <span class="font-mono">{{ $this->testResult['destination'] }}</span>
                             </flux:badge>
                         @endif
                     @else

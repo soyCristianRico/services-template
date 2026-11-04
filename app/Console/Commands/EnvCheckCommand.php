@@ -133,7 +133,7 @@ class EnvCheckCommand extends Command
     {
         $connection = (string) config('queue.default');
 
-        $this->line("  <fg=yellow>·</> QUEUE_CONNECTION = {$connection} — the Forge worker MUST listen on this same connection.");
+        $this->line("  <fg=yellow>-</> QUEUE_CONNECTION = {$connection} — the Forge worker MUST listen on this same connection.");
     }
 
     protected function pass(string $message): void

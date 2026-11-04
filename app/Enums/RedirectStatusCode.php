@@ -15,11 +15,11 @@ enum RedirectStatusCode: int
     public function label(): string
     {
         return match ($this) {
-            self::MovedPermanently => '301 · Permanente',
-            self::Found => '302 · Temporal',
-            self::TemporaryRedirect => '307 · Temporal (conserva el método)',
-            self::PermanentRedirect => '308 · Permanente (conserva el método)',
-            self::Gone => '410 · Contenido eliminado',
+            self::MovedPermanently => '301 - Permanente',
+            self::Found => '302 - Temporal',
+            self::TemporaryRedirect => '307 - Temporal (conserva el método)',
+            self::PermanentRedirect => '308 - Permanente (conserva el método)',
+            self::Gone => '410 - Contenido eliminado',
         };
     }
 

@@ -69,7 +69,7 @@ describe('Admin\\Locations\\Edit', function () {
                 'name' => 'Madrid',
                 'slug' => 'madrid',
                 'population' => 3300000,
-                'meta_title' => 'Madrid · capital',
+                'meta_title' => 'Madrid - capital',
             ]);
 
             $component = Livewire::test('pages::admin.locations.edit', ['location' => $location]);
@@ -80,7 +80,7 @@ describe('Admin\\Locations\\Edit', function () {
                 ->assertSet('form.slug', 'madrid')
                 ->assertSet('form.parent_id', $parent->id)
                 ->assertSet('form.population', 3300000)
-                ->assertSet('form.meta_title', 'Madrid · capital');
+                ->assertSet('form.meta_title', 'Madrid - capital');
         });
 
         it('should update an existing city when saving', function () {

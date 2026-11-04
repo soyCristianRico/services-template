@@ -17,7 +17,7 @@ return [
             'title' => env('APP_NAME', 'Services'),
             'titleBefore' => false,
             'description' => false,
-            'separator' => ' · ',
+            'separator' => ' - ',
             'keywords' => [],
             'canonical' => 'current',
             'robots' => 'index, follow',

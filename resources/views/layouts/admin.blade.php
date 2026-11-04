@@ -5,7 +5,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? View::yieldContent('title', $adminNavigation->current()?->label() ?? 'Admin') }} · {{ config('app.name') }}</title>
+    <title>{{ $title ?? View::yieldContent('title', $adminNavigation->current()?->label() ?? 'Admin') }} - {{ config('app.name') }}</title>
     <meta name="robots" content="noindex, follow">
 
     {{-- Sin esto el navegador se cae a `/favicon.ico`, que es el de 0 bytes que

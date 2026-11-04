@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 use App\Models\Landing;
 use App\Models\Page;
-use App\Services\Seo\SchemaBuilder;
 use App\Services\Admin\AdminBar;
+use App\Services\Seo\SchemaBuilder;
 use App\Services\Seo\SeoService;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
@@ -105,7 +105,7 @@ class extends Component
                 <span class="mx-2">/</span>
                 <span class="text-zinc-900">{{ $landing->category->name }}</span>
                 @if ($landing->location)
-                    <span class="mx-2">·</span>
+                    <span class="mx-2">-</span>
                     <span class="text-zinc-900">{{ $landing->location->name }}</span>
                 @endif
             </nav>
