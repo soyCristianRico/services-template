@@ -9,8 +9,15 @@ contrasta al repasar. Los componentes que las implementan viven en
 ### Listados
 
 - **Filtros:** solo el buscador (`x-admin.search-input`) a la vista. Todo lo demás, el
-  estado incluido, va dentro del panel «Filtros» con contador (`x-admin.filter-bar`). Los
+  estado incluido (salvo la vista principal, abajo), va dentro del panel «Filtros» con contador (`x-admin.filter-bar`). Los
   filtros activos son chips con su ×, y «Limpiar todo» al final.
+- **Vista principal por estado:** cuando un estado es la forma en que el equipo mira el
+  listado (alumnos en curso, pendientes de pago o antiguos), va a la vista como selector
+  segmentado (`<flux:tabs variant="segmented">`) encima de la tabla: la opción más usada por
+  defecto, en la URL, y el recuento de cada una con la búsqueda y los demás filtros aplicados.
+  Una sola por listado; el resto de filtros, otros estados incluidos, siguen en «Filtros».
+  Escondido en el panel, un estado por defecto oculta resultados sin avisar: quien busca a
+  alguien dado de baja ve «0» y cree que no existe. El recuento le dice dónde está.
 - **Buscador de personas:** un único scope en el modelo (`matching`) que usan todos los
   listados (y las tools de MCP, si las hay). Parte el texto en palabras y exige que cada una aparezca en el nombre,
   los apellidos, el DNI, el email o el teléfono, en cualquier orden. Nunca el texto entero
