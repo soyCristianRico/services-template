@@ -181,11 +181,11 @@ class extends Component
             <flux:field>
                 <flux:label>Qué respondemos</flux:label>
                 <flux:select variant="listbox" wire:model.live="form.status_code">
-                    @foreach (RedirectStatusCode::cases() as $case)
+                    @foreach (\App\Enums\RedirectStatusCode::cases() as $case)
                         <flux:select.option :value="$case->value">{{ $case->label() }}</flux:select.option>
                     @endforeach
                 </flux:select>
-                <flux:description>{{ RedirectStatusCode::from($form->status_code)->description() }}</flux:description>
+                <flux:description>{{ \App\Enums\RedirectStatusCode::from($form->status_code)->description() }}</flux:description>
                 <flux:error name="form.status_code" />
             </flux:field>
 
