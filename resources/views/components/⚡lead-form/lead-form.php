@@ -3,22 +3,29 @@
 use App\Livewire\Forms\Lead\LeadForm;
 use App\Models\Landing;
 use App\Services\Lead\LeadService;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 new class extends Component
 {
+    #[Locked]
     public ?Landing $landing = null;
 
+    #[Locked]
     public string $sourceUrl = '';
 
     public LeadForm $form;
 
     public bool $submitted = false;
 
+    /**
+     * Embedded without a landing, the container still hands `mount()` an empty,
+     * unsaved Landing instead of null, so only a stored one counts as context.
+     */
     public function mount(?Landing $landing = null): void
     {
-        $this->landing = $landing;
-        $this->sourceUrl = $landing ? url('/'.$landing->slug) : request()->url();
+        $this->landing = $landing?->exists ? $landing : null;
+        $this->sourceUrl = $this->landing ? url('/'.$this->landing->slug) : request()->url();
     }
 
     public function save(LeadService $service): void

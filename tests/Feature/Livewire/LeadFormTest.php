@@ -7,6 +7,7 @@ use App\Models\Landing;
 use App\Models\Lead;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Mail;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
 beforeEach(function () {
@@ -84,6 +85,16 @@ describe('LeadForm', function () {
 
             expect(Lead::first()->landing_id)->toBeNull();
         });
+
+        it('should record the page it sits on, not the site root, when mounted without a Landing', function () {
+            Livewire::test('lead-form')
+                ->assertSet('landing', null)
+                ->assertSet('sourceUrl', request()->url());
+        });
+
+        it('should not let a request rewrite the source URL', function () {
+            Livewire::test('lead-form')->set('sourceUrl', 'https://example.com');
+        })->throws(CannotUpdateLockedPropertyException::class);
     });
 
     describe('attribution', function () {
