@@ -80,6 +80,6 @@ return [
     |
     */
 
-    'tagline' => 'Intermediario de alquiler. Pide presupuesto, recibe oferta en menos de 15 minutos, paga sólo cuando confirmas.',
+    'tagline' => 'PENDIENTE: describe en config/site.php lo que hace esta web.',
 
 ];

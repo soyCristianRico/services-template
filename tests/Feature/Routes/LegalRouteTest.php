@@ -118,6 +118,26 @@ describe('LegalRoute', function (): void {
                 ->assertSee('Sólo te pediremos que acredites tu identidad');
         });
 
+        // Ruk Index (09/11/2026) went live with the template's rental business in
+        // its privacy policy: the stock text must describe no business at all.
+        it('should carry no business of its own out of the box', function (): void {
+            $this->get('/legal')
+                ->assertDontSee('alquiler')
+                ->assertDontSee('flota')
+                ->assertDontSee('presupuesto')
+                ->assertSee('PENDIENTE: describe en config/legal.php el servicio que presta esta web.');
+        });
+
+        it('should list the services and the form data from the config', function (): void {
+            config()->set('legal.services', ['Asesoría fiscal para autónomos.']);
+            config()->set('legal.lead_form', ['name' => 'Formulario de cita', 'data' => 'nombre y correo electrónico']);
+
+            $this->get('/legal')
+                ->assertSee('Asesoría fiscal para autónomos.')
+                ->assertSee('Formulario de cita:')
+                ->assertSee('nombre y correo electrónico, junto con la página desde la que la envías');
+        });
+
         it('should submit to the configured jurisdiction', function (): void {
             config()->set('legal.jurisdiction', 'Tarragona');
 

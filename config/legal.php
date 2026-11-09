@@ -63,15 +63,33 @@ return [
     | What this site does
     |--------------------------------------------------------------------------
     |
-    | Read into "Finalidad de la página web". Rewrite per vertical: the default
-    | describes a brokerage site that presents an offering and quotes for it.
+    | Read into "Finalidad de la página web". The first entry is the business
+    | itself: new-site.sh writes it from the site description, and the PENDIENTE
+    | placeholder is left in plain sight on purpose, so a site that skipped it
+    | cannot go live describing someone else's business without anyone seeing.
     |
     */
 
     'services' => [
-        'Intermediación en el alquiler de equipos y servicios: presentación de la oferta disponible y elaboración de presupuestos.',
+        'PENDIENTE: describe en config/legal.php el servicio que presta esta web.',
         'Publicación de contenidos editoriales y guías sobre el sector.',
-        'Atención de las solicitudes de presupuesto enviadas desde la web.',
+        'Atención de las consultas enviadas desde el formulario de la web.',
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | The lead form
+    |--------------------------------------------------------------------------
+    |
+    | What the privacy policy says the form collects. It has to list exactly the
+    | fields the form shows: a site that drops the phone or adds a company field
+    | changes `data` in the same commit.
+    |
+    */
+
+    'lead_form' => [
+        'name' => 'Formulario de contacto',
+        'data' => 'nombre, correo electrónico, teléfono si lo indicas y el contenido de tu consulta',
     ],
 
     /*

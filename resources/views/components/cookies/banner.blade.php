@@ -79,7 +79,7 @@
         <div x-show="!showSettings">
             <flux:heading size="base">Usamos cookies 🍪</flux:heading>
             <flux:text class="mt-2">
-                Las utilizamos para que la web funcione correctamente, gestionar tus solicitudes de presupuesto
+                Las utilizamos para que la web funcione correctamente, gestionar tus consultas
                 y entender cómo usas la web para mejorarla. Puedes aceptarlas, rechazarlas o configurarlas.@if ($policyUrl) Más información
                 en nuestra <flux:link href="{{ $policyUrl }}">política de cookies</flux:link>.@endif
             </flux:text>
@@ -94,7 +94,7 @@
         <div x-show="showSettings" x-cloak>
             <flux:heading size="base">Configurar cookies</flux:heading>
             <div class="mt-4 space-y-3">
-                <flux:switch checked disabled label="Necesarias" description="Imprescindibles para que la web funcione y poder enviar tus solicitudes de presupuesto. Siempre activas." />
+                <flux:switch checked disabled label="Necesarias" description="Imprescindibles para que la web funcione y poder enviar tus consultas. Siempre activas." />
                 <flux:separator variant="subtle" />
                 <flux:switch x-model="analytics" label="Analítica" description="Nos ayudan a entender cómo se usa la web para mejorar la experiencia." />
                 <flux:separator variant="subtle" />

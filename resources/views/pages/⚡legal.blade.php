@@ -32,6 +32,9 @@ class extends Component
     /** @var list<string> */
     public array $services;
 
+    /** @var array{name: string, data: string} */
+    public array $leadForm;
+
     /** @var list<array{purpose: string, provider: string, detail: string, url: string}> */
     public array $processors;
 
@@ -50,6 +53,7 @@ class extends Component
         $this->domain = (string) preg_replace('/^www\./', '', (string) parse_url((string) config('app.url'), PHP_URL_HOST));
         $this->jurisdiction = (string) config('legal.jurisdiction');
         $this->services = config('legal.services');
+        $this->leadForm = config('legal.lead_form');
         // A processor gated by `requires` is declared only while that config key
         // holds a value — see the note in config/legal.php.
         $this->processors = array_values(array_filter(
@@ -232,9 +236,9 @@ class extends Component
 
                         <h3>Información publicada y contenidos de terceros</h3>
                         <p>
-                            La información sobre equipos, servicios, características y disponibilidad publicada en esta web
-                            tiene carácter orientativo y puede variar. No constituye una oferta contractual: las condiciones
-                            aplicables son siempre las del presupuesto que se te facilite.
+                            La información sobre servicios, características y condiciones publicada en esta web tiene
+                            carácter orientativo y puede variar. No constituye una oferta contractual: las condiciones
+                            aplicables son siempre las de la propuesta que se te facilite.
                         </p>
                         <p>
                             La web puede incluir información y enlaces relativos a proveedores y fabricantes. {{ $siteName }}
@@ -348,7 +352,7 @@ class extends Component
                         <h3>Qué datos recogemos y de dónde salen</h3>
                         <p>Los datos personales que tratamos proceden exclusivamente del formulario del sitio:</p>
                         <ul>
-                            <li><strong>Formulario de solicitud de presupuesto:</strong> nombre, teléfono, correo electrónico y el contenido de tu consulta, junto con la página desde la que la envías, para poder preparar la propuesta y responderte.</li>
+                            <li><strong>{{ $leadForm['name'] }}:</strong> {{ $leadForm['data'] }}, junto con la página desde la que la envías, para poder responderte.</li>
                         </ul>
                         <p>
                             Junto al envío de cualquiera de esos formularios registramos también tu dirección IP, con la
@@ -412,7 +416,7 @@ class extends Component
 
                         <h3>Cuánto tiempo conservamos los datos</h3>
                         <ul>
-                            <li><strong>Solicitudes de presupuesto:</strong> mientras dure la gestión de tu consulta y, después, durante el plazo de prescripción de las posibles responsabilidades derivadas y los plazos legales de conservación aplicables.</li>
+                            <li><strong>Consultas enviadas desde el formulario:</strong> mientras dure la gestión de tu consulta y, después, durante el plazo de prescripción de las posibles responsabilidades derivadas y los plazos legales de conservación aplicables.</li>
                             <li><strong>Registros técnicos y direcciones IP:</strong> el tiempo estrictamente necesario para la finalidad de seguridad que los justifica.</li>
                         </ul>
 
@@ -588,24 +592,24 @@ class extends Component
                         <p>
                             Esta web es gratuita para quien la consulta: no se vende nada a través de ella, no hay proceso de
                             compra ni pasarela de pago, y no hace falta registrarse para ver ningún contenido. Lo único que
-                            puedes hacer es enviarnos una solicitud de presupuesto, sin compromiso alguno.
+                            puedes hacer es enviarnos una consulta, sin compromiso alguno.
                         </p>
 
-                        <h3>La solicitud de presupuesto no es un contrato</h3>
+                        <h3>Enviar una consulta no es un contrato</h3>
                         <p>
-                            Enviar el formulario no reserva material, no bloquea fechas ni genera obligación de contratar por
-                            ninguna de las partes. Es una petición de información. A partir de ella te preparamos una
-                            propuesta, y sólo cuando la aceptas expresamente y por escrito nace la relación contractual, en
-                            los términos que esa propuesta recoja.
+                            Enviar el formulario no genera obligación de contratar por ninguna de las partes. Es una
+                            petición de información. A partir de ella te respondemos o te preparamos una propuesta, y sólo
+                            cuando la aceptas expresamente y por escrito nace la relación contractual, en los términos que
+                            esa propuesta recoja.
                         </p>
                         <p>
-                            Los precios, plazos y disponibilidad que puedas ver en la web son orientativos y dependen de las
-                            fechas, del lugar de entrega y del estado de la flota. Los que valen son los del presupuesto.
+                            Los precios, plazos y condiciones que puedas ver en la web son orientativos. Los que valen son
+                            los de la propuesta que te hagamos.
                         </p>
 
                         <h3>Qué esperamos de ti</h3>
                         <ul>
-                            <li>Que los datos que nos facilitas en el formulario sean veraces, y muy en particular el teléfono y el correo: son la única forma que tenemos de atenderte.</li>
+                            <li>Que los datos que nos facilitas en el formulario sean veraces, y muy en particular los de contacto: son la única forma que tenemos de atenderte.</li>
                             <li>Que no lo utilices para enviar comunicaciones comerciales no solicitadas ni contenido ilícito.</li>
                             <li>Que, si escribes en nombre de una empresa, tengas capacidad para hacerlo.</li>
                         </ul>
@@ -613,7 +617,7 @@ class extends Component
                         <h3>Qué puedes esperar de nosotros</h3>
                         <ul>
                             <li>Atender tu solicitud en un plazo razonable, o decirte que no podemos cubrirla.</li>
-                            <li>Usar tus datos únicamente para preparar y hacer seguimiento de esa propuesta, en los términos de la política de privacidad de más arriba.</li>
+                            <li>Usar tus datos únicamente para atender tu consulta y hacer seguimiento de la propuesta que te hagamos, en los términos de la política de privacidad de más arriba.</li>
                             <li>No enviarte comunicaciones comerciales ajenas a tu consulta sin tu consentimiento.</li>
                         </ul>
 
