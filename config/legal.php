@@ -56,7 +56,7 @@ return [
     | rendered. Update it by hand whenever you edit the blade.
     */
 
-    'updated_at' => 'agosto de 2026',
+    'updated_at' => 'noviembre de 2026',
 
     /*
     |--------------------------------------------------------------------------
@@ -110,9 +110,16 @@ return [
             'url' => 'https://www.mailgun.com/legal/privacy-policy/',
         ],
         [
+            'purpose' => 'Copias de seguridad',
+            'provider' => 'Backblaze',
+            'detail' => 'Guarda cifradas las copias de seguridad de la web, que incluyen los mensajes recibidos, en sus servidores de la Unión Europea.',
+            'url' => 'https://www.backblaze.com/company/policy/privacy',
+            'requires' => 'filesystems.disks.s3.endpoint',
+        ],
+        [
             'purpose' => 'Analítica web',
             'provider' => 'Google Ireland Limited',
-            'detail' => 'Google Tag Manager y Google Analytics, que sólo se cargan si aceptas las cookies de análisis.',
+            'detail' => 'Google Tag Manager y Google Analytics, que sólo se cargan si aceptas las cookies de análisis. Google puede tratar estos datos en Estados Unidos.',
             'url' => 'https://policies.google.com/privacy',
             'requires' => 'services.google_tag_manager.id',
         ],

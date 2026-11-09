@@ -40,6 +40,9 @@ class extends Component
 
     public bool $analytics;
 
+    /** @var list<array{name: string, owner: string, purpose: string, duration: string}> */
+    public array $cookies;
+
     public function mount(SeoService $seo): void
     {
         $this->entity = config('legal.entity');
@@ -60,12 +63,43 @@ class extends Component
         // The cookie banner renders on exactly this condition, so the cookie
         // policy has to describe the same site the visitor is actually on.
         $this->analytics = (bool) config('services.google_tag_manager.id');
+        $this->cookies = $this->cookieList();
 
         $seo->setSEO(
             title: 'Aviso legal',
             description: "Toda la información legal de {$this->siteName} en un solo sitio: aviso legal, política de privacidad, política de cookies y condiciones de uso.",
             url: route('legal'),
         );
+    }
+
+    /**
+     * The cookies the site actually sets, named and timed from the same config
+     * that sets them, so the list cannot drift from what the browser receives.
+     *
+     * @return list<array{name: string, owner: string, purpose: string, duration: string}>
+     */
+    protected function cookieList(): array
+    {
+        $sessionLifetime = (int) config('session.lifetime');
+        $sessionDuration = $sessionLifetime % 60 === 0
+            ? trans_choice('{1} 1 hora|[2,*] :count horas', intdiv($sessionLifetime, 60))
+            : $sessionLifetime.' minutos';
+
+        $cookies = [
+            ['name' => (string) config('session.cookie'), 'owner' => 'Propia', 'purpose' => 'Mantener tu sesión mientras navegas.', 'duration' => $sessionDuration],
+            ['name' => 'XSRF-TOKEN', 'owner' => 'Propia', 'purpose' => 'Proteger los formularios frente a envíos fraudulentos.', 'duration' => $sessionDuration],
+        ];
+
+        if (! $this->analytics) {
+            return $cookies;
+        }
+
+        return [
+            ...$cookies,
+            ['name' => (string) config('services.cookie_consent.name'), 'owner' => 'Propia', 'purpose' => 'Recordar lo que has decidido sobre las cookies.', 'duration' => '1 año'],
+            ['name' => '_ga', 'owner' => 'Google', 'purpose' => 'Google Analytics: distinguir visitantes, sólo si aceptas las cookies de análisis.', 'duration' => '2 años'],
+            ['name' => '_ga_*', 'owner' => 'Google', 'purpose' => 'Google Analytics: mantener el estado de la visita, sólo si aceptas las cookies de análisis.', 'duration' => '2 años'],
+        ];
     }
 };
 ?>
@@ -322,6 +356,13 @@ class extends Component
                             detectar posibles irregularidades.
                         </p>
                         <p>
+                            Con el mensaje guardamos además el navegador desde el que lo envías y cómo llegaste a la web:
+                            si vienes de un buscador, de otra web o de un anuncio, la página por la que entraste y, cuando el
+                            enlace los trae, sus parámetros de campaña (<code>utm_*</code>) y el identificador de clic del
+                            anuncio (<code>gclid</code>, <code>fbclid</code>…). Nos sirve para saber qué canales nos traen
+                            mensajes, no para seguirte por otras webs.
+                        </p>
+                        <p>
                             No compramos bases de datos, no recogemos categorías especiales de datos y no elaboramos
                             perfiles ni tomamos decisiones automatizadas con efectos jurídicos sobre ti.
                         </p>
@@ -363,10 +404,10 @@ class extends Component
 
                         <h3>Transferencias internacionales</h3>
                         <p>
-                            Los proveedores anteriores prestan el servicio desde la Unión Europea. Cuando alguno de ellos
-                            trate datos fuera del Espacio Económico Europeo, lo hará amparado en las garantías previstas en
-                            el capítulo V del RGPD, principalmente las cláusulas contractuales tipo aprobadas por la
-                            Comisión Europea.
+                            Salvo los que lo indican en su entrada, los proveedores anteriores prestan el servicio desde la
+                            Unión Europea. Los que pueden tratar datos fuera del Espacio Económico Europeo lo hacen amparados
+                            en las garantías del capítulo V del RGPD: el Marco de Privacidad de Datos entre la UE y Estados
+                            Unidos o las cláusulas contractuales tipo aprobadas por la Comisión Europea.
                         </p>
 
                         <h3>Cuánto tiempo conservamos los datos</h3>
@@ -381,8 +422,8 @@ class extends Component
                             @if ($entity['email'])
                                 o a <a href="mailto:{{ $entity['email'] }}">{{ $entity['email'] }}</a>,
                             @endif
-                            acompañando copia de tu DNI u otro documento identificativo, para ejercer los siguientes
-                            derechos:
+                            para ejercer los siguientes derechos. Sólo te pediremos que acredites tu identidad si tenemos dudas
+                            razonables de que la solicitud la haces tú:
                         </p>
                         <ul>
                             <li><strong>Acceso:</strong> saber si estamos tratando tus datos y cuáles.</li>
@@ -408,9 +449,8 @@ class extends Component
                         </p>
                         <p>
                             Aun así, debes ser consciente de que ninguna medida de seguridad en Internet es enteramente
-                            fiable. En caso de detectarse una brecha de seguridad que afecte a tus datos, nos comprometemos
-                            a comunicarlo a la autoridad de control y, cuando proceda, a los usuarios afectados, en el plazo
-                            máximo de 72 horas.
+                            fiable. En caso de detectarse una brecha de seguridad que afecte a tus datos, nos comprometemos a comunicarlo a la autoridad de control en un plazo máximo de 72 horas y, cuando
+                            suponga un alto riesgo para tus derechos, también a ti, sin dilación indebida.
                         </p>
                         <p>
                             Garantizas que los datos personales que nos facilitas son veraces y te comprometes a comunicarnos
@@ -485,9 +525,10 @@ class extends Component
                                 <strong>Cookies de terceros, de análisis.</strong> Este sitio utiliza Google Analytics, cargado
                                 a través de Google Tag Manager, para entender el uso que se hace del sitio y mejorarlo. Estas
                                 cookies <strong>sólo se instalan si las aceptas</strong> en el aviso que aparece en tu primera
-                                visita: hasta entonces, y si las rechazas, el consentimiento se transmite en modo denegado y no
-                                se realiza seguimiento. Google trunca la dirección IP antes de almacenarla para garantizar el
-                                anonimato.
+                                visita. Hasta entonces, y si las rechazas, Google Tag Manager se carga en modo de consentimiento denegado:
+                                no instala cookies ni identifica tu navegador, aunque Google sí recibe avisos sin identificador de
+                                que se ha visto una página, que usa para estimar las visitas en conjunto. Google Analytics no
+                                guarda tu dirección IP.
                             </p>
                         @else
                             <p>
@@ -495,6 +536,21 @@ class extends Component
                                 terceros, y por eso tampoco verás un aviso de cookies al entrar.
                             </p>
                         @endif
+                        <table>
+                            <thead>
+                                <tr><th>Cookie</th><th>De quién</th><th>Para qué</th><th>Duración</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($cookies as $cookie)
+                                    <tr wire:key="cookie-{{ $cookie['name'] }}">
+                                        <td><code>{{ $cookie['name'] }}</code></td>
+                                        <td>{{ $cookie['owner'] }}</td>
+                                        <td>{{ $cookie['purpose'] }}</td>
+                                        <td>{{ $cookie['duration'] }}</td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                         <p>
                             No utilizamos cookies publicitarias ni de remarketing, ni compartimos estas cookies con redes
                             sociales.

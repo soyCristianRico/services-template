@@ -83,6 +83,41 @@ describe('LegalRoute', function (): void {
                 ->assertDontSee('Google Analytics');
         });
 
+        it('should name every cookie it sets, timed from the session config', function (): void {
+            config()->set('services.google_tag_manager.id', 'GTM-TEST');
+            config()->set('session.cookie', 'sitio-session');
+            config()->set('session.lifetime', 120);
+
+            $this->get('/legal')
+                ->assertSeeInOrder(['sitio-session', 'Mantener tu sesión', '2 horas'])
+                ->assertSee('XSRF-TOKEN')
+                ->assertSee(config('services.cookie_consent.name'))
+                ->assertSeeInOrder(['_ga', 'Google', '2 años']);
+        });
+
+        it('should leave the analytics and consent cookies out when GTM is absent', function (): void {
+            config()->set('services.google_tag_manager.id', null);
+
+            $this->get('/legal')
+                ->assertSee('XSRF-TOKEN')
+                ->assertDontSee('_ga_*')
+                ->assertDontSee('Recordar lo que has decidido sobre las cookies.');
+        });
+
+        it('should declare the backup provider only when backups go to S3-compatible storage', function (): void {
+            config()->set('filesystems.disks.s3.endpoint', 'https://s3.eu-central-003.backblazeb2.com');
+            $this->get('/legal')->assertSee('Copias de seguridad:</strong> Backblaze', false);
+
+            config()->set('filesystems.disks.s3.endpoint', null);
+            $this->get('/legal')->assertDontSee('Copias de seguridad:</strong> Backblaze', false);
+        });
+
+        it('should not ask for an ID document to exercise a right', function (): void {
+            $this->get('/legal')
+                ->assertDontSee('copia de tu DNI')
+                ->assertSee('Sólo te pediremos que acredites tu identidad');
+        });
+
         it('should submit to the configured jurisdiction', function (): void {
             config()->set('legal.jurisdiction', 'Tarragona');
 
