@@ -45,6 +45,15 @@ post_install() {
     php artisan storage:link
 }
 
+# Runs right after the clone, before the first push, so whatever it commits
+# reaches production with the first deploy.
+configure_site() {
+    describe_business || return 0
+
+    git add config/legal.php config/site.php
+    git commit -q -m "chore(site): describe the business in the legal text and the tagline"
+}
+
 next_steps() {
     cat <<'NEXT'
     composer run dev   # serve + vite + queue + logs -> http://localhost:8000
@@ -682,6 +691,80 @@ SQL
     write_testing_env mysql "${SLUG}_test" "$SLUG" "$password"
 }
 
+# The template's package-lock.json carries the template's name, and npm rewrites
+# it to the folder's on the first install — a diff in every new site that nobody
+# made. Renamed here so the lock that gets committed is already the site's.
+rename_npm_package() {
+    local template_name
+    template_name="$(basename "$TEMPLATE_REPO" .git)"
+
+    [[ -f package-lock.json ]] || return 0
+
+    sed -i "s/\"name\": \"$template_name\"/\"name\": \"$SLUG\"/g" package-lock.json
+    log "Renamed the npm package to $SLUG in package-lock.json"
+}
+
+# config/legal.php and config/site.php ship a "PENDIENTE: ..." placeholder where
+# the business goes, so a site that skips this goes live with a visible gap
+# instead of the template's business. Fills it from the site description.
+# Returns 1, leaving the placeholders, when there is no description.
+describe_business() {
+    if [[ -z "${DESCRIPTION// /}" ]]; then
+        warn "No description given: config/legal.php and config/site.php keep their"
+        warn "PENDIENTE placeholder. Describe the business there before launch."
+        return 1
+    fi
+
+    log "Describing the business in config/legal.php and config/site.php: \"$DESCRIPTION\""
+
+    php -r '
+        [, $description] = $argv;
+        $sentence = rtrim(trim($description), ".") . ".";
+        foreach (["config/legal.php", "config/site.php"] as $path) {
+            if (! is_file($path)) {
+                continue;
+            }
+            $contents = file_get_contents($path);
+            $updated = preg_replace(
+                "/\x27PENDIENTE:(?:[^\x27\\\\]|\\\\.)*\x27/",
+                var_export($sentence, true),
+                $contents,
+                1,
+            );
+            file_put_contents($path, $updated);
+        }
+    ' "$DESCRIPTION" || die "Could not write the description into config/legal.php."
+}
+
+# Everything the bootstrap writes that the site has to track, in one commit.
+# Left out, these files ride along uncommitted for the whole build, and the
+# robots.txt that reaches production is the template's, without its Sitemap
+# line (Ruk Index, 09/11/2026: flagged by Ruk Audit, and Search Console refused
+# the manual submission).
+#
+# .env.production.example goes in too: it holds the site's domain-derived values
+# and no secrets — write_production_env leaves every secret blank.
+commit_site_setup() {
+    local file
+    for file in public/robots.txt .env.testing .env.production.example package-lock.json; do
+        [[ -e "$file" ]] && git add "$file"
+    done
+
+    if git diff --cached --quiet; then
+        log "Nothing left to commit from the setup"
+    else
+        git commit -q -m "Configurar el site para $DOMAIN"
+        log "Committed the site setup: \"Configurar el site para $DOMAIN\""
+    fi
+
+    local leftover
+    leftover="$(git status --porcelain)"
+    if [[ -n "$leftover" ]]; then
+        warn "The bootstrap left files it did not commit — check them:"
+        printf '%s\n' "$leftover"
+    fi
+}
+
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --slug)     SLUG="${2:-}"; shift 2 ;;
@@ -772,6 +855,8 @@ git remote rename origin template
 git remote set-url --push template DISABLED_PUSH_TO_TEMPLATE
 git remote add origin "git@github.com:$ORG/$SLUG.git"
 
+configure_site
+
 if [[ "$HAS_GH" == "1" ]]; then
     log "Pushing $DEFAULT_BRANCH to origin"
     push_or_warn
@@ -815,6 +900,8 @@ write_production_env
 write_robots_txt
 write_mcp_config
 
+rename_npm_package
+
 # 5. Dependencies, then install the site.
 if [[ "$INSTALL_DEPS" == "1" ]]; then
     log "composer install"
@@ -833,6 +920,8 @@ if [[ "$INSTALL_DEPS" == "1" ]]; then
 else
     warn "Skipping dependencies (--no-deps). Run composer install && npm install && php artisan key:generate."
 fi
+
+commit_site_setup
 
 TEMPLATE_NAME="$(basename "$TEMPLATE_REPO" .git)"
 
