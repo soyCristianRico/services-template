@@ -114,20 +114,22 @@ or the wrong file, and from here they look the same.
 
 ## 5 — Build before you look
 
-`npm run build` **before the first screenshot**. A Tailwind class that didn't exist
+`npm run build` **before you first look at the page**. A Tailwind class that didn't exist
 before is not in the compiled CSS, and the symptom is that the mockup ignores the grid
 or the size: you go looking for the bug in the Blade, which is fine, for half an hour.
 This applies to every new batch of classes, not just the first.
 
 ## 6 — Verify by measuring
 
-Capture desktop and mobile, and **measure with `eval`** (Orca browser, see
+Check desktop and mobile, and **measure with `eval`** (Orca browser, see
 `~/.claude/mecanicas/orca-browser.md`) instead of trusting
 your eye: background color, text color, the four borders, button height, the icon's
 vertical offset from center. Half the mismatches the eye forgives show up there, and
 some the eye reports turn out to be something else.
 
-Two traps with screenshots:
+Screenshots are a tool for you, not a deliverable: take one only when an automatic
+design review asks for it, keep it to that review and never hand it to whoever
+validates. Two traps when you do take one:
 
 - **A full-page capture lies about `lazy` images**: they come out as grey blocks and
   look broken. Before chasing the bug, check in the HTML that the URL is there.
@@ -162,8 +164,19 @@ when routing, so the link works when clicked— and it leaves an article whose i
 links all point at an address neither the canonical nor the sitemap recognizes. If the
 project ships a link-normalizing command, that check is already written.
 
-On delivery, state in one line each thing that departed from the design and why, and
-what was left out of the ticket for lack of material.
+
+## 8 — Hand it over live
+
+Whoever validates looks at the real page, not at pictures of it (PIN026, steps 3 and 6).
+When the page is done:
+
+1. Leave `composer run dev` running (start it in the background if it isn't).
+2. Open the page's local URL in a browser tab — Orca when running with the assistant.
+3. Ask for feedback, with the URL in the message.
+
+Do not attach or paste screenshots. On delivery, state in one line each thing that
+departed from the design and why, and what was left out of the ticket for lack of
+material.
 
 ## Guardrails
 
