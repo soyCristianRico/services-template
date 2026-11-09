@@ -11,16 +11,16 @@ function backupEvents(): array
         ->all();
 }
 
-describe('Backup schedule', function () {
-    describe('storage credentials', function () {
-        it('should skip every backup command when the disk is not configured', function () {
+describe('Backup schedule', function (): void {
+    describe('storage credentials', function (): void {
+        it('should skip every backup command when the disk is not configured', function (): void {
             config(['filesystems.disks.s3.key' => null]);
 
             expect(backupEvents())->toHaveCount(3)
                 ->each(fn ($event) => $event->filtersPass(app())->toBeFalse());
         });
 
-        it('should schedule every backup command when the disk is configured', function () {
+        it('should schedule every backup command when the disk is configured', function (): void {
             config([
                 'filesystems.disks.s3.key' => 'key',
                 'filesystems.disks.s3.secret' => 'secret',

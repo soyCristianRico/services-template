@@ -7,19 +7,19 @@ use App\Models\Service;
 use App\Models\User;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->actingAs(User::factory()->create());
 });
 
-describe('Admin\\Services\\Index', function () {
-    describe('rendering', function () {
-        it('should render an empty state when no services exist', function () {
+describe('Admin\\Services\\Index', function (): void {
+    describe('rendering', function (): void {
+        it('should render an empty state when no services exist', function (): void {
             Livewire::test('pages::admin.services.index')
                 ->assertOk()
                 ->assertSee('No hay servicios con esos filtros');
         });
 
-        it('should list services ordered by position then name', function () {
+        it('should list services ordered by position then name', function (): void {
             $category = Category::factory()->create();
             Service::factory()->inCategory($category)->create(['name' => 'B', 'position' => 1]);
             Service::factory()->inCategory($category)->create(['name' => 'A', 'position' => 2]);
@@ -34,8 +34,8 @@ describe('Admin\\Services\\Index', function () {
         });
     });
 
-    describe('filters', function () {
-        it('should filter by category', function () {
+    describe('filters', function (): void {
+        it('should filter by category', function (): void {
             $catA = Category::factory()->create();
             $catB = Category::factory()->create();
             Service::factory()->inCategory($catA)->create();
@@ -48,7 +48,7 @@ describe('Admin\\Services\\Index', function () {
             expect($services)->toHaveCount(1);
         });
 
-        it('should filter by status', function () {
+        it('should filter by status', function (): void {
             Service::factory()->count(3)->create();
             Service::factory()->inactive()->count(2)->create();
 
@@ -59,7 +59,7 @@ describe('Admin\\Services\\Index', function () {
             expect($services)->toHaveCount(3);
         });
 
-        it('should search by name substring', function () {
+        it('should search by name substring', function (): void {
             $category = Category::factory()->create();
             Service::factory()->inCategory($category)->create(['name' => 'SDMO 100 kVA']);
             Service::factory()->inCategory($category)->create(['name' => 'Honda EU22i']);
@@ -72,8 +72,8 @@ describe('Admin\\Services\\Index', function () {
         });
     });
 
-    describe('sort', function () {
-        it('should sort by name and flip the direction on a second click', function () {
+    describe('sort', function (): void {
+        it('should sort by name and flip the direction on a second click', function (): void {
             $category = Category::factory()->create();
             Service::factory()->inCategory($category)->create(['name' => 'Beta', 'position' => 0]);
             Service::factory()->inCategory($category)->create(['name' => 'Alfa', 'position' => 1]);
@@ -90,15 +90,15 @@ describe('Admin\\Services\\Index', function () {
             expect($component->get('services')->pluck('name')->all())->toBe(['Beta', 'Alfa']);
         });
 
-        it('should ignore a column that is not sortable', function () {
+        it('should ignore a column that is not sortable', function (): void {
             Livewire::test('pages::admin.services.index')
                 ->call('sort', 'category_id')
                 ->assertSet('sortBy', '');
         });
     });
 
-    describe('clearFilter', function () {
-        it('should show active filters as chips and clear one at a time', function () {
+    describe('clearFilter', function (): void {
+        it('should show active filters as chips and clear one at a time', function (): void {
             $category = Category::factory()->create(['name' => 'Generadores']);
 
             $component = Livewire::test('pages::admin.services.index')
@@ -113,8 +113,8 @@ describe('Admin\\Services\\Index', function () {
         });
     });
 
-    describe('clearAll', function () {
-        it('should reset search, filters and sort', function () {
+    describe('clearAll', function (): void {
+        it('should reset search, filters and sort', function (): void {
             $category = Category::factory()->create();
 
             Livewire::test('pages::admin.services.index')
@@ -130,8 +130,8 @@ describe('Admin\\Services\\Index', function () {
         });
     });
 
-    describe('actions', function () {
-        it('should toggle is_active', function () {
+    describe('actions', function (): void {
+        it('should toggle is_active', function (): void {
             $service = Service::factory()->create(['is_active' => true]);
 
             Livewire::test('pages::admin.services.index')

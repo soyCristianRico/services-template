@@ -6,19 +6,19 @@ use App\Models\Category;
 use App\Models\User;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->actingAs(User::factory()->create());
 });
 
-describe('Admin\\Categories\\Index', function () {
-    describe('rendering', function () {
-        it('should render an empty state when no categories exist', function () {
+describe('Admin\\Categories\\Index', function (): void {
+    describe('rendering', function (): void {
+        it('should render an empty state when no categories exist', function (): void {
             Livewire::test('pages::admin.categories.index')
                 ->assertOk()
                 ->assertSee('Crea la primera');
         });
 
-        it('should render categories in depth-first order with depth tracking', function () {
+        it('should render categories in depth-first order with depth tracking', function (): void {
             $rental = Category::factory()->create(['name' => 'Alquiler']);
             $generators = Category::factory()->childOf($rental)->create(['name' => 'Alquiler de generadores']);
             Category::factory()->childOf($generators)->create(['name' => 'Alquiler de generadores diésel']);

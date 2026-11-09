@@ -6,9 +6,9 @@ use App\Enums\MenuLocation;
 use App\Models\MenuItem;
 use App\View\Components\SiteNavigation;
 
-describe('SiteNavigation', function () {
-    describe('items', function () {
-        it('returns the entries of its location in order', function () {
+describe('SiteNavigation', function (): void {
+    describe('items', function (): void {
+        it('returns the entries of its location in order', function (): void {
             MenuItem::factory()->create(['location' => MenuLocation::Header, 'label' => 'Segundo', 'position' => 2]);
             MenuItem::factory()->create(['location' => MenuLocation::Header, 'label' => 'Primero', 'position' => 1]);
             MenuItem::factory()->create(['location' => MenuLocation::Footer, 'label' => 'Del pie', 'position' => 1]);
@@ -18,7 +18,7 @@ describe('SiteNavigation', function () {
             expect($items->pluck('label')->all())->toBe(['Primero', 'Segundo']);
         });
 
-        it('leaves out what is not active', function () {
+        it('leaves out what is not active', function (): void {
             MenuItem::factory()->create(['location' => MenuLocation::Header, 'label' => 'Visible']);
             MenuItem::factory()->create(['location' => MenuLocation::Header, 'label' => 'Oculto', 'is_active' => false]);
 
@@ -26,7 +26,7 @@ describe('SiteNavigation', function () {
                 ->toBe(['Visible']);
         });
 
-        it('nests the children under their parent instead of listing them alongside', function () {
+        it('nests the children under their parent instead of listing them alongside', function (): void {
             $parent = MenuItem::factory()->create(['location' => MenuLocation::Header, 'label' => 'Servicios']);
             MenuItem::factory()->create([
                 'location' => MenuLocation::Header,
@@ -41,7 +41,7 @@ describe('SiteNavigation', function () {
             expect($items->first()->children->pluck('label')->all())->toBe(['Consultoría']);
         });
 
-        it('hides the children of a parent that is switched off', function () {
+        it('hides the children of a parent that is switched off', function (): void {
             // Hiding a section has to hide what hangs from it, or the submenu
             // survives its own heading.
             $parent = MenuItem::factory()->create(['location' => MenuLocation::Header, 'is_active' => false]);
@@ -50,7 +50,7 @@ describe('SiteNavigation', function () {
             expect((new SiteNavigation(MenuLocation::Header))->items())->toBeEmpty();
         });
 
-        it('leaves out a child that is switched off on its own', function () {
+        it('leaves out a child that is switched off on its own', function (): void {
             $parent = MenuItem::factory()->create(['location' => MenuLocation::Header]);
             MenuItem::factory()->create(['location' => MenuLocation::Header, 'parent_id' => $parent->id, 'label' => 'Vivo']);
             MenuItem::factory()->create(['location' => MenuLocation::Header, 'parent_id' => $parent->id, 'is_active' => false]);
@@ -60,7 +60,7 @@ describe('SiteNavigation', function () {
             expect($items->first()->children->pluck('label')->all())->toBe(['Vivo']);
         });
 
-        it('reads the menu in a fixed number of queries, whatever its size', function () {
+        it('reads the menu in a fixed number of queries, whatever its size', function (): void {
             $parent = MenuItem::factory()->create(['location' => MenuLocation::Header]);
             MenuItem::factory()->count(8)->create(['location' => MenuLocation::Header, 'parent_id' => $parent->id]);
             MenuItem::factory()->count(5)->create(['location' => MenuLocation::Header]);
@@ -73,14 +73,14 @@ describe('SiteNavigation', function () {
         });
     });
 
-    describe('rendering', function () {
-        it('renders nothing at all when the menu is empty', function () {
+    describe('rendering', function (): void {
+        it('renders nothing at all when the menu is empty', function (): void {
             // A site that has not filled its menu in yet must not get an empty
             // nav element sitting in its header.
             $this->blade('<x-site-navigation />')->assertDontSee('<nav', false);
         });
 
-        it('renders a plain link for an entry with no children', function () {
+        it('renders a plain link for an entry with no children', function (): void {
             MenuItem::factory()->create([
                 'location' => MenuLocation::Header,
                 'label' => 'Contacto',
@@ -92,7 +92,7 @@ describe('SiteNavigation', function () {
                 ->assertSee('href="/contacto"', false);
         });
 
-        it('renders the children of an entry that has them', function () {
+        it('renders the children of an entry that has them', function (): void {
             $parent = MenuItem::factory()->create(['location' => MenuLocation::Header, 'label' => 'Servicios']);
             MenuItem::factory()->create([
                 'location' => MenuLocation::Header,
@@ -107,7 +107,7 @@ describe('SiteNavigation', function () {
                 ->assertSee('/servicios/consultoria', false);
         });
 
-        it('renders the footer menu when asked for that location', function () {
+        it('renders the footer menu when asked for that location', function (): void {
             MenuItem::factory()->create([
                 'location' => MenuLocation::Footer,
                 'label' => 'Trabaja con nosotros',

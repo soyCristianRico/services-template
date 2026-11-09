@@ -16,9 +16,9 @@ use Illuminate\Notifications\AnonymousNotifiable;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 
-describe('LeadService', function () {
-    describe('capture', function () {
-        it('should persist a Lead with status New by default', function () {
+describe('LeadService', function (): void {
+    describe('capture', function (): void {
+        it('should persist a Lead with status New by default', function (): void {
             Mail::fake();
             Notification::fake();
 
@@ -37,7 +37,7 @@ describe('LeadService', function () {
             expect(Lead::count())->toBe(1);
         });
 
-        it('should link a Lead to its source Landing when landing_id is provided', function () {
+        it('should link a Lead to its source Landing when landing_id is provided', function (): void {
             Mail::fake();
             Notification::fake();
 
@@ -56,8 +56,8 @@ describe('LeadService', function () {
         });
     });
 
-    describe('attribution', function () {
-        beforeEach(function () {
+    describe('attribution', function (): void {
+        beforeEach(function (): void {
             Mail::fake();
             Notification::fake();
         });
@@ -66,7 +66,7 @@ describe('LeadService', function () {
          * Va en el servicio y no en el formulario porque es el único sitio por
          * el que pasan todas las capturas: así ninguna se olvida.
          */
-        it('should carry the origin of the visit into the lead', function () {
+        it('should carry the origin of the visit into the lead', function (): void {
             LeadAttribution::fromRequest(
                 Request::create('https://example.test/contacto', 'GET', [
                     'utm_source' => 'newsletter',
@@ -91,7 +91,7 @@ describe('LeadService', function () {
          * queda sin canal, que es la respuesta honesta: no llegó por ningún
          * sitio que hayamos visto. Poner «Directo» sería inventárselo.
          */
-        it('should leave a lead born outside a visit without a channel', function () {
+        it('should leave a lead born outside a visit without a channel', function (): void {
             $lead = app(LeadService::class)->capture([
                 'name' => 'Ana',
                 'email' => 'ana@example.com',
@@ -101,7 +101,7 @@ describe('LeadService', function () {
                 ->and($lead->utm_source)->toBeNull();
         });
 
-        it('should let the caller override what the visit said', function () {
+        it('should let the caller override what the visit said', function (): void {
             LeadAttribution::fromRequest(
                 Request::create('https://example.test/', 'GET', ['utm_medium' => 'cpc'])
             )->remember();
@@ -116,8 +116,8 @@ describe('LeadService', function () {
         });
     });
 
-    describe('side effects', function () {
-        it('should queue NewLeadMail when LEAD_NOTIFY_EMAIL is set', function () {
+    describe('side effects', function (): void {
+        it('should queue NewLeadMail when LEAD_NOTIFY_EMAIL is set', function (): void {
             config(['leads.notify_email' => 'admin@rental.test']);
             Mail::fake();
             Notification::fake();
@@ -132,7 +132,7 @@ describe('LeadService', function () {
             );
         });
 
-        it('should notify every address when LEAD_NOTIFY_EMAIL lists several', function () {
+        it('should notify every address when LEAD_NOTIFY_EMAIL lists several', function (): void {
             config(['leads.notify_email' => 'hola@cliente.test, avisos@agencia.test']);
             Mail::fake();
             Notification::fake();
@@ -147,7 +147,7 @@ describe('LeadService', function () {
             );
         });
 
-        it('should fall back to the first registered user when LEAD_NOTIFY_EMAIL is empty', function () {
+        it('should fall back to the first registered user when LEAD_NOTIFY_EMAIL is empty', function (): void {
             config(['leads.notify_email' => null]);
             Mail::fake();
             Notification::fake();
@@ -163,7 +163,7 @@ describe('LeadService', function () {
             Mail::assertQueued(NewLeadMail::class, fn (NewLeadMail $mail): bool => $mail->hasTo($owner->email));
         });
 
-        it('should NOT queue email when LEAD_NOTIFY_EMAIL is empty and there are no users', function () {
+        it('should NOT queue email when LEAD_NOTIFY_EMAIL is empty and there are no users', function (): void {
             config(['leads.notify_email' => null]);
             Mail::fake();
             Notification::fake();
@@ -176,7 +176,7 @@ describe('LeadService', function () {
             Mail::assertNothingQueued();
         });
 
-        it('should send the Discord notification when DISCORD_WEBHOOK_URL is set', function () {
+        it('should send the Discord notification when DISCORD_WEBHOOK_URL is set', function (): void {
             config(['services.discord.webhook_url' => 'https://discord.com/api/webhooks/abc']);
             Mail::fake();
             Notification::fake();
@@ -193,7 +193,7 @@ describe('LeadService', function () {
             );
         });
 
-        it('should NOT send the Discord notification when DISCORD_WEBHOOK_URL is null', function () {
+        it('should NOT send the Discord notification when DISCORD_WEBHOOK_URL is null', function (): void {
             config(['services.discord.webhook_url' => null]);
             Mail::fake();
             Notification::fake();

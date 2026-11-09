@@ -6,19 +6,19 @@ use App\Models\Page;
 use App\Models\User;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->actingAs(User::factory()->create());
 });
 
-describe('Admin\\Pages\\Index', function () {
-    describe('rendering', function () {
-        it('should render an empty state when no pages exist', function () {
+describe('Admin\\Pages\\Index', function (): void {
+    describe('rendering', function (): void {
+        it('should render an empty state when no pages exist', function (): void {
             Livewire::test('pages::admin.pages.index')
                 ->assertOk()
                 ->assertSee('Crea la primera');
         });
 
-        it('should list pages ordered by title', function () {
+        it('should list pages ordered by title', function (): void {
             Page::factory()->create(['title' => 'Zaragoza politicas']);
             Page::factory()->create(['title' => 'Aviso legal']);
 
@@ -27,7 +27,7 @@ describe('Admin\\Pages\\Index', function () {
             expect($pages->first()->title)->toBe('Aviso legal');
         });
 
-        it('should search by title or slug', function () {
+        it('should search by title or slug', function (): void {
             Page::factory()->create(['title' => 'Aviso legal', 'slug' => 'aviso-legal']);
             Page::factory()->create(['title' => 'Política de privacidad', 'slug' => 'privacidad']);
 
@@ -39,8 +39,8 @@ describe('Admin\\Pages\\Index', function () {
         });
     });
 
-    describe('actions', function () {
-        it('should toggle is_active', function () {
+    describe('actions', function (): void {
+        it('should toggle is_active', function (): void {
             $page = Page::factory()->create(['is_active' => true]);
 
             Livewire::test('pages::admin.pages.index')

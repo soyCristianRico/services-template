@@ -43,7 +43,7 @@ class extends Component
         $direction = $this->sortDirection === 'desc' ? 'desc' : 'asc';
 
         return Page::query()
-            ->when($this->search !== '', fn ($q) => $q->where(function ($q) {
+            ->when($this->search !== '', fn ($q) => $q->where(function ($q): void {
                 $q->where('title', 'like', "%{$this->search}%")
                     ->orWhere('slug', 'like', "%{$this->search}%");
             }))

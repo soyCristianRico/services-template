@@ -5,18 +5,18 @@ declare(strict_types=1);
 use App\Models\Redirect;
 use Illuminate\Support\Facades\Schema;
 
-describe('Ruklab connector redirects', function () {
-    beforeEach(function () {
+describe('Ruklab connector redirects', function (): void {
+    beforeEach(function (): void {
         config()->set('ruklab.token', 'el-bueno');
         config()->set('ruklab.writes_enabled', true);
     });
 
-    it('declares the site own redirects table instead of bringing a second one', function () {
+    it('declares the site own redirects table instead of bringing a second one', function (): void {
         expect(config('ruklab.redirects.model'))->toBe(Redirect::class);
         expect(Schema::hasTable('ruklab_redirects'))->toBeFalse();
     });
 
-    it('maps columns the redirects table really has', function () {
+    it('maps columns the redirects table really has', function (): void {
         $redirects = config('ruklab.redirects');
         $table = (new $redirects['model'])->getTable();
 
@@ -26,7 +26,7 @@ describe('Ruklab connector redirects', function () {
         }
     });
 
-    it('says the site is the one managing its redirects', function () {
+    it('says the site is the one managing its redirects', function (): void {
         $this->withHeader('Authorization', 'Bearer el-bueno')
             ->getJson('/ruklab/v1/info')
             ->assertOk()
@@ -34,7 +34,7 @@ describe('Ruklab connector redirects', function () {
             ->assertJsonPath('redirects_manager', 'site');
     });
 
-    it('lists what the panel already holds', function () {
+    it('lists what the panel already holds', function (): void {
         Redirect::factory()->create(['source' => '/del-panel', 'destination' => '/destino']);
 
         $this->withHeader('Authorization', 'Bearer el-bueno')
@@ -44,7 +44,7 @@ describe('Ruklab connector redirects', function () {
             ->assertJsonFragment(['from' => '/del-panel', 'to' => '/destino', 'code' => 301, 'status' => 'active']);
     });
 
-    it('creates a redirect in the table the panel reads, the way the panel would', function () {
+    it('creates a redirect in the table the panel reads, the way the panel would', function (): void {
         $this->withHeader('Authorization', 'Bearer el-bueno')
             ->postJson('/ruklab/v1/redirects', ['from' => '/Viejo?utm=x', 'to' => '/nuevo', 'code' => 301])
             ->assertCreated()
@@ -60,7 +60,7 @@ describe('Ruklab connector redirects', function () {
         ]);
     });
 
-    it('stores a 410 without a destination', function () {
+    it('stores a 410 without a destination', function (): void {
         $this->withHeader('Authorization', 'Bearer el-bueno')
             ->postJson('/ruklab/v1/redirects', ['from' => '/retirada', 'code' => 410])
             ->assertCreated();
@@ -68,7 +68,7 @@ describe('Ruklab connector redirects', function () {
         $this->assertDatabaseHas('redirects', ['source' => '/retirada', 'destination' => null, 'status_code' => 410]);
     });
 
-    it('refuses a code the table cannot hold', function () {
+    it('refuses a code the table cannot hold', function (): void {
         $this->withHeader('Authorization', 'Bearer el-bueno')
             ->postJson('/ruklab/v1/redirects', ['from' => '/legal', 'code' => 451])
             ->assertUnprocessable();
@@ -76,7 +76,7 @@ describe('Ruklab connector redirects', function () {
         $this->assertDatabaseMissing('redirects', ['source' => '/legal']);
     });
 
-    it('refuses a second redirect from an origin the panel already redirects', function () {
+    it('refuses a second redirect from an origin the panel already redirects', function (): void {
         Redirect::factory()->create(['source' => '/ya-existe', 'destination' => '/otro']);
 
         $this->withHeader('Authorization', 'Bearer el-bueno')
@@ -84,7 +84,7 @@ describe('Ruklab connector redirects', function () {
             ->assertStatus(409);
     });
 
-    it('deactivates a redirect without deleting the row', function () {
+    it('deactivates a redirect without deleting the row', function (): void {
         $redirect = Redirect::factory()->create(['source' => '/a-desactivar', 'destination' => '/x']);
 
         $this->withHeader('Authorization', 'Bearer el-bueno')
@@ -95,7 +95,7 @@ describe('Ruklab connector redirects', function () {
         expect($redirect->fresh()->is_active)->toBeFalse();
     });
 
-    it('is served by the site own middleware, with no second opinion from the connector', function () {
+    it('is served by the site own middleware, with no second opinion from the connector', function (): void {
         $this->withHeader('Authorization', 'Bearer el-bueno')
             ->postJson('/ruklab/v1/redirects', ['from' => '/pagina-vieja', 'to' => '/pagina-nueva'])
             ->assertCreated();

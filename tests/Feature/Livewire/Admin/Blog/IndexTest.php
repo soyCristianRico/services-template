@@ -6,19 +6,19 @@ use App\Models\BlogPost;
 use App\Models\User;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->actingAs(User::factory()->create());
 });
 
-describe('Admin\\Blog\\Index', function () {
-    describe('rendering', function () {
-        it('should render the empty state when there are no posts', function () {
+describe('Admin\\Blog\\Index', function (): void {
+    describe('rendering', function (): void {
+        it('should render the empty state when there are no posts', function (): void {
             Livewire::test('pages::admin.blog.index')
                 ->assertOk()
                 ->assertSee('No hay artículos con esos filtros');
         });
 
-        it('should list posts ordered by most recently updated', function () {
+        it('should list posts ordered by most recently updated', function (): void {
             $older = BlogPost::factory()->create();
             $older->timestamps = false;
             $older->updated_at = now()->subDay();
@@ -32,8 +32,8 @@ describe('Admin\\Blog\\Index', function () {
         });
     });
 
-    describe('filters', function () {
-        it('should filter by status=published (active + past publication)', function () {
+    describe('filters', function (): void {
+        it('should filter by status=published (active + past publication)', function (): void {
             BlogPost::factory()->create();
             BlogPost::factory()->draft()->count(2)->create();
             BlogPost::factory()->scheduled()->count(3)->create();
@@ -45,7 +45,7 @@ describe('Admin\\Blog\\Index', function () {
             expect($posts)->toHaveCount(1);
         });
 
-        it('should filter by status=draft (null published_at)', function () {
+        it('should filter by status=draft (null published_at)', function (): void {
             BlogPost::factory()->count(2)->create();
             BlogPost::factory()->draft()->count(3)->create();
 
@@ -56,7 +56,7 @@ describe('Admin\\Blog\\Index', function () {
             expect($posts)->toHaveCount(3);
         });
 
-        it('should filter by status=scheduled (future published_at)', function () {
+        it('should filter by status=scheduled (future published_at)', function (): void {
             BlogPost::factory()->count(2)->create();
             BlogPost::factory()->scheduled()->count(2)->create();
 
@@ -67,7 +67,7 @@ describe('Admin\\Blog\\Index', function () {
             expect($posts)->toHaveCount(2);
         });
 
-        it('should search by title substring', function () {
+        it('should search by title substring', function (): void {
             BlogPost::factory()->create(['title' => 'Diésel vs gas']);
             BlogPost::factory()->create(['title' => 'Cómo calcular kVA']);
 

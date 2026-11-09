@@ -10,14 +10,14 @@ use Illuminate\Support\Facades\Mail;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     Mail::fake();
     Bus::fake();
 });
 
-describe('LeadForm', function () {
-    describe('rendering', function () {
-        it('should render the form with empty fields by default', function () {
+describe('LeadForm', function (): void {
+    describe('rendering', function (): void {
+        it('should render the form with empty fields by default', function (): void {
             Livewire::test('lead-form')
                 ->assertSee('Pide presupuesto sin compromiso')
                 ->assertSet('form.name', '')
@@ -26,8 +26,8 @@ describe('LeadForm', function () {
         });
     });
 
-    describe('validation', function () {
-        it('should require name and email', function () {
+    describe('validation', function (): void {
+        it('should require name and email', function (): void {
             Livewire::test('lead-form')
                 ->call('save')
                 ->assertHasErrors(['form.name' => 'required', 'form.email' => 'required'])
@@ -36,7 +36,7 @@ describe('LeadForm', function () {
             expect(Lead::count())->toBe(0);
         });
 
-        it('should reject invalid emails', function () {
+        it('should reject invalid emails', function (): void {
             Livewire::test('lead-form')
                 ->set('form.name', 'Cristian')
                 ->set('form.email', 'not-an-email')
@@ -47,8 +47,8 @@ describe('LeadForm', function () {
         });
     });
 
-    describe('happy path', function () {
-        it('should capture a Lead and switch to the success state', function () {
+    describe('happy path', function (): void {
+        it('should capture a Lead and switch to the success state', function (): void {
             Livewire::test('lead-form')
                 ->set('form.name', 'Cristian')
                 ->set('form.email', 'cristian@example.com')
@@ -63,7 +63,7 @@ describe('LeadForm', function () {
             expect(Lead::first()->name)->toBe('Cristian');
         });
 
-        it('should attach the Landing context when mounted with one', function () {
+        it('should attach the Landing context when mounted with one', function (): void {
             $landing = Landing::factory()->create();
 
             Livewire::test('lead-form', ['landing' => $landing])
@@ -77,7 +77,7 @@ describe('LeadForm', function () {
             expect($lead->source_url)->toBe(url('/'.$landing->slug));
         });
 
-        it('should leave landing_id null when mounted without a Landing', function () {
+        it('should leave landing_id null when mounted without a Landing', function (): void {
             Livewire::test('lead-form')
                 ->set('form.name', 'Cristian')
                 ->set('form.email', 'cristian@example.com')
@@ -86,18 +86,18 @@ describe('LeadForm', function () {
             expect(Lead::first()->landing_id)->toBeNull();
         });
 
-        it('should record the page it sits on, not the site root, when mounted without a Landing', function () {
+        it('should record the page it sits on, not the site root, when mounted without a Landing', function (): void {
             Livewire::test('lead-form')
                 ->assertSet('landing', null)
                 ->assertSet('sourceUrl', request()->url());
         });
 
-        it('should not let a request rewrite the source URL', function () {
+        it('should not let a request rewrite the source URL', function (): void {
             Livewire::test('lead-form')->set('sourceUrl', 'https://example.com');
         })->throws(CannotUpdateLockedPropertyException::class);
     });
 
-    describe('attribution', function () {
+    describe('attribution', function (): void {
         /**
          * La cadena entera, que es donde se rompería sin que nadie lo notara:
          * la visita llega con UTMs, navega, escribe, y el lead guardado sabe de
@@ -105,7 +105,7 @@ describe('LeadForm', function () {
          * anotó la primera página—, así que si un día deja de funcionar no será
          * porque alguien se olvidara de pasarlo.
          */
-        it('should save the lead knowing how that visit reached the site', function () {
+        it('should save the lead knowing how that visit reached the site', function (): void {
             $this->get('/?utm_source=instagram&utm_medium=cpc&utm_campaign=verano')
                 ->assertSuccessful();
 
@@ -123,8 +123,8 @@ describe('LeadForm', function () {
         });
     });
 
-    describe('honeypot', function () {
-        it('should pretend success without creating a Lead when the honeypot is filled', function () {
+    describe('honeypot', function (): void {
+        it('should pretend success without creating a Lead when the honeypot is filled', function (): void {
             Livewire::test('lead-form')
                 ->set('form.name', 'Cristian')
                 ->set('form.email', 'cristian@example.com')
@@ -137,8 +137,8 @@ describe('LeadForm', function () {
         });
     });
 
-    describe('dataLayer', function () {
-        it('should push lead_form_submitted with the source URL once the lead is saved', function () {
+    describe('dataLayer', function (): void {
+        it('should push lead_form_submitted with the source URL once the lead is saved', function (): void {
             $component = Livewire::test('lead-form')
                 ->set('form.name', 'Cristian')
                 ->set('form.email', 'cristian@example.com')
@@ -155,7 +155,7 @@ describe('LeadForm', function () {
                 ->not->toContain('Cristian');
         });
 
-        it('should not push anything when validation fails', function () {
+        it('should not push anything when validation fails', function (): void {
             Livewire::test('lead-form')
                 ->set('form.name', 'Cristian')
                 ->set('form.email', 'not-an-email')
@@ -164,7 +164,7 @@ describe('LeadForm', function () {
                 ->assertNoJs();
         });
 
-        it('should not push anything when the honeypot is filled', function () {
+        it('should not push anything when the honeypot is filled', function (): void {
             Livewire::test('lead-form')
                 ->set('form.name', 'Cristian')
                 ->set('form.email', 'cristian@example.com')

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 use App\Models\BlogPost;
 
-describe('Blog routes', function () {
-    describe('/blog (index)', function () {
-        it('should return 200 and render the listing page', function () {
+describe('Blog routes', function (): void {
+    describe('/blog (index)', function (): void {
+        it('should return 200 and render the listing page', function (): void {
             BlogPost::factory()->create(['title' => 'Generadores diésel vs gas']);
             BlogPost::factory()->draft()->create(['title' => 'Borrador secreto']);
 
@@ -16,7 +16,7 @@ describe('Blog routes', function () {
             expect($response->getContent())->not->toContain('Borrador secreto');
         });
 
-        it('should render the empty state when there are no published posts', function () {
+        it('should render the empty state when there are no published posts', function (): void {
             BlogPost::factory()->draft()->count(3)->create();
 
             $this->get('/blog')
@@ -24,7 +24,7 @@ describe('Blog routes', function () {
                 ->assertSee('Aún no hay artículos publicados');
         });
 
-        it('should be noindex when there are no published posts', function () {
+        it('should be noindex when there are no published posts', function (): void {
             BlogPost::factory()->draft()->create();
 
             $this->get('/blog')
@@ -32,7 +32,7 @@ describe('Blog routes', function () {
                 ->assertSee('<meta name="robots" content="noindex', false);
         });
 
-        it('should be indexable when there are published posts', function () {
+        it('should be indexable when there are published posts', function (): void {
             BlogPost::factory()->create();
 
             $this->get('/blog')
@@ -41,8 +41,8 @@ describe('Blog routes', function () {
         });
     });
 
-    describe('/blog pagination', function () {
-        it('should show 10 posts on page 1 and the rest on further pages', function () {
+    describe('/blog pagination', function (): void {
+        it('should show 10 posts on page 1 and the rest on further pages', function (): void {
             BlogPost::factory()->count(11)->sequence(
                 fn ($sequence) => ['published_at' => now()->subMinutes($sequence->index)],
             )->create();
@@ -68,7 +68,7 @@ describe('Blog routes', function () {
             }
         });
 
-        it('should self-canonicalize a paginated page instead of collapsing to page 1', function () {
+        it('should self-canonicalize a paginated page instead of collapsing to page 1', function (): void {
             BlogPost::factory()->count(11)->create();
 
             $this->get('/blog?page=2')
@@ -80,7 +80,7 @@ describe('Blog routes', function () {
                 ->assertSee('<link rel="canonical" href="'.route('blog.index').'">', false);
         });
 
-        it('should emit rel=next/rel=prev links across pages', function () {
+        it('should emit rel=next/rel=prev links across pages', function (): void {
             BlogPost::factory()->count(11)->create();
 
             $this->get('/blog')
@@ -94,19 +94,19 @@ describe('Blog routes', function () {
                 ->assertDontSee('rel="next"', false);
         });
 
-        it('should 404 for a page beyond the last one', function () {
+        it('should 404 for a page beyond the last one', function (): void {
             BlogPost::factory()->count(3)->create();
 
             $this->get('/blog?page=100')->assertNotFound();
         });
 
-        it('should not 404 for page 1 when there is no content at all', function () {
+        it('should not 404 for page 1 when there is no content at all', function (): void {
             $this->get('/blog')->assertOk();
         });
     });
 
-    describe('/blog/{slug} (show)', function () {
-        it('should return 200 for a published post', function () {
+    describe('/blog/{slug} (show)', function (): void {
+        it('should return 200 for a published post', function (): void {
             BlogPost::factory()->create([
                 'slug' => 'generadores-diesel-vs-gas',
                 'title' => 'Generadores diésel vs gas',
@@ -119,27 +119,27 @@ describe('Blog routes', function () {
                 ->assertSee('Comparativa.', false);
         });
 
-        it('should 404 for a draft post', function () {
+        it('should 404 for a draft post', function (): void {
             BlogPost::factory()->draft()->create(['slug' => 'borrador']);
 
             $this->get('/blog/borrador')->assertNotFound();
         });
 
-        it('should 404 for a scheduled (future) post', function () {
+        it('should 404 for a scheduled (future) post', function (): void {
             BlogPost::factory()->scheduled()->create(['slug' => 'futuro']);
 
             $this->get('/blog/futuro')->assertNotFound();
         });
 
-        it('should 404 for an inactive post', function () {
+        it('should 404 for an inactive post', function (): void {
             BlogPost::factory()->inactive()->create(['slug' => 'archivado']);
 
             $this->get('/blog/archivado')->assertNotFound();
         });
     });
 
-    describe('SEO + Article meta', function () {
-        it('should emit article meta + meta description for a published post', function () {
+    describe('SEO + Article meta', function (): void {
+        it('should emit article meta + meta description for a published post', function (): void {
             BlogPost::factory()->create([
                 'slug' => 'guia-kva',
                 'title' => 'Cómo calcular los kVA que necesitas',

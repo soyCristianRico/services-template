@@ -10,13 +10,13 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\FileUploadConfiguration;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->actingAs(User::factory()->create());
 });
 
-describe('Admin\\Services\\Edit', function () {
-    describe('create', function () {
-        it('should auto-fill slug from name until user edits the slug', function () {
+describe('Admin\\Services\\Edit', function (): void {
+    describe('create', function (): void {
+        it('should auto-fill slug from name until user edits the slug', function (): void {
             $category = Category::factory()->create();
 
             Livewire::test('pages::admin.services.edit')
@@ -28,7 +28,7 @@ describe('Admin\\Services\\Edit', function () {
                 ->assertSet('form.slug', 'sdmo-100');
         });
 
-        it('should persist a new service with valid input', function () {
+        it('should persist a new service with valid input', function (): void {
             $category = Category::factory()->create();
 
             Livewire::test('pages::admin.services.edit')
@@ -44,7 +44,7 @@ describe('Admin\\Services\\Edit', function () {
             expect($service->category_id)->toBe($category->id);
         });
 
-        it('should reject duplicate slugs', function () {
+        it('should reject duplicate slugs', function (): void {
             $category = Category::factory()->create();
             Service::factory()->inCategory($category)->create(['slug' => 'sdmo']);
 
@@ -58,7 +58,7 @@ describe('Admin\\Services\\Edit', function () {
             expect(Service::count())->toBe(1);
         });
 
-        it('should require a category', function () {
+        it('should require a category', function (): void {
             Livewire::test('pages::admin.services.edit')
                 ->set('form.name', 'Algo')
                 ->set('form.slug', 'algo')
@@ -66,7 +66,7 @@ describe('Admin\\Services\\Edit', function () {
                 ->assertHasErrors(['form.category_id']);
         });
 
-        it('should accept and store valid JSON custom_fields', function () {
+        it('should accept and store valid JSON custom_fields', function (): void {
             $category = Category::factory()->create();
 
             Livewire::test('pages::admin.services.edit')
@@ -81,7 +81,7 @@ describe('Admin\\Services\\Edit', function () {
             expect($service->custom_fields)->toBe(['power_kva' => 100, 'fuel' => 'diesel']);
         });
 
-        it('should reject invalid JSON in custom_fields', function () {
+        it('should reject invalid JSON in custom_fields', function (): void {
             $category = Category::factory()->create();
 
             Livewire::test('pages::admin.services.edit')
@@ -95,7 +95,7 @@ describe('Admin\\Services\\Edit', function () {
             expect(Service::count())->toBe(0);
         });
 
-        it('should reject scalar JSON in custom_fields (must be an object)', function () {
+        it('should reject scalar JSON in custom_fields (must be an object)', function (): void {
             $category = Category::factory()->create();
 
             Livewire::test('pages::admin.services.edit')
@@ -108,8 +108,8 @@ describe('Admin\\Services\\Edit', function () {
         });
     });
 
-    describe('edit', function () {
-        it('should preload form including pretty-printed customFieldsJson', function () {
+    describe('edit', function (): void {
+        it('should preload form including pretty-printed customFieldsJson', function (): void {
             $category = Category::factory()->create();
             $service = Service::factory()->inCategory($category)->create([
                 'name' => 'SDMO 100 kVA',
@@ -127,7 +127,7 @@ describe('Admin\\Services\\Edit', function () {
             expect($component->get('form.customFieldsJson'))->toContain('"power_kva"');
         });
 
-        it('should update an existing service and stay on the screen', function () {
+        it('should update an existing service and stay on the screen', function (): void {
             $service = Service::factory()->create();
 
             Livewire::test('pages::admin.services.edit', ['service' => $service])
@@ -139,7 +139,7 @@ describe('Admin\\Services\\Edit', function () {
             expect($service->refresh()->short_description)->toBe('Nueva línea');
         });
 
-        it('should open on the general tab and keep the tab from the URL', function () {
+        it('should open on the general tab and keep the tab from the URL', function (): void {
             $service = Service::factory()->create();
 
             Livewire::test('pages::admin.services.edit', ['service' => $service])
@@ -150,7 +150,7 @@ describe('Admin\\Services\\Edit', function () {
                 ->assertSet('tab', 'gallery');
         });
 
-        it('should jump to the tab of the first field with an error', function () {
+        it('should jump to the tab of the first field with an error', function (): void {
             $service = Service::factory()->create();
 
             Livewire::test('pages::admin.services.edit', ['service' => $service])
@@ -161,7 +161,7 @@ describe('Admin\\Services\\Edit', function () {
                 ->assertSet('tab', 'data');
         });
 
-        it('should jump back to the general tab when the slug is invalid', function () {
+        it('should jump back to the general tab when the slug is invalid', function (): void {
             $service = Service::factory()->create();
 
             Livewire::test('pages::admin.services.edit', ['service' => $service])
@@ -173,8 +173,8 @@ describe('Admin\\Services\\Edit', function () {
         });
     });
 
-    describe('rename', function () {
-        it('should save only the name from the heading', function () {
+    describe('rename', function (): void {
+        it('should save only the name from the heading', function (): void {
             $service = Service::factory()->create(['name' => 'Viejo', 'short_description' => 'Original']);
 
             Livewire::test('pages::admin.services.edit', ['service' => $service])
@@ -188,7 +188,7 @@ describe('Admin\\Services\\Edit', function () {
                 ->and($service->short_description)->toBe('Original');
         });
 
-        it('should keep the slug when the name changes on an existing service', function () {
+        it('should keep the slug when the name changes on an existing service', function (): void {
             $service = Service::factory()->create(['slug' => 'slug-fijo']);
 
             Livewire::test('pages::admin.services.edit', ['service' => $service])
@@ -196,7 +196,7 @@ describe('Admin\\Services\\Edit', function () {
                 ->assertSet('form.slug', 'slug-fijo');
         });
 
-        it('should refuse an empty name', function () {
+        it('should refuse an empty name', function (): void {
             $service = Service::factory()->create(['name' => 'Viejo']);
 
             Livewire::test('pages::admin.services.edit', ['service' => $service])
@@ -208,8 +208,8 @@ describe('Admin\\Services\\Edit', function () {
         });
     });
 
-    describe('media gallery', function () {
-        it('should remove the temporary upload once the image is in the gallery', function () {
+    describe('media gallery', function (): void {
+        it('should remove the temporary upload once the image is in the gallery', function (): void {
             Storage::fake(FileUploadConfiguration::disk());
             Storage::fake('public');
             $service = Service::factory()->create();
@@ -224,7 +224,7 @@ describe('Admin\\Services\\Edit', function () {
             expect($leftovers)->toBeEmpty();
         });
 
-        it('should attach uploaded images to the gallery collection', function () {
+        it('should attach uploaded images to the gallery collection', function (): void {
             Storage::fake('public');
             $service = Service::factory()->create();
             $file = UploadedFile::fake()->image('sdmo-100.jpg', 800, 600);
@@ -235,7 +235,7 @@ describe('Admin\\Services\\Edit', function () {
             expect($service->fresh()->getMedia('gallery'))->toHaveCount(1);
         });
 
-        it('should reject non-image files via validation', function () {
+        it('should reject non-image files via validation', function (): void {
             Storage::fake('public');
             $service = Service::factory()->create();
             $file = UploadedFile::fake()->create('contract.pdf', 100, 'application/pdf');
@@ -247,7 +247,7 @@ describe('Admin\\Services\\Edit', function () {
             expect($service->fresh()->getMedia('gallery'))->toHaveCount(0);
         });
 
-        it('should delete an image from the gallery', function () {
+        it('should delete an image from the gallery', function (): void {
             Storage::fake('public');
             $service = Service::factory()->create();
             $service->addMedia(UploadedFile::fake()->image('a.jpg'))
@@ -262,20 +262,20 @@ describe('Admin\\Services\\Edit', function () {
             expect($service->fresh()->getMedia('gallery'))->toHaveCount(0);
         });
 
-        it('should show the no-images-yet callout on a brand-new service (after first save)', function () {
+        it('should show the no-images-yet callout on a brand-new service (after first save)', function (): void {
             $service = Service::factory()->create();
 
             Livewire::test('pages::admin.services.edit', ['service' => $service])
                 ->assertSee('Aún no hay imágenes');
         });
 
-        it('should NOT show the uploader before the service is saved', function () {
+        it('should NOT show the uploader before the service is saved', function (): void {
             Livewire::test('pages::admin.services.edit')
                 ->assertSee('Guarda el servicio antes para poder subir imágenes');
         });
     });
     describe('record_actions', function (): void {
-        it('should delete a service', function () {
+        it('should delete a service', function (): void {
             $service = Service::factory()->create();
 
             Livewire::test('pages::admin.services.edit', ['service' => $service])

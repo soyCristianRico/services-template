@@ -27,7 +27,7 @@ class ListServicesTool extends Tool
             ->with('category:id,name,slug')
             ->when(! empty($data['category_id'] ?? null), fn ($q) => $q->where('category_id', $data['category_id']))
             ->when(array_key_exists('is_active', $data), fn ($q) => $q->where('is_active', (bool) $data['is_active']))
-            ->when(! empty($data['search'] ?? null), fn ($q) => $q->where(function ($q) use ($data) {
+            ->when(! empty($data['search'] ?? null), fn ($q) => $q->where(function ($q) use ($data): void {
                 $q->where('name', 'like', '%'.$data['search'].'%')
                     ->orWhere('slug', 'like', '%'.$data['search'].'%');
             }))

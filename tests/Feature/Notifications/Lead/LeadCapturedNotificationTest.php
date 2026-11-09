@@ -9,17 +9,17 @@ use App\Models\Lead;
 use App\Models\Location;
 use App\Notifications\Lead\LeadCapturedNotification;
 
-describe('LeadCapturedNotification', function () {
-    describe('via', function () {
-        it('should route through the Discord channel', function () {
+describe('LeadCapturedNotification', function (): void {
+    describe('via', function (): void {
+        it('should route through the Discord channel', function (): void {
             $notification = new LeadCapturedNotification(Lead::factory()->create());
 
             expect($notification->via(new stdClass))->toBe([DiscordChannel::class]);
         });
     });
 
-    describe('toDiscord', function () {
-        it('should build an embed with the lead contact fields', function () {
+    describe('toDiscord', function (): void {
+        it('should build an embed with the lead contact fields', function (): void {
             $lead = Lead::factory()->create([
                 'name' => 'Cristian',
                 'email' => 'cristian@example.com',
@@ -37,7 +37,7 @@ describe('LeadCapturedNotification', function () {
             expect(collect($embed['fields'])->firstWhere('name', 'Mensaje')['value'])->toBe('Necesito un generador para una boda.');
         });
 
-        it('should label the origin with the landing category and location', function () {
+        it('should label the origin with the landing category and location', function (): void {
             $category = Category::factory()->create(['name' => 'Alquiler de generadores']);
             $location = Location::factory()->create(['name' => 'Madrid']);
             $landing = Landing::factory()->forCategory($category)->inLocation($location)->create();
@@ -49,7 +49,7 @@ describe('LeadCapturedNotification', function () {
             expect($origin)->toBe('Alquiler de generadores - Madrid');
         });
 
-        it('should label the origin as direct contact when there is no landing', function () {
+        it('should label the origin as direct contact when there is no landing', function (): void {
             $lead = Lead::factory()->create(['landing_id' => null]);
 
             $payload = (new LeadCapturedNotification($lead))->toDiscord(new stdClass)->toArray();
@@ -58,7 +58,7 @@ describe('LeadCapturedNotification', function () {
             expect($origin)->toBe('Contacto directo');
         });
 
-        it('should omit the message field when the lead has no message', function () {
+        it('should omit the message field when the lead has no message', function (): void {
             $lead = Lead::factory()->create(['message' => null]);
 
             $payload = (new LeadCapturedNotification($lead))->toDiscord(new stdClass)->toArray();

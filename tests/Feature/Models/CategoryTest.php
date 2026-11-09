@@ -8,9 +8,9 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
-describe('Category', function () {
-    describe('tree relationships', function () {
-        it('should expose parent and children across the hierarchy', function () {
+describe('Category', function (): void {
+    describe('tree relationships', function (): void {
+        it('should expose parent and children across the hierarchy', function (): void {
             $rental = Category::factory()->create(['name' => 'Alquiler']);
             $generators = Category::factory()->childOf($rental)->create(['name' => 'Alquiler de generadores']);
             $diesel = Category::factory()->childOf($generators)->create(['name' => 'Alquiler de generadores diésel']);
@@ -20,7 +20,7 @@ describe('Category', function () {
             expect($rental->children->pluck('id')->all())->toBe([$generators->id]);
         });
 
-        it('should collect descendants recursively', function () {
+        it('should collect descendants recursively', function (): void {
             $root = Category::factory()->create();
             $mid = Category::factory()->childOf($root)->create();
             $leaf = Category::factory()->childOf($mid)->create();
@@ -29,7 +29,7 @@ describe('Category', function () {
                 ->toEqualCanonicalizing([$mid->id, $leaf->id]);
         });
 
-        it('should return ancestor chain ordered from leaf to root', function () {
+        it('should return ancestor chain ordered from leaf to root', function (): void {
             $root = Category::factory()->create(['name' => 'Alquiler']);
             $mid = Category::factory()->childOf($root)->create(['name' => 'Alquiler de generadores']);
             $leaf = Category::factory()->childOf($mid)->create(['name' => 'Alquiler de generadores diésel']);
@@ -39,8 +39,8 @@ describe('Category', function () {
         });
     });
 
-    describe('scopes', function () {
-        it('should scope to roots only', function () {
+    describe('scopes', function (): void {
+        it('should scope to roots only', function (): void {
             $root = Category::factory()->create();
             Category::factory()->childOf($root)->count(3)->create();
 
@@ -48,7 +48,7 @@ describe('Category', function () {
             expect(Category::roots()->first()->id)->toBe($root->id);
         });
 
-        it('should order by position first and name as tie-breaker', function () {
+        it('should order by position first and name as tie-breaker', function (): void {
             Category::factory()->create(['name' => 'Zeta', 'position' => 1]);
             Category::factory()->create(['name' => 'Andamios', 'position' => 2]);
             Category::factory()->create(['name' => 'Accesorios', 'position' => 2]);
@@ -57,7 +57,7 @@ describe('Category', function () {
                 ->toBe(['Zeta', 'Accesorios', 'Andamios']);
         });
 
-        it('should stay alphabetical while every position is the default 0', function () {
+        it('should stay alphabetical while every position is the default 0', function (): void {
             Category::factory()->create(['name' => 'Andamios']);
             Category::factory()->create(['name' => 'Accesorios']);
 
@@ -66,7 +66,7 @@ describe('Category', function () {
         });
     });
 
-    describe('deleting', function () {
+    describe('deleting', function (): void {
         /**
          * Que la fila del servicio desaparezca lo garantiza la clave ajena, con
          * gancho o sin él, así que esto NO prueba que el borrado pase por Eloquent
@@ -74,7 +74,7 @@ describe('Category', function () {
          * casos—. Se queda porque el invariante sigue mereciendo un guardián: un
          * servicio nunca sobrevive a su categoría, se llegue por donde se llegue.
          */
-        it('should not leave its services behind', function () {
+        it('should not leave its services behind', function (): void {
             $category = Category::factory()->create();
             $service = Service::factory()->for($category)->create();
 
@@ -83,7 +83,7 @@ describe('Category', function () {
             expect(Service::find($service->id))->toBeNull();
         });
 
-        it('should take the photos of its services with it', function () {
+        it('should take the photos of its services with it', function (): void {
             Storage::fake('public');
 
             $category = Category::factory()->create();
@@ -105,7 +105,7 @@ describe('Category', function () {
                 ->and(Media::count())->toBe(0);
         });
 
-        it('should leave the services of another category alone', function () {
+        it('should leave the services of another category alone', function (): void {
             $category = Category::factory()->create();
             $other = Category::factory()->create();
             $survivor = Service::factory()->for($other)->create();

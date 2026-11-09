@@ -5,9 +5,9 @@ declare(strict_types=1);
 use App\Enums\AdminGroup;
 use App\Enums\AdminSection;
 
-describe('AdminSection', function () {
-    describe('label', function () {
-        it('should name each screen the way the client says it', function (AdminSection $case, string $expected) {
+describe('AdminSection', function (): void {
+    describe('label', function (): void {
+        it('should name each screen the way the client says it', function (AdminSection $case, string $expected): void {
             expect($case->label())->toBe($expected);
         })->with([
             [AdminSection::Dashboard, 'Resumen'],
@@ -25,14 +25,14 @@ describe('AdminSection', function () {
         ]);
     });
 
-    describe('cases', function () {
+    describe('cases', function (): void {
         // One per admin screen family; a new screen means a new case here, or
         // it never reaches the sidebar.
-        it('should have one case per admin screen family', function () {
+        it('should have one case per admin screen family', function (): void {
             expect(AdminSection::cases())->toHaveCount(12);
         });
 
-        it('should put every loose entry before the first group', function () {
+        it('should put every loose entry before the first group', function (): void {
             $loose = array_map(
                 fn (AdminSection $section): bool => $section->inSidebar() && $section->group() === null,
                 AdminSection::cases(),
@@ -43,8 +43,8 @@ describe('AdminSection', function () {
         });
     });
 
-    describe('group', function () {
-        it('should group each screen by the work it is for', function (AdminSection $case, ?AdminGroup $expected) {
+    describe('group', function (): void {
+        it('should group each screen by the work it is for', function (AdminSection $case, ?AdminGroup $expected): void {
             expect($case->group())->toBe($expected);
         })->with([
             [AdminSection::Dashboard, null],
@@ -58,21 +58,21 @@ describe('AdminSection', function () {
         ]);
     });
 
-    describe('inSidebar', function () {
-        it('should leave out the profile', function () {
+    describe('inSidebar', function (): void {
+        it('should leave out the profile', function (): void {
             expect(AdminSection::Profile->inSidebar())->toBeFalse()
                 ->and(AdminSection::Pages->inSidebar())->toBeTrue();
         });
     });
 
-    describe('sidebarEntry', function () {
-        it('should light up its own entry', function () {
+    describe('sidebarEntry', function (): void {
+        it('should light up its own entry', function (): void {
             expect(AdminSection::Services->sidebarEntry())->toBe(AdminSection::Services);
         });
     });
 
-    describe('routeName', function () {
-        it('should open the list of the section', function (AdminSection $case, string $expected) {
+    describe('routeName', function (): void {
+        it('should open the list of the section', function (AdminSection $case, string $expected): void {
             expect($case->routeName())->toBe($expected);
         })->with([
             [AdminSection::Dashboard, 'admin.dashboard'],
@@ -81,8 +81,8 @@ describe('AdminSection', function () {
         ]);
     });
 
-    describe('routePatterns', function () {
-        it('should keep broken addresses apart from redirects', function () {
+    describe('routePatterns', function (): void {
+        it('should keep broken addresses apart from redirects', function (): void {
             expect(AdminSection::Redirects->routePatterns())->not->toContain('admin.redirects.*')
                 ->and(AdminSection::Redirects->routePatterns())->not->toContain('admin.redirects.not-found')
                 ->and(AdminSection::NotFound->routePatterns())->toBe(['admin.redirects.not-found']);

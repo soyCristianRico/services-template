@@ -11,18 +11,18 @@ use Illuminate\Support\Facades\Route;
  * The geographic dimension is a switch, not a fork of the codebase: every file
  * stays identical to the template so `git cherry-pick` keeps working.
  */
-describe('site.locations', function () {
-    describe('enabled', function () {
-        it('should register the public landing route', function () {
+describe('site.locations', function (): void {
+    describe('enabled', function (): void {
+        it('should register the public landing route', function (): void {
             expect(Route::has('landing'))->toBeTrue();
         });
 
-        it('should register the admin routes for locations and landings', function () {
+        it('should register the admin routes for locations and landings', function (): void {
             expect(Route::has('admin.locations.index'))->toBeTrue()
                 ->and(Route::has('admin.landings.index'))->toBeTrue();
         });
 
-        it('should show both entries in the admin menu', function () {
+        it('should show both entries in the admin menu', function (): void {
             // The nav is what is under test, not asset compilation: this has to
             // pass in a fresh checkout with no `npm run build`.
             $this->withoutVite()
@@ -33,31 +33,31 @@ describe('site.locations', function () {
                 ->assertSee('Landings');
         });
 
-        it('should offer the geographic MCP tools', function () {
+        it('should offer the geographic MCP tools', function (): void {
             expect(mcpToolNames())->toContain('list-landings-tool')->toContain('list-locations-tool');
         });
     });
 
-    describe('disabled', function () {
+    describe('disabled', function (): void {
         // The catch-all is not geographic: it also serves the CMS pages (the
         // legal texts, a thank-you page), so it stays and only finds no landing.
-        it('should keep the catch-all that serves the pages', function () {
+        it('should keep the catch-all that serves the pages', function (): void {
             expect(routesWithoutLocations())->toContain('landing');
         });
 
-        it('should not register the admin routes for locations and landings', function () {
+        it('should not register the admin routes for locations and landings', function (): void {
             $names = routesWithoutLocations();
 
             expect($names)->not->toContain('admin.locations.index')
                 ->and($names)->not->toContain('admin.landings.index');
         });
 
-        it('should drop the landings sub-sitemap route', function () {
+        it('should drop the landings sub-sitemap route', function (): void {
             // A landing URL in a sitemap would 404: `/{slug}` is not registered.
             expect(routesWithoutLocations())->not->toContain('sitemap.landings');
         });
 
-        it('should not advertise the landings sub-sitemap in the sitemap index', function () {
+        it('should not advertise the landings sub-sitemap in the sitemap index', function (): void {
             config()->set('site.locations', false);
 
             $response = $this->get('/sitemap.xml')->assertOk();
@@ -65,7 +65,7 @@ describe('site.locations', function () {
             expect($response->getContent())->not->toContain('/sitemap-landings.xml');
         });
 
-        it('should hide both entries from the admin menu', function () {
+        it('should hide both entries from the admin menu', function (): void {
             config()->set('site.locations', false);
 
             $this->withoutVite()
@@ -76,7 +76,7 @@ describe('site.locations', function () {
                 ->assertDontSee('Landings');
         });
 
-        it('should not offer the geographic MCP tools', function () {
+        it('should not offer the geographic MCP tools', function (): void {
             config()->set('site.locations', false);
 
             expect(mcpToolNames())
@@ -84,7 +84,7 @@ describe('site.locations', function () {
                 ->not->toContain('list-locations-tool');
         });
 
-        it('should keep every non-geographic tool', function () {
+        it('should keep every non-geographic tool', function (): void {
             config()->set('site.locations', false);
 
             expect(mcpToolNames())

@@ -6,13 +6,13 @@ use App\Models\Page;
 use App\Models\User;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->actingAs(User::factory()->create());
 });
 
-describe('Admin\\Pages\\Edit', function () {
-    describe('create', function () {
-        it('should auto-fill slug from title until user edits the slug', function () {
+describe('Admin\\Pages\\Edit', function (): void {
+    describe('create', function (): void {
+        it('should auto-fill slug from title until user edits the slug', function (): void {
             Livewire::test('pages::admin.pages.edit')
                 ->set('form.title', 'Aviso Legal')
                 ->assertSet('form.slug', 'aviso-legal')
@@ -21,7 +21,7 @@ describe('Admin\\Pages\\Edit', function () {
                 ->assertSet('form.slug', 'legal');
         });
 
-        it('should persist a new page', function () {
+        it('should persist a new page', function (): void {
             Livewire::test('pages::admin.pages.edit')
                 ->set('form.title', 'Aviso legal')
                 ->set('form.slug', 'aviso-legal')
@@ -36,7 +36,7 @@ describe('Admin\\Pages\\Edit', function () {
             expect($page->is_active)->toBeTrue();
         });
 
-        it('should reject duplicate slugs', function () {
+        it('should reject duplicate slugs', function (): void {
             Page::factory()->create(['slug' => 'aviso-legal']);
 
             Livewire::test('pages::admin.pages.edit')
@@ -48,7 +48,7 @@ describe('Admin\\Pages\\Edit', function () {
             expect(Page::count())->toBe(1);
         });
 
-        it('should require a title', function () {
+        it('should require a title', function (): void {
             Livewire::test('pages::admin.pages.edit')
                 ->set('form.slug', 'algo')
                 ->call('save')
@@ -56,8 +56,8 @@ describe('Admin\\Pages\\Edit', function () {
         });
     });
 
-    describe('edit', function () {
-        it('should preload form when mounted with an existing page', function () {
+    describe('edit', function (): void {
+        it('should preload form when mounted with an existing page', function (): void {
             $page = Page::factory()->create([
                 'slug' => 'aviso-legal',
                 'title' => 'Aviso legal',
@@ -75,7 +75,7 @@ describe('Admin\\Pages\\Edit', function () {
                 ->assertSet('form.meta_description', 'desc');
         });
 
-        it('should update an existing page', function () {
+        it('should update an existing page', function (): void {
             $page = Page::factory()->create();
 
             Livewire::test('pages::admin.pages.edit', ['page' => $page])
@@ -150,7 +150,7 @@ describe('Admin\\Pages\\Edit', function () {
     });
 
     describe('record_actions', function (): void {
-        it('should delete a page', function () {
+        it('should delete a page', function (): void {
             $page = Page::factory()->create();
 
             Livewire::test('pages::admin.pages.edit', ['page' => $page])

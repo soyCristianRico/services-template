@@ -9,7 +9,7 @@ use App\Models\Lead;
 use App\Models\User;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->actingAs(User::factory()->create());
 });
 
@@ -43,14 +43,14 @@ describe('Admin\\Leads\\Show', function (): void {
          * Un lead nacido fuera de una visita no tiene nada que enseñar aquí, y
          * una tarjeta con todo a «—» sólo estorba.
          */
-        it('should leave the card out when there was no visit behind the lead', function () {
+        it('should leave the card out when there was no visit behind the lead', function (): void {
             $lead = Lead::factory()->create(['channel' => null]);
 
             Livewire::test('pages::admin.leads.show', ['lead' => $lead])
                 ->assertDontSee('Atribución');
         });
 
-        it('should render the lead details', function () {
+        it('should render the lead details', function (): void {
             $lead = Lead::factory()->create([
                 'name' => 'Cristian',
                 'email' => 'cristian@example.com',
@@ -66,7 +66,7 @@ describe('Admin\\Leads\\Show', function (): void {
                 ->assertSee('Necesito un generador');
         });
 
-        it('should render the landing card when the lead came from one', function () {
+        it('should render the landing card when the lead came from one', function (): void {
             $landing = Landing::factory()->create();
             $lead = Lead::factory()->fromLanding($landing)->create();
 
@@ -74,14 +74,14 @@ describe('Admin\\Leads\\Show', function (): void {
                 ->assertSee('Landing de origen');
         });
 
-        it('should NOT render the landing card when the lead has no landing', function () {
+        it('should NOT render the landing card when the lead has no landing', function (): void {
             $lead = Lead::factory()->create();
 
             Livewire::test('pages::admin.leads.show', ['lead' => $lead])
                 ->assertDontSee('Landing de origen');
         });
 
-        it('should render the payload when present', function () {
+        it('should render the payload when present', function (): void {
             $lead = Lead::factory()->create([
                 'payload' => ['company' => 'Acme'],
             ]);
@@ -92,8 +92,8 @@ describe('Admin\\Leads\\Show', function (): void {
         });
     });
 
-    describe('updateStatus', function () {
-        it('should update the lead status', function () {
+    describe('updateStatus', function (): void {
+        it('should update the lead status', function (): void {
             $lead = Lead::factory()->create();
 
             Livewire::test('pages::admin.leads.show', ['lead' => $lead])
@@ -127,8 +127,8 @@ describe('Admin\\Leads\\Show', function (): void {
         });
     });
 
-    describe('deleteLead', function () {
-        it('should delete the lead and redirect to the index', function () {
+    describe('deleteLead', function (): void {
+        it('should delete the lead and redirect to the index', function (): void {
             $lead = Lead::factory()->create();
 
             Livewire::test('pages::admin.leads.show', ['lead' => $lead])

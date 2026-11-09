@@ -10,16 +10,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Testing\File;
 use Toolkit\Connector\Content\ContentType;
 
-describe('Ruklab connector config', function () {
-    describe('types', function () {
-        it('declares only models this site actually has', function () {
+describe('Ruklab connector config', function (): void {
+    describe('types', function (): void {
+        it('declares only models this site actually has', function (): void {
             foreach (config('ruklab.types') as $name => $type) {
                 expect($type)->toBeInstanceOf(ContentType::class);
                 expect($type->exists())->toBeTrue("El tipo «{$name}» apunta a un modelo que no existe.");
             }
         });
 
-        it('maps only columns its model will accept writing', function () {
+        it('maps only columns its model will accept writing', function (): void {
             // A field declared here and missing from the model's $fillable is
             // dropped by fill() without a word: the write answers 200, reports
             // the field as changed, and changes nothing.
@@ -36,7 +36,7 @@ describe('Ruklab connector config', function () {
             }
         });
 
-        it('maps only columns the table really has', function () {
+        it('maps only columns the table really has', function (): void {
             foreach (config('ruklab.types') as $name => $type) {
                 $model = $type->newModel();
                 $table = $model->getTable();
@@ -52,7 +52,7 @@ describe('Ruklab connector config', function () {
             }
         });
 
-        it('never offers to write a column that holds a structure', function () {
+        it('never offers to write a column that holds a structure', function (): void {
             // Ruk Lab sends text. A column cast to an array holds a tree, and
             // writing a string into it would encode the string itself and stop
             // the page rendering.
@@ -73,7 +73,7 @@ describe('Ruklab connector config', function () {
                 ->and($type->writable())->toContain('title');
         });
 
-        it('keeps people and money out of reach', function () {
+        it('keeps people and money out of reach', function (): void {
             // Not content, and no assistant has any business editing them.
             $models = array_map(fn (ContentType $type): string => $type->model, array_values(config('ruklab.types')));
 
@@ -82,8 +82,8 @@ describe('Ruklab connector config', function () {
         });
     });
 
-    describe('menus', function () {
-        it('maps columns the menu table really has', function () {
+    describe('menus', function (): void {
+        it('maps columns the menu table really has', function (): void {
             $menus = config('ruklab.menus');
 
             expect(class_exists($menus['model']))->toBeTrue();
@@ -98,8 +98,8 @@ describe('Ruklab connector config', function () {
         });
     });
 
-    describe('credentials', function () {
-        it('exposes nothing when no token is configured', function () {
+    describe('credentials', function (): void {
+        it('exposes nothing when no token is configured', function (): void {
             // A site with no credential is a site nobody connected on purpose.
             config()->set('ruklab.token', null);
 
@@ -108,26 +108,26 @@ describe('Ruklab connector config', function () {
                 ->assertJsonPath('message', 'El conector de Ruk Lab no está configurado en esta web.');
         });
 
-        it('turns away a caller with the wrong token', function () {
+        it('turns away a caller with the wrong token', function (): void {
             config()->set('ruklab.token', 'el-bueno');
 
             $this->getJson('/ruklab/v1/info', ['Authorization' => 'Bearer el-malo'])
                 ->assertUnauthorized();
         });
 
-        it('starts read-only', function () {
+        it('starts read-only', function (): void {
             expect(config('ruklab.writes_enabled'))->toBeFalse();
         });
     });
 });
 
-describe('Ruklab connector media', function () {
-    beforeEach(function () {
+describe('Ruklab connector media', function (): void {
+    beforeEach(function (): void {
         config()->set('ruklab.token', 'el-bueno');
         config()->set('ruklab.writes_enabled', true);
     });
 
-    it('declares only collections the model actually registers', function () {
+    it('declares only collections the model actually registers', function (): void {
         // A collection named here and missing from the model would be created
         // on the fly by medialibrary, with none of the conversions the site
         // expects, and the hero would render at its original weight.
@@ -146,7 +146,7 @@ describe('Ruklab connector media', function () {
         }
     });
 
-    it('stores an uploaded image in the hero collection', function () {
+    it('stores an uploaded image in the hero collection', function (): void {
         $post = BlogPost::factory()->create();
 
         $response = $this->withHeader('Authorization', 'Bearer el-bueno')
@@ -160,7 +160,7 @@ describe('Ruklab connector media', function () {
         expect($post->fresh()->getFirstMedia('hero'))->not->toBeNull();
     });
 
-    it('replaces the image instead of piling a second one on', function () {
+    it('replaces the image instead of piling a second one on', function (): void {
         // Publishing the same article twice must not leave the site with two
         // heroes and no way to say which one wins.
         $post = BlogPost::factory()->create();
@@ -176,7 +176,7 @@ describe('Ruklab connector media', function () {
         expect($post->fresh()->getMedia('hero'))->toHaveCount(1);
     });
 
-    it('refuses an image name this type does not declare', function () {
+    it('refuses an image name this type does not declare', function (): void {
         $post = BlogPost::factory()->create();
 
         $this->withHeader('Authorization', 'Bearer el-bueno')
@@ -186,7 +186,7 @@ describe('Ruklab connector media', function () {
             ])->assertForbidden();
     });
 
-    it('refuses something that is not an image', function () {
+    it('refuses something that is not an image', function (): void {
         $post = BlogPost::factory()->create();
 
         $this->withHeader('Authorization', 'Bearer el-bueno')
@@ -196,7 +196,7 @@ describe('Ruklab connector media', function () {
             ])->assertStatus(422);
     });
 
-    it('refuses to touch anything on a read-only site', function () {
+    it('refuses to touch anything on a read-only site', function (): void {
         config()->set('ruklab.writes_enabled', false);
 
         $post = BlogPost::factory()->create();
@@ -210,7 +210,7 @@ describe('Ruklab connector media', function () {
         expect($post->fresh()->getFirstMedia('hero'))->toBeNull();
     });
 
-    it('shows the image when reading the article back', function () {
+    it('shows the image when reading the article back', function (): void {
         $post = BlogPost::factory()->create();
 
         $this->withHeader('Authorization', 'Bearer el-bueno')

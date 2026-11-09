@@ -18,14 +18,14 @@ function storedAttribution(): ?array
     return is_array($stored) ? $stored : null;
 }
 
-describe('CaptureLeadAttribution', function () {
-    describe('capture', function () {
+describe('CaptureLeadAttribution', function (): void {
+    describe('capture', function (): void {
         /**
          * Tiene que ser en la primera página y no al enviar el formulario: el
          * formulario es Livewire, y en ese POST el referrer es la propia web y
          * las UTMs se quedaron en una URL que ya nadie mira.
          */
-        it('should note where the visit came from on the page it landed on', function () {
+        it('should note where the visit came from on the page it landed on', function (): void {
             $this->get('/?utm_source=newsletter&utm_medium=email&utm_campaign=agosto')
                 ->assertSuccessful();
 
@@ -37,7 +37,7 @@ describe('CaptureLeadAttribution', function () {
             ]);
         });
 
-        it('should note an organic arrival from its referrer', function () {
+        it('should note an organic arrival from its referrer', function (): void {
             $this->get('/', ['referer' => 'https://www.google.es/search?q=algo'])
                 ->assertSuccessful();
 
@@ -48,7 +48,7 @@ describe('CaptureLeadAttribution', function () {
          * El primer toque se escribe UNA vez. Lo que trajo a alguien es la
          * página por la que entró, no la tercera que miró.
          */
-        it('should not let a later page overwrite the first one', function () {
+        it('should not let a later page overwrite the first one', function (): void {
             $this->get('/?utm_source=newsletter&utm_medium=email')->assertSuccessful();
             $this->get('/?utm_source=otra&utm_medium=cpc')->assertSuccessful();
 
@@ -58,20 +58,20 @@ describe('CaptureLeadAttribution', function () {
             ]);
         });
 
-        it('should note a visit that arrived with nothing as direct', function () {
+        it('should note a visit that arrived with nothing as direct', function (): void {
             $this->get('/')->assertSuccessful();
 
             expect(storedAttribution()['channel'] ?? null)->toBe(LeadChannel::Direct->value);
         });
     });
 
-    describe('what_is_not_a_first_touch', function () {
+    describe('what_is_not_a_first_touch', function (): void {
         /**
          * Una descarga, un sitemap o un 404 no son la página por la que entra
          * nadie, y el primer toque sólo se escribe una vez: gastarlo en una de
          * ellas deja la visita entera sin origen.
          */
-        it('should ignore a response that is not a page', function (string $url) {
+        it('should ignore a response that is not a page', function (string $url): void {
             $this->get($url);
 
             expect(storedAttribution())->toBeNull();
@@ -84,7 +84,7 @@ describe('CaptureLeadAttribution', function () {
          * Quien mira el panel no es una visita que vaya a convertir, y su
          * primera pantalla no dice nada de dónde vino nadie.
          */
-        it('should ignore the panel', function () {
+        it('should ignore the panel', function (): void {
             $this->actingAs(User::factory()->create())
                 ->get('/admin')
                 ->assertSuccessful();

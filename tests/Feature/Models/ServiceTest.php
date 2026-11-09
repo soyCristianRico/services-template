@@ -8,16 +8,16 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\MediaLibrary\MediaCollections\Exceptions\FileCannotBeAdded;
 
-describe('Service', function () {
-    describe('relations', function () {
-        it('should belong to a category', function () {
+describe('Service', function (): void {
+    describe('relations', function (): void {
+        it('should belong to a category', function (): void {
             $category = Category::factory()->create();
             $service = Service::factory()->inCategory($category)->create();
 
             expect($service->category->id)->toBe($category->id);
         });
 
-        it('should be deleted when its category is deleted (cascade)', function () {
+        it('should be deleted when its category is deleted (cascade)', function (): void {
             $category = Category::factory()->create();
             $service = Service::factory()->inCategory($category)->create();
 
@@ -26,7 +26,7 @@ describe('Service', function () {
             expect(Service::find($service->id))->toBeNull();
         });
 
-        it('should belong to many additional categories', function () {
+        it('should belong to many additional categories', function (): void {
             $service = Service::factory()->create();
             $extra = Category::factory()->count(2)->create();
 
@@ -36,7 +36,7 @@ describe('Service', function () {
                 ->toEqualCanonicalizing($extra->pluck('id')->all());
         });
 
-        it('should detach an additional category when that category is deleted', function () {
+        it('should detach an additional category when that category is deleted', function (): void {
             $service = Service::factory()->create();
             $extra = Category::factory()->create();
             $service->additionalCategories()->attach($extra);
@@ -48,8 +48,8 @@ describe('Service', function () {
         });
     });
 
-    describe('seo meta', function () {
-        it('should store its own meta title and description', function () {
+    describe('seo meta', function (): void {
+        it('should store its own meta title and description', function (): void {
             $service = Service::factory()->create([
                 'meta_title' => 'Oposición Administrativo DGA 2026 | Cierzo',
                 'meta_description' => 'Prepárate con temario propio y seguimiento semanal.',
@@ -61,7 +61,7 @@ describe('Service', function () {
                 ->and($service->meta_description)->toBe('Prepárate con temario propio y seguimiento semanal.');
         });
 
-        it('should allow a service with no meta of its own', function () {
+        it('should allow a service with no meta of its own', function (): void {
             $service = Service::factory()->create();
 
             expect($service->meta_title)->toBeNull()
@@ -69,8 +69,8 @@ describe('Service', function () {
         });
     });
 
-    describe('casts', function () {
-        it('should cast custom_fields to array', function () {
+    describe('casts', function (): void {
+        it('should cast custom_fields to array', function (): void {
             $service = Service::factory()->create([
                 'custom_fields' => ['power_kva' => 100, 'fuel' => 'diesel'],
             ]);
@@ -79,22 +79,22 @@ describe('Service', function () {
                 ->and($service->custom_fields['power_kva'])->toBe(100);
         });
 
-        it('should cast is_active to boolean', function () {
+        it('should cast is_active to boolean', function (): void {
             $service = Service::factory()->inactive()->create();
 
             expect($service->is_active)->toBeFalse();
         });
     });
 
-    describe('scopes', function () {
-        it('should scope to active only', function () {
+    describe('scopes', function (): void {
+        it('should scope to active only', function (): void {
             Service::factory()->count(3)->create();
             Service::factory()->inactive()->count(2)->create();
 
             expect(Service::active()->count())->toBe(3);
         });
 
-        it('should order by position then name', function () {
+        it('should order by position then name', function (): void {
             $category = Category::factory()->create();
             Service::factory()->inCategory($category)->create(['name' => 'B', 'position' => 1]);
             Service::factory()->inCategory($category)->create(['name' => 'A', 'position' => 2]);
@@ -106,8 +106,8 @@ describe('Service', function () {
         });
     });
 
-    describe('customField helper', function () {
-        it('should read a nested custom field with default fallback', function () {
+    describe('customField helper', function (): void {
+        it('should read a nested custom field with default fallback', function (): void {
             $service = Service::factory()->create([
                 'custom_fields' => ['specs' => ['power_kva' => 250]],
             ]);
@@ -116,15 +116,15 @@ describe('Service', function () {
             expect($service->customField('specs.missing', 'fallback'))->toBe('fallback');
         });
 
-        it('should return null when custom_fields is empty', function () {
+        it('should return null when custom_fields is empty', function (): void {
             $service = Service::factory()->create(['custom_fields' => null]);
 
             expect($service->customField('whatever'))->toBeNull();
         });
     });
 
-    describe('media gallery', function () {
-        it('should attach an image to the gallery collection', function () {
+    describe('media gallery', function (): void {
+        it('should attach an image to the gallery collection', function (): void {
             Storage::fake('public');
 
             $service = Service::factory()->create();
@@ -138,7 +138,7 @@ describe('Service', function () {
             expect($service->getFirstMedia('gallery')->file_name)->toBe('sdmo-100.jpg');
         });
 
-        it('should expose a getFirstMediaUrl helper for the gallery', function () {
+        it('should expose a getFirstMediaUrl helper for the gallery', function (): void {
             Storage::fake('public');
 
             $service = Service::factory()->create();
@@ -148,7 +148,7 @@ describe('Service', function () {
             expect($service->getFirstMediaUrl('gallery'))->not->toBeEmpty();
         });
 
-        it('should reject non-image mime types', function () {
+        it('should reject non-image mime types', function (): void {
             Storage::fake('public');
 
             $service = Service::factory()->create();

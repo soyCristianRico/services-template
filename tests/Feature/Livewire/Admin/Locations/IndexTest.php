@@ -7,19 +7,19 @@ use App\Models\Location;
 use App\Models\User;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->actingAs(User::factory()->create());
 });
 
-describe('Admin\\Locations\\Index', function () {
-    describe('rendering', function () {
-        it('should render an empty state when no locations exist', function () {
+describe('Admin\\Locations\\Index', function (): void {
+    describe('rendering', function (): void {
+        it('should render an empty state when no locations exist', function (): void {
             Livewire::test('pages::admin.locations.index')
                 ->assertOk()
                 ->assertSee('Crea la primera');
         });
 
-        it('should render locations in depth-first order with depth tracking', function () {
+        it('should render locations in depth-first order with depth tracking', function (): void {
             $country = Location::factory()->ofType(LocationType::Country)->create(['name' => 'España']);
             $region = Location::factory()->childOf($country)->ofType(LocationType::Region)->create(['name' => 'Madrid CCAA']);
             Location::factory()->childOf($region)->ofType(LocationType::City)->create(['name' => 'Madrid']);
@@ -36,8 +36,8 @@ describe('Admin\\Locations\\Index', function () {
         });
     });
 
-    describe('search', function () {
-        it('should flatten results when searching', function () {
+    describe('search', function (): void {
+        it('should flatten results when searching', function (): void {
             $parent = Location::factory()->create(['name' => 'España']);
             Location::factory()->childOf($parent)->create(['name' => 'Madrid']);
             Location::factory()->childOf($parent)->create(['name' => 'Barcelona']);

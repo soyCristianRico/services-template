@@ -10,21 +10,21 @@ use Illuminate\Routing\RouteCollection;
  * The catalog is a switch, like the geography: a site without one keeps every
  * file of the template and just stops offering the catalog to the client.
  */
-describe('site.catalog', function () {
-    describe('enabled', function () {
-        it('should register the catalog admin routes', function () {
+describe('site.catalog', function (): void {
+    describe('enabled', function (): void {
+        it('should register the catalog admin routes', function (): void {
             expect(catalogRouteNames(true))
                 ->toContain('admin.categories.index')
                 ->toContain('admin.services.index');
         });
 
-        it('should offer the catalog MCP tools', function () {
+        it('should offer the catalog MCP tools', function (): void {
             expect(catalogToolNames(true))->toContain('list-services-tool')->toContain('list-categories-tool');
         });
     });
 
-    describe('disabled', function () {
-        it('should not register the catalog admin routes', function () {
+    describe('disabled', function (): void {
+        it('should not register the catalog admin routes', function (): void {
             $names = catalogRouteNames(false);
 
             expect($names)->not->toContain('admin.categories.index')
@@ -32,7 +32,7 @@ describe('site.catalog', function () {
                 ->and($names)->toContain('admin.blog.index');
         });
 
-        it('should hide the catalog from the admin menu', function () {
+        it('should hide the catalog from the admin menu', function (): void {
             config()->set('site.catalog', false);
 
             $this->withoutVite()
@@ -43,7 +43,7 @@ describe('site.catalog', function () {
                 ->assertDontSee('>Servicios<', false);
         });
 
-        it('should not offer the catalog MCP tools, and keep the rest', function () {
+        it('should not offer the catalog MCP tools, and keep the rest', function (): void {
             expect(catalogToolNames(false))
                 ->not->toContain('list-services-tool')
                 ->not->toContain('list-categories-tool')

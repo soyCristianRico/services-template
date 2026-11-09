@@ -5,17 +5,17 @@ declare(strict_types=1);
 use App\Models\Page;
 use Illuminate\Database\UniqueConstraintViolationException;
 
-describe('Page', function () {
-    describe('casts', function () {
-        it('should cast is_active to boolean', function () {
+describe('Page', function (): void {
+    describe('casts', function (): void {
+        it('should cast is_active to boolean', function (): void {
             $page = Page::factory()->inactive()->create();
 
             expect($page->is_active)->toBeFalse();
         });
     });
 
-    describe('scopes', function () {
-        it('should scope to active only', function () {
+    describe('scopes', function (): void {
+        it('should scope to active only', function (): void {
             Page::factory()->count(3)->create();
             Page::factory()->inactive()->count(2)->create();
 
@@ -23,8 +23,8 @@ describe('Page', function () {
         });
     });
 
-    describe('persistence', function () {
-        it('should enforce unique slugs', function () {
+    describe('persistence', function (): void {
+        it('should enforce unique slugs', function (): void {
             Page::factory()->create(['slug' => 'aviso-legal']);
 
             expect(fn () => Page::factory()->create(['slug' => 'aviso-legal']))

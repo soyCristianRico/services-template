@@ -5,9 +5,9 @@ declare(strict_types=1);
 use App\Enums\LocationType;
 use App\Models\Location;
 
-describe('City', function () {
-    describe('tree relationships', function () {
-        it('should expose parent and children belonging to the same tree', function () {
+describe('City', function (): void {
+    describe('tree relationships', function (): void {
+        it('should expose parent and children belonging to the same tree', function (): void {
             $country = Location::factory()->ofType(LocationType::Country)->create(['name' => 'España']);
             $region = Location::factory()->childOf($country)->ofType(LocationType::Region)->create(['name' => 'Madrid CCAA']);
             $location = Location::factory()->childOf($region)->ofType(LocationType::City)->create(['name' => 'Madrid']);
@@ -17,7 +17,7 @@ describe('City', function () {
             expect($country->children->pluck('id')->all())->toBe([$region->id]);
         });
 
-        it('should expose every descendant recursively', function () {
+        it('should expose every descendant recursively', function (): void {
             $country = Location::factory()->ofType(LocationType::Country)->create();
             $region = Location::factory()->childOf($country)->ofType(LocationType::Region)->create();
             $location = Location::factory()->childOf($region)->ofType(LocationType::City)->create();
@@ -28,7 +28,7 @@ describe('City', function () {
             expect($descendantIds)->toEqualCanonicalizing([$region->id, $location->id, $district->id]);
         });
 
-        it('should expose ancestors from leaf up to root', function () {
+        it('should expose ancestors from leaf up to root', function (): void {
             $country = Location::factory()->ofType(LocationType::Country)->create(['name' => 'España']);
             $region = Location::factory()->childOf($country)->ofType(LocationType::Region)->create(['name' => 'Madrid CCAA']);
             $location = Location::factory()->childOf($region)->ofType(LocationType::City)->create(['name' => 'Madrid']);
@@ -39,8 +39,8 @@ describe('City', function () {
         });
     });
 
-    describe('scopes', function () {
-        it('should scope to a given type', function () {
+    describe('scopes', function (): void {
+        it('should scope to a given type', function (): void {
             Location::factory()->ofType(LocationType::Country)->count(2)->create();
             Location::factory()->ofType(LocationType::City)->count(3)->create();
 
@@ -48,7 +48,7 @@ describe('City', function () {
             expect(Location::ofType(LocationType::City)->count())->toBe(3);
         });
 
-        it('should scope to roots when no parent', function () {
+        it('should scope to roots when no parent', function (): void {
             $parent = Location::factory()->create();
             Location::factory()->childOf($parent)->count(2)->create();
 
@@ -57,8 +57,8 @@ describe('City', function () {
         });
     });
 
-    describe('casts', function () {
-        it('should cast type to LocationType enum', function () {
+    describe('casts', function (): void {
+        it('should cast type to LocationType enum', function (): void {
             $location = Location::factory()->ofType(LocationType::Region)->create();
 
             expect($location->type)->toBeInstanceOf(LocationType::class);

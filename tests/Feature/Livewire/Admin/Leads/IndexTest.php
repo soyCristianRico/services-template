@@ -9,19 +9,19 @@ use App\Models\Lead;
 use App\Models\User;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->actingAs(User::factory()->create());
 });
 
-describe('Admin\\Leads\\Index', function () {
-    describe('rendering', function () {
-        it('should render an empty state when no leads exist', function () {
+describe('Admin\\Leads\\Index', function (): void {
+    describe('rendering', function (): void {
+        it('should render an empty state when no leads exist', function (): void {
             Livewire::test('pages::admin.leads.index')
                 ->assertOk()
                 ->assertSee('No hay contactos con esos filtros');
         });
 
-        it('should list leads ordered by most recent first', function () {
+        it('should list leads ordered by most recent first', function (): void {
             $older = Lead::factory()->create(['email' => 'older@example.com']);
             $older->timestamps = false;
             $older->created_at = now()->subDay();
@@ -36,8 +36,8 @@ describe('Admin\\Leads\\Index', function () {
         });
     });
 
-    describe('filters', function () {
-        it('should filter by status', function () {
+    describe('filters', function (): void {
+        it('should filter by status', function (): void {
             Lead::factory()->count(3)->create();
             Lead::factory()->ofStatus(LeadStatus::Contacted)->count(2)->create();
 
@@ -48,7 +48,7 @@ describe('Admin\\Leads\\Index', function () {
             expect($leads)->toHaveCount(2);
         });
 
-        it('should filter by channel', function () {
+        it('should filter by channel', function (): void {
             Lead::factory()->count(3)->create(['channel' => LeadChannel::Organic]);
             Lead::factory()->count(2)->create(['channel' => LeadChannel::Ads]);
 
@@ -63,7 +63,7 @@ describe('Admin\\Leads\\Index', function () {
          * Sin canal no es un canal más: son los que nacieron fuera de una
          * visita, y son un grupo que se quiere poder mirar aparte.
          */
-        it('should filter the ones that never had a visit behind them', function () {
+        it('should filter the ones that never had a visit behind them', function (): void {
             Lead::factory()->count(3)->create(['channel' => LeadChannel::Direct]);
             Lead::factory()->count(2)->create(['channel' => null]);
 
@@ -74,7 +74,7 @@ describe('Admin\\Leads\\Index', function () {
             expect($leads)->toHaveCount(2);
         });
 
-        it('should filter by landing_id', function () {
+        it('should filter by landing_id', function (): void {
             $landing = Landing::factory()->create();
             Lead::factory()->fromLanding($landing)->count(2)->create();
             Lead::factory()->count(3)->create();
@@ -86,7 +86,7 @@ describe('Admin\\Leads\\Index', function () {
             expect($leads)->toHaveCount(2);
         });
 
-        it('should search by email substring', function () {
+        it('should search by email substring', function (): void {
             Lead::factory()->create(['email' => 'cristian@example.com']);
             Lead::factory()->create(['email' => 'andrea@example.com']);
 
@@ -97,7 +97,7 @@ describe('Admin\\Leads\\Index', function () {
             expect($leads)->toHaveCount(1);
         });
 
-        it('should search by name substring', function () {
+        it('should search by name substring', function (): void {
             Lead::factory()->create(['name' => 'Cristian Rico']);
             Lead::factory()->create(['name' => 'Andrea Pérez']);
 

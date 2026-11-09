@@ -27,17 +27,17 @@ function seoOrganizationNameFor(?string $value): mixed
     }
 }
 
-describe('seo.organization', function () {
-    describe('name', function () {
-        it('should be null when SEO_ORG_NAME is empty, so the schema falls back to the app name', function () {
+describe('seo.organization', function (): void {
+    describe('name', function (): void {
+        it('should be null when SEO_ORG_NAME is empty, so the schema falls back to the app name', function (): void {
             expect(seoOrganizationNameFor(''))->toBeNull();
         });
 
-        it('should be null when SEO_ORG_NAME is missing', function () {
+        it('should be null when SEO_ORG_NAME is missing', function (): void {
             expect(seoOrganizationNameFor(null))->toBeNull();
         });
 
-        it('should keep the name when SEO_ORG_NAME is filled in', function () {
+        it('should keep the name when SEO_ORG_NAME is filled in', function (): void {
             expect(seoOrganizationNameFor('Ruk Ops'))->toBe('Ruk Ops');
         });
     });

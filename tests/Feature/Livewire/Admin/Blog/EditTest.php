@@ -9,13 +9,13 @@ use Illuminate\Support\Facades\Storage;
 use Livewire\Features\SupportFileUploads\FileUploadConfiguration;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->actingAs(User::factory()->create());
 });
 
-describe('Admin\\Blog\\Edit', function () {
-    describe('create', function () {
-        it('should auto-fill slug from title and stop once manually edited', function () {
+describe('Admin\\Blog\\Edit', function (): void {
+    describe('create', function (): void {
+        it('should auto-fill slug from title and stop once manually edited', function (): void {
             Livewire::test('pages::admin.blog.edit')
                 ->set('form.title', 'Cómo calcular los kVA')
                 ->assertSet('form.slug', 'como-calcular-los-kva')
@@ -24,7 +24,7 @@ describe('Admin\\Blog\\Edit', function () {
                 ->assertSet('form.slug', 'kva-guia');
         });
 
-        it('should persist a new post with tags parsed from CSV', function () {
+        it('should persist a new post with tags parsed from CSV', function (): void {
             Livewire::test('pages::admin.blog.edit')
                 ->set('form.title', 'Diésel vs gas')
                 ->set('form.slug', 'diesel-vs-gas')
@@ -38,7 +38,7 @@ describe('Admin\\Blog\\Edit', function () {
             expect($post->tags)->toBe(['seo', 'comparativa', 'generadores']);
         });
 
-        it('should reject duplicate slugs', function () {
+        it('should reject duplicate slugs', function (): void {
             BlogPost::factory()->create(['slug' => 'taken']);
 
             Livewire::test('pages::admin.blog.edit')
@@ -50,7 +50,7 @@ describe('Admin\\Blog\\Edit', function () {
             expect(BlogPost::count())->toBe(1);
         });
 
-        it('should require a title', function () {
+        it('should require a title', function (): void {
             Livewire::test('pages::admin.blog.edit')
                 ->set('form.slug', 'sin-titulo')
                 ->call('save')
@@ -58,8 +58,8 @@ describe('Admin\\Blog\\Edit', function () {
         });
     });
 
-    describe('edit', function () {
-        it('should preload form including tags as CSV', function () {
+    describe('edit', function (): void {
+        it('should preload form including tags as CSV', function (): void {
             $post = BlogPost::factory()->create([
                 'title' => 'Diésel vs gas',
                 'slug' => 'diesel-vs-gas',
@@ -71,7 +71,7 @@ describe('Admin\\Blog\\Edit', function () {
                 ->assertSet('form.tagsCsv', 'seo, comparativa');
         });
 
-        it('should update an existing post', function () {
+        it('should update an existing post', function (): void {
             $post = BlogPost::factory()->create();
 
             Livewire::test('pages::admin.blog.edit', ['post' => $post])
@@ -83,8 +83,8 @@ describe('Admin\\Blog\\Edit', function () {
         });
     });
 
-    describe('hero image', function () {
-        it('should remove the temporary upload once the hero image is stored', function () {
+    describe('hero image', function (): void {
+        it('should remove the temporary upload once the hero image is stored', function (): void {
             Storage::fake(FileUploadConfiguration::disk());
             Storage::fake('public');
             $post = BlogPost::factory()->create();
@@ -99,7 +99,7 @@ describe('Admin\\Blog\\Edit', function () {
             expect($leftovers)->toBeEmpty();
         });
 
-        it('should attach an uploaded hero image', function () {
+        it('should attach an uploaded hero image', function (): void {
             Storage::fake('public');
             $post = BlogPost::factory()->create();
             $file = UploadedFile::fake()->image('hero.jpg', 1600, 900);
@@ -110,7 +110,7 @@ describe('Admin\\Blog\\Edit', function () {
             expect($post->fresh()->getFirstMediaUrl('hero'))->not->toBeEmpty();
         });
 
-        it('should replace an existing hero (singleFile collection)', function () {
+        it('should replace an existing hero (singleFile collection)', function (): void {
             Storage::fake('public');
             $post = BlogPost::factory()->create();
             $post->addMedia(UploadedFile::fake()->image('first.jpg'))->toMediaCollection('hero');
@@ -121,7 +121,7 @@ describe('Admin\\Blog\\Edit', function () {
             expect($post->fresh()->getMedia('hero'))->toHaveCount(1);
         });
 
-        it('should delete the hero image', function () {
+        it('should delete the hero image', function (): void {
             Storage::fake('public');
             $post = BlogPost::factory()->create();
             $post->addMedia(UploadedFile::fake()->image('hero.jpg'))->toMediaCollection('hero');
@@ -198,7 +198,7 @@ describe('Admin\\Blog\\Edit', function () {
     });
 
     describe('record_actions', function (): void {
-        it('should delete a post', function () {
+        it('should delete a post', function (): void {
             $post = BlogPost::factory()->create();
 
             Livewire::test('pages::admin.blog.edit', ['post' => $post])

@@ -20,13 +20,13 @@ function navigationAt(string $path = '/admin'): AdminNavigation
     return new AdminNavigation($request);
 }
 
-describe('AdminNavigation', function () {
-    describe('sections', function () {
-        it('should list the catalog when the site has one', function () {
+describe('AdminNavigation', function (): void {
+    describe('sections', function (): void {
+        it('should list the catalog when the site has one', function (): void {
             expect(navigationAt()->sections())->toContain(AdminSection::Services, AdminSection::Categories);
         });
 
-        it('should leave the catalog out when the site has none', function () {
+        it('should leave the catalog out when the site has none', function (): void {
             config()->set('site.catalog', false);
 
             expect(navigationAt()->sections())
@@ -34,7 +34,7 @@ describe('AdminNavigation', function () {
                 ->not->toContain(AdminSection::Categories);
         });
 
-        it('should leave locations and landings out on a site with no geography', function () {
+        it('should leave locations and landings out on a site with no geography', function (): void {
             config()->set('site.locations', false);
 
             expect(navigationAt()->sections())
@@ -42,13 +42,13 @@ describe('AdminNavigation', function () {
                 ->not->toContain(AdminSection::Landings);
         });
 
-        it('should never list the profile', function () {
+        it('should never list the profile', function (): void {
             expect(navigationAt()->sections())->not->toContain(AdminSection::Profile);
         });
     });
 
-    describe('entries', function () {
-        it('should open with the loose entries and follow with the groups', function () {
+    describe('entries', function (): void {
+        it('should open with the loose entries and follow with the groups', function (): void {
             $entries = navigationAt()->entries();
 
             expect(array_map(fn (array $entry): ?AdminGroup => $entry['group'], $entries))
@@ -58,7 +58,7 @@ describe('AdminNavigation', function () {
                 ->and($entries[5]['sections'])->toBe([AdminSection::Locations, AdminSection::Landings, AdminSection::Redirects, AdminSection::NotFound]);
         });
 
-        it('should show a group left with one section as that section alone', function () {
+        it('should show a group left with one section as that section alone', function (): void {
             config()->set('site.catalog', false);
             config()->set('site.locations', false);
 
@@ -80,8 +80,8 @@ describe('AdminNavigation', function () {
         });
     });
 
-    describe('current', function () {
-        it('should find the section of the screen', function (string $path, AdminSection $expected) {
+    describe('current', function (): void {
+        it('should find the section of the screen', function (string $path, AdminSection $expected): void {
             expect(navigationAt($path)->current())->toBe($expected);
         })->with([
             ['/admin', AdminSection::Dashboard],
@@ -90,13 +90,13 @@ describe('AdminNavigation', function () {
             ['/admin/redirects/import', AdminSection::Redirects],
         ]);
 
-        it('should be null outside the admin sections', function () {
+        it('should be null outside the admin sections', function (): void {
             expect(navigationAt('/precios')->current())->toBeNull();
         });
     });
 
-    describe('isCurrent', function () {
-        it('should light up only the entry of the current screen', function () {
+    describe('isCurrent', function (): void {
+        it('should light up only the entry of the current screen', function (): void {
             $navigation = navigationAt('/admin/services/create');
 
             expect($navigation->isCurrent(AdminSection::Services))->toBeTrue()
@@ -104,15 +104,15 @@ describe('AdminNavigation', function () {
         });
     });
 
-    describe('badge', function () {
-        it('should show how many contacts wait for an answer', function () {
+    describe('badge', function (): void {
+        it('should show how many contacts wait for an answer', function (): void {
             Lead::factory()->count(2)->create();
             Lead::factory()->ofStatus(LeadStatus::Contacted)->create();
 
             expect(navigationAt()->badge(AdminSection::Leads))->toBe('2');
         });
 
-        it('should show nothing for an empty queue or a section that is not a queue', function () {
+        it('should show nothing for an empty queue or a section that is not a queue', function (): void {
             expect(navigationAt()->badge(AdminSection::Leads))->toBeNull()
                 ->and(navigationAt()->badge(AdminSection::Pages))->toBeNull();
         });

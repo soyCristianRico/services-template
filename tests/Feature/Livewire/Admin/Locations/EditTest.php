@@ -7,19 +7,19 @@ use App\Models\Location;
 use App\Models\User;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->actingAs(User::factory()->create());
 });
 
-describe('Admin\\Locations\\Edit', function () {
-    describe('create', function () {
-        it('should auto-fill slug from name while user has not edited it', function () {
+describe('Admin\\Locations\\Edit', function (): void {
+    describe('create', function (): void {
+        it('should auto-fill slug from name while user has not edited it', function (): void {
             Livewire::test('pages::admin.locations.edit')
                 ->set('form.name', 'Comunidad de Madrid')
                 ->assertSet('form.slug', 'comunidad-de-madrid');
         });
 
-        it('should stop auto-syncing slug once user edits it manually', function () {
+        it('should stop auto-syncing slug once user edits it manually', function (): void {
             Livewire::test('pages::admin.locations.edit')
                 ->set('form.name', 'Madrid')
                 ->assertSet('form.slug', 'madrid')
@@ -28,7 +28,7 @@ describe('Admin\\Locations\\Edit', function () {
                 ->assertSet('form.slug', 'madrid-capital');
         });
 
-        it('should persist a new city with valid input', function () {
+        it('should persist a new city with valid input', function (): void {
             Livewire::test('pages::admin.locations.edit')
                 ->set('form.name', 'Madrid')
                 ->set('form.slug', 'madrid')
@@ -40,7 +40,7 @@ describe('Admin\\Locations\\Edit', function () {
             expect(Location::where('slug', 'madrid')->exists())->toBeTrue();
         });
 
-        it('should reject a duplicate slug', function () {
+        it('should reject a duplicate slug', function (): void {
             Location::factory()->create(['slug' => 'madrid']);
 
             Livewire::test('pages::admin.locations.edit')
@@ -53,7 +53,7 @@ describe('Admin\\Locations\\Edit', function () {
             expect(Location::count())->toBe(1);
         });
 
-        it('should reject slugs with uppercase or special chars', function () {
+        it('should reject slugs with uppercase or special chars', function (): void {
             Livewire::test('pages::admin.locations.edit')
                 ->set('form.name', 'Madrid')
                 ->set('form.slug', 'Madrid_Capital')
@@ -62,8 +62,8 @@ describe('Admin\\Locations\\Edit', function () {
         });
     });
 
-    describe('edit', function () {
-        it('should preload form fields when mounted with an existing city', function () {
+    describe('edit', function (): void {
+        it('should preload form fields when mounted with an existing city', function (): void {
             $parent = Location::factory()->ofType(LocationType::Region)->create(['name' => 'Madrid CCAA']);
             $location = Location::factory()->childOf($parent)->ofType(LocationType::City)->create([
                 'name' => 'Madrid',
@@ -83,7 +83,7 @@ describe('Admin\\Locations\\Edit', function () {
                 ->assertSet('form.meta_title', 'Madrid - capital');
         });
 
-        it('should update an existing city when saving', function () {
+        it('should update an existing city when saving', function (): void {
             $location = Location::factory()->create(['name' => 'Madrid', 'slug' => 'madrid']);
 
             Livewire::test('pages::admin.locations.edit', ['location' => $location])
@@ -97,7 +97,7 @@ describe('Admin\\Locations\\Edit', function () {
             expect(Location::where('slug', 'madrid')->count())->toBe(1);
         });
 
-        it('should allow keeping the same slug when editing (unique constraint ignores self)', function () {
+        it('should allow keeping the same slug when editing (unique constraint ignores self)', function (): void {
             $location = Location::factory()->create(['slug' => 'madrid']);
 
             Livewire::test('pages::admin.locations.edit', ['location' => $location])
@@ -163,7 +163,7 @@ describe('Admin\\Locations\\Edit', function () {
         });
     });
     describe('record_actions', function (): void {
-        it('should delete a location and demote its children to roots', function () {
+        it('should delete a location and demote its children to roots', function (): void {
             $parent = Location::factory()->create();
             $child = Location::factory()->childOf($parent)->create();
 

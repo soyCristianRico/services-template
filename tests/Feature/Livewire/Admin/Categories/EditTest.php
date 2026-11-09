@@ -7,19 +7,19 @@ use App\Models\Service;
 use App\Models\User;
 use Livewire\Livewire;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->actingAs(User::factory()->create());
 });
 
-describe('Admin\\Categories\\Edit', function () {
-    describe('create', function () {
-        it('should auto-fill slug from name', function () {
+describe('Admin\\Categories\\Edit', function (): void {
+    describe('create', function (): void {
+        it('should auto-fill slug from name', function (): void {
             Livewire::test('pages::admin.categories.edit')
                 ->set('form.name', 'Alquiler de generadores')
                 ->assertSet('form.slug', 'alquiler-de-generadores');
         });
 
-        it('should persist a new category with valid input', function () {
+        it('should persist a new category with valid input', function (): void {
             Livewire::test('pages::admin.categories.edit')
                 ->set('form.name', 'Alquiler de generadores')
                 ->set('form.slug', 'alquiler-generadores')
@@ -29,7 +29,7 @@ describe('Admin\\Categories\\Edit', function () {
             expect(Category::where('slug', 'alquiler-generadores')->exists())->toBeTrue();
         });
 
-        it('should default position to 0 and persist an explicit order', function () {
+        it('should default position to 0 and persist an explicit order', function (): void {
             Livewire::test('pages::admin.categories.edit')
                 ->assertSet('form.position', 0)
                 ->set('form.name', 'Andamios')
@@ -41,7 +41,7 @@ describe('Admin\\Categories\\Edit', function () {
             expect(Category::where('slug', 'andamios')->first()->position)->toBe(3);
         });
 
-        it('should reject a negative position', function () {
+        it('should reject a negative position', function (): void {
             Livewire::test('pages::admin.categories.edit')
                 ->set('form.name', 'Andamios')
                 ->set('form.slug', 'andamios')
@@ -50,7 +50,7 @@ describe('Admin\\Categories\\Edit', function () {
                 ->assertHasErrors(['form.position']);
         });
 
-        it('should reject a duplicate slug', function () {
+        it('should reject a duplicate slug', function (): void {
             Category::factory()->create(['slug' => 'alquiler']);
 
             Livewire::test('pages::admin.categories.edit')
@@ -63,8 +63,8 @@ describe('Admin\\Categories\\Edit', function () {
         });
     });
 
-    describe('edit', function () {
-        it('should preload form when mounted with a category', function () {
+    describe('edit', function (): void {
+        it('should preload form when mounted with a category', function (): void {
             $parent = Category::factory()->create(['name' => 'Alquiler']);
             $service = Category::factory()->childOf($parent)->create([
                 'name' => 'Alquiler de generadores',
@@ -82,7 +82,7 @@ describe('Admin\\Categories\\Edit', function () {
                 ->assertSet('form.position', 4);
         });
 
-        it('should update an existing category', function () {
+        it('should update an existing category', function (): void {
             $service = Category::factory()->create(['name' => 'Alquiler', 'slug' => 'alquiler']);
 
             Livewire::test('pages::admin.categories.edit', ['category' => $service])
@@ -153,7 +153,7 @@ describe('Admin\\Categories\\Edit', function () {
     });
 
     describe('record_actions', function (): void {
-        it('should delete a category and demote its children to roots', function () {
+        it('should delete a category and demote its children to roots', function (): void {
             $parent = Category::factory()->create();
             $child = Category::factory()->childOf($parent)->create();
 
@@ -169,7 +169,7 @@ describe('Admin\\Categories\\Edit', function () {
          * The services go with the category, photos included, so the client
          * has to read how many before confirming.
          */
-        it('should say how many services the delete takes with it', function () {
+        it('should say how many services the delete takes with it', function (): void {
             $category = Category::factory()->create(['name' => 'Villas']);
             Service::factory()->count(2)->for($category)->create();
 
@@ -177,7 +177,7 @@ describe('Admin\\Categories\\Edit', function () {
                 ->assertSee('Se borran también sus 2 servicios, con sus fotos.');
         });
 
-        it('should not mention services when the category has none', function () {
+        it('should not mention services when the category has none', function (): void {
             $category = Category::factory()->create();
 
             Livewire::test('pages::admin.categories.edit', ['category' => $category])

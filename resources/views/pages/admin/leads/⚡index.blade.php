@@ -74,7 +74,7 @@ class extends Component
 
         return Lead::query()
             ->with('landing:id,slug')
-            ->when($this->search !== '', fn ($q) => $q->where(function ($q) {
+            ->when($this->search !== '', fn ($q) => $q->where(function ($q): void {
                 $q->where('email', 'like', "%{$this->search}%")
                     ->orWhere('name', 'like', "%{$this->search}%")
                     ->orWhere('phone', 'like', "%{$this->search}%");

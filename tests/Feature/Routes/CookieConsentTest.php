@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 use App\Models\User;
 
-describe('Cookie consent', function () {
-    describe('with Google Tag Manager configured', function () {
-        beforeEach(function () {
+describe('Cookie consent', function (): void {
+    describe('with Google Tag Manager configured', function (): void {
+        beforeEach(function (): void {
             config()->set('services.google_tag_manager.id', 'GTM-TEST123');
         });
 
-        it('should render the GTM snippet and the consent banner', function () {
+        it('should render the GTM snippet and the consent banner', function (): void {
             $response = $this->get('/');
 
             $response->assertOk()
@@ -19,7 +19,7 @@ describe('Cookie consent', function () {
                 ->assertSee('Usamos cookies');
         });
 
-        it('should emit Consent Mode defaults before the GTM loader', function () {
+        it('should emit Consent Mode defaults before the GTM loader', function (): void {
             $content = $this->get('/')->getContent();
 
             $consentPos = strpos($content, "gtag('consent', 'default'");
@@ -36,13 +36,13 @@ describe('Cookie consent', function () {
          * stays up long enough to look like a bug on error pages, which never get
          * the style block Livewire auto-injects.
          */
-        it('should ship the x-cloak rule that keeps it hidden until Alpine boots', function () {
+        it('should ship the x-cloak rule that keeps it hidden until Alpine boots', function (): void {
             $css = file_get_contents(resource_path('css/app.css'));
 
             expect($css)->toMatch('/\[x-cloak\]\s*\{[^}]*display:\s*none/');
         });
 
-        it('should expose the configured cookie name in the banner', function () {
+        it('should expose the configured cookie name in the banner', function (): void {
             config()->set('services.cookie_consent.name', 'rental_cookie_consent');
 
             $this->get('/')
@@ -51,12 +51,12 @@ describe('Cookie consent', function () {
         });
     });
 
-    describe('without Google Tag Manager configured', function () {
-        beforeEach(function () {
+    describe('without Google Tag Manager configured', function (): void {
+        beforeEach(function (): void {
             config()->set('services.google_tag_manager.id', null);
         });
 
-        it('should not render GTM nor the consent banner', function () {
+        it('should not render GTM nor the consent banner', function (): void {
             $response = $this->get('/');
 
             $response->assertOk()
@@ -65,12 +65,12 @@ describe('Cookie consent', function () {
         });
     });
 
-    describe('when authenticated', function () {
-        beforeEach(function () {
+    describe('when authenticated', function (): void {
+        beforeEach(function (): void {
             config()->set('services.google_tag_manager.id', 'GTM-TEST123');
         });
 
-        it('should not render GTM nor the consent banner for logged-in users', function () {
+        it('should not render GTM nor the consent banner for logged-in users', function (): void {
             $this->actingAs(User::factory()->create());
 
             $this->get('/')

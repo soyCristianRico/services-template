@@ -25,7 +25,7 @@ class ListBlogPostsTool extends Tool
         $status = $data['status'] ?? 'all';
 
         $posts = BlogPost::query()
-            ->when(! empty($data['search'] ?? null), fn ($q) => $q->where(function ($q) use ($data) {
+            ->when(! empty($data['search'] ?? null), fn ($q) => $q->where(function ($q) use ($data): void {
                 $q->where('title', 'like', '%'.$data['search'].'%')
                     ->orWhere('slug', 'like', '%'.$data['search'].'%');
             }))

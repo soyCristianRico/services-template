@@ -25,7 +25,7 @@ class ListLeadsTool extends Tool
             ->with('landing:id,slug')
             ->when(! empty($data['status'] ?? null), fn ($q) => $q->where('status', $data['status']))
             ->when(! empty($data['landing_id'] ?? null), fn ($q) => $q->where('landing_id', $data['landing_id']))
-            ->when(! empty($data['search'] ?? null), fn ($q) => $q->where(function ($q) use ($data) {
+            ->when(! empty($data['search'] ?? null), fn ($q) => $q->where(function ($q) use ($data): void {
                 $q->where('email', 'like', '%'.$data['search'].'%')
                     ->orWhere('name', 'like', '%'.$data['search'].'%')
                     ->orWhere('phone', 'like', '%'.$data['search'].'%');
