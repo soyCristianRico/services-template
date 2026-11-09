@@ -1,15 +1,15 @@
 <div class="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm">
     @if ($submitted)
         <div class="space-y-2 text-center" data-test="lead-form-success">
-            <flux:heading size="lg">Te llamamos en 15 minutos</flux:heading>
+            <flux:heading size="lg">Hemos recibido tu consulta</flux:heading>
             <flux:text class="text-zinc-600">
-                Hemos recibido tu petición. Te contactamos enseguida con presupuesto cerrado.
+                Te responderemos lo antes posible.
             </flux:text>
         </div>
     @else
-        <flux:heading size="lg">Pide presupuesto sin compromiso</flux:heading>
+        <flux:heading size="lg">Cuéntanos qué necesitas</flux:heading>
         <flux:text class="mt-2 text-zinc-600">
-            Respuesta en menos de 15 minutos en horario laboral.
+            Te respondemos sin compromiso.
         </flux:text>
 
         <form wire:submit="save" class="mt-6 space-y-4">
@@ -46,7 +46,7 @@
             </div>
 
             <flux:button type="submit" variant="primary" class="w-full">
-                <span wire:loading.remove wire:target="save">Pedir presupuesto</span>
+                <span wire:loading.remove wire:target="save">Enviar consulta</span>
                 <span wire:loading wire:target="save">Enviando…</span>
             </flux:button>
         </form>

@@ -19,7 +19,7 @@ describe('LeadForm', function (): void {
     describe('rendering', function (): void {
         it('should render the form with empty fields by default', function (): void {
             Livewire::test('lead-form')
-                ->assertSee('Pide presupuesto sin compromiso')
+                ->assertSee('Cuéntanos qué necesitas')
                 ->assertSet('form.name', '')
                 ->assertSet('form.email', '')
                 ->assertSet('submitted', false);
@@ -57,7 +57,7 @@ describe('LeadForm', function (): void {
                 ->call('save')
                 ->assertHasNoErrors()
                 ->assertSet('submitted', true)
-                ->assertSee('Te llamamos en 15 minutos');
+                ->assertSee('Hemos recibido tu consulta');
 
             expect(Lead::count())->toBe(1);
             expect(Lead::first()->name)->toBe('Cristian');

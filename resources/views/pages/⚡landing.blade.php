@@ -58,7 +58,7 @@ class extends Component
             .($landing->location ? ' en '.$landing->location->name : '');
 
         $description = $landing->meta_description
-            ?? 'Solicita presupuesto sin compromiso. Respuesta en menos de 15 minutos.';
+            ?? 'Cuéntanos qué necesitas y te respondemos sin compromiso.';
 
         $url = url('/'.$landing->slug);
 
