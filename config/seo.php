@@ -42,7 +42,7 @@ return [
     */
 
     'organization' => [
-        'name' => env('SEO_ORG_NAME'), // null falls back to config('app.name')
+        'name' => env('SEO_ORG_NAME') ?: null, // an empty SEO_ORG_NAME= reads as "", not null; ?: null lets it fall back to config('app.name')
         'type' => ['Organization'],
         'logo' => env('SEO_ORG_LOGO'), // path under public/, e.g. 'images/logo.png'
         'area_served' => ['@type' => 'Country', 'name' => 'España'],
