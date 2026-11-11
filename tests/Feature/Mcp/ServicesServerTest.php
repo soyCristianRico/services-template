@@ -534,4 +534,21 @@ describe('ServicesServer', function (): void {
             ])->assertSee('Validation failed');
         });
     });
+
+    describe('tools/call', function (): void {
+        it('should name an unknown parameter and run nothing', function (): void {
+            BlogPost::factory()->create(['slug' => 'guia-kva']);
+
+            ServicesServer::tool(GetBlogPostTool::class, ['post_slug' => 'guia-kva'])
+                ->assertHasErrors(['Unknown parameter: "post_slug"', 'Accepted parameters: id, slug.']);
+        });
+
+        it('should run the tool when every parameter is declared', function (): void {
+            BlogPost::factory()->create(['slug' => 'guia-kva']);
+
+            ServicesServer::tool(GetBlogPostTool::class, ['slug' => 'guia-kva'])
+                ->assertOk()
+                ->assertSee('guia-kva');
+        });
+    });
 });

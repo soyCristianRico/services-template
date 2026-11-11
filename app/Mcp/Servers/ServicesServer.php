@@ -36,6 +36,7 @@ use Laravel\Mcp\Server;
 use Laravel\Mcp\Server\Attributes\Instructions;
 use Laravel\Mcp\Server\Attributes\Name;
 use Laravel\Mcp\Server\Attributes\Version;
+use Toolkit\Mcp\CallToolRejectingUnknownParameters;
 
 #[Name('Services — Content & Leads')]
 #[Version('0.4.0')]
@@ -127,6 +128,8 @@ class ServicesServer extends Server
     protected function boot(): void
     {
         parent::boot();
+
+        $this->addMethod('tools/call', CallToolRejectingUnknownParameters::class);
 
         if (! config('site.locations')) {
             $this->tools = array_values(array_diff($this->tools, [

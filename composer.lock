@@ -5232,7 +5232,7 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/soyCristianRico/toolkit",
-                "reference": "26f13509d2ad3c48858010ef9b001e132406dd01"
+                "reference": "469a824a6ea5c00da5b316e9d34d1e4c78fce9e1"
             },
             "require": {
                 "illuminate/console": "^11.0|^12.0|^13.0",
@@ -5244,6 +5244,7 @@
                 "php": "^8.2"
             },
             "require-dev": {
+                "laravel/mcp": "^0.5",
                 "laravel/pint": "^1.32",
                 "mockery/mockery": "^1.6",
                 "orchestra/testbench": "^9.0|^10.0",
@@ -5255,6 +5256,7 @@
                 "spatie/laravel-permission": "^5.0|^6.0"
             },
             "suggest": {
+                "laravel/mcp": "Mcp only makes sense on a site with its own MCP server: it refuses tool arguments the tool does not declare.",
                 "spatie/laravel-backup": "Backup turns itself on when this is installed and the app has no config/backup.php of its own.",
                 "spatie/laravel-medialibrary": "Images turns itself on when this is installed: WebP versions, srcset component, upload preparation.",
                 "spatie/laravel-permission": "Only needed by ServerMonitor to resolve alert recipients by role. Setting DEVELOPER_EMAIL instead works on any app."
@@ -5314,7 +5316,7 @@
                 }
             ],
             "description": "Shared toolkit for Ruk Lab's custom-built websites: server monitoring & security, the connector to the Ruk Lab platform, and Markdown for AI agents (llms.txt + content negotiation).",
-            "time": "2026-11-09T16:18:07+00:00"
+            "time": "2026-11-11T10:12:29+00:00"
         },
         {
             "name": "spatie/db-dumper",
