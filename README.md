@@ -74,6 +74,10 @@ MAILGUN_ENDPOINT=api.eu.mailgun.net   # Europe (GDPR). Use api.mailgun.net for U
 SEO_ORG_NAME="Alquiler Generadores"
 SEO_ORG_LOGO=images/logo.png
 SEO_ORG_LINKEDIN=https://www.linkedin.com/company/...
+# Other profiles that ARE the brand (Google Business Profile, directories), space-separated
+SEO_ORG_SAME_AS="https://g.page/r/... https://www.paginasamarillas.es/f/..."
+# Interviews, podcasts or press about the brand
+SEO_ORG_SUBJECT_OF='[{"type":"PodcastEpisode","url":"https://...","name":"..."}]'
 
 # URL slug separator: '' produces /alquiler-generadores-madrid (dense, recommended),
 # 'en' produces /alquiler-generadores-en-madrid (more readable). Per site.

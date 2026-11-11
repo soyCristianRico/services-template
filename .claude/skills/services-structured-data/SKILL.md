@@ -2,7 +2,7 @@
 name: services-structured-data
 description: Diseñar, implementar y validar los datos estructurados (JSON-LD) del sitio clonado — por tipo de página, con un grafo compartido y validación real. Se ejecuta cuando las páginas ya tienen contenido. Es la primera skill del bucle cuyo objetivo NO es la paridad con el origen, sino superarlo.
 disable-model-invocation: true
-allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, mcp__ruklab__get-sop-tool
 ---
 
 # Services · Datos estructurados
@@ -14,6 +14,20 @@ grafo coherente en todo el dominio y validado contra el validador real, no contr
 Entrada: el sitio levantado con su contenido, `inventory.json` (campo `jsonld` por
 página) y `SchemaBuilder`. Salida: el grafo implementado por tipo de página, validado,
 y la decisión registrada.
+
+## El criterio lo dan los procesos; esta skill lo lleva al código
+
+Qué schema lleva cada tipo de página y qué URLs entran en la entidad **no se decide
+aquí**. Se lee en vivo, al empezar, de los procesos de Ruk Lab con el MCP `ruklab`:
+
+- `get-sop-tool SEO101` — qué datos estructurados lleva cada tipo de página.
+- `get-sop-tool SEO289` — qué fichas, perfiles y menciones entran en `sameAs` y
+  `subjectOf`, y cuáles se quedan fuera.
+
+Si el MCP no responde, se para y se avisa: no se sustituye por lo que esta skill
+recuerde, porque el proceso cambia y la copia de aquí no. Lo que queda en la skill es
+**cómo se implementa en este código** — `SchemaBuilder`, `setSEO()`, `config/seo.php`,
+los tests —, que es lo que el proceso no sabe.
 
 ## El encargo aquí es distinto al del resto del bucle
 
@@ -31,6 +45,11 @@ Por eso necesita su propio guardarraíl, y es más estricto que el que sustituye
 Marcar un precio que no se enseña, un autor que no aparece o una valoración que nadie
 ha dejado no es optimizar: es motivo de acción manual. El JSON-LD **describe** la
 página, no la decora.
+
+**`sameAs` y `subjectOf` no caen bajo esta regla.** No describen el contenido de la
+página sino la identidad de la entidad: dónde más está (`sameAs`) y qué se ha publicado
+sobre ella (`subjectOf`). Que la ficha de Google o la entrevista no se enlacen en la
+página no las deja fuera; las deja fuera no cumplir el criterio de SEO289.
 
 ## Proceso
 
@@ -77,6 +96,28 @@ Antes de crear un método, mirar los que ya hay: es habitual que el template tra
 `breadcrumbList()`, `itemList()` o `faqPage()` escritos y **sin cablear a ninguna
 página**, porque servían a un tipo de página que este sitio no usa.
 
+### La entidad: `sameAs` y `subjectOf`
+
+- **`sameAs` = la misma entidad en otro sitio**: sus redes y sus fichas o perfiles
+  propios (Google Business Profile, directorios, portales).
+- **`subjectOf` = lo que habla de ella**: entrevistas, podcasts, artículos de prensa,
+  como `CreativeWork` del tipo que toque (`Article`, `PodcastEpisode`, `VideoObject`).
+- **Marca y persona separadas**: las URLs de la marca van en la `Organization`, las del
+  fundador o autor en su `Person`. Una misma URL nunca en las dos.
+
+Dónde se meten en este código, sin tocar PHP:
+
+| Qué | Dónde |
+|---|---|
+| `sameAs` de la Organization | `.env`: `SEO_ORG_LINKEDIN`, `SEO_ORG_INSTAGRAM`, `SEO_ORG_TWITTER` y `SEO_ORG_SAME_AS` (el resto de URLs, separadas por espacios o comas) |
+| `subjectOf` de la Organization | `.env`: `SEO_ORG_SUBJECT_OF='[{"type":"Article","url":"…","name":"…"}]'` (JSON entre comillas simples) |
+| `sameAs` / `subjectOf` de una Person | `SchemaBuilder::person(sameAs: [...], subjectOf: [...])`, con los datos sacados del registro del autor |
+
+`config/seo.php` junta las variables y `SeoService::applyDefaultGraph()` las emite en
+el nodo `#organization` de todas las páginas. En producción se cambian en el `.env` del
+sitio en Forge y el despliegue rehace la caché de config. Un JSON mal escrito en
+`SEO_ORG_SUBJECT_OF` deja `subjectOf` vacío, no rompe la página: comprobar que sale.
+
 ### 4 — Validar de verdad
 Por cada tipo de página, dos comprobaciones que fallan por motivos distintos:
 
@@ -96,7 +137,9 @@ debería ser `ItemList` y se acaba tomando la decisión contraria por olvido.
 
 ## Guardarraíles
 
-- **Nada marcado que no esté visible.** Es la regla de la que cuelgan las demás.
+- **Nada marcado que no esté visible.** Es la regla de la que cuelgan las demás —
+  salvo `sameAs` y `subjectOf`, que describen la entidad, no la página.
+- **El criterio se lee en los procesos (SEO101, SEO289), no se decide aquí.**
 - **Nunca `aggregateRating`, `review` ni `priceValidUntil` inventados.** Es la tentación
   clásica de esta tarea y es sancionable. Sin reseñas reales, no hay nodo de reseñas.
 - **Los datos salen del registro**, no escritos a mano en el Blade.

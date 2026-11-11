@@ -214,6 +214,12 @@ class SeoService
             $node['sameAs'] = $organization['same_as'];
         }
 
+        $subjectOf = $this->schema->subjectOf($organization['subject_of'] ?? []);
+
+        if ($subjectOf !== []) {
+            $node['subjectOf'] = $subjectOf;
+        }
+
         $this->defaultNodes[] = $node;
 
         $this->defaultNodes[] = [

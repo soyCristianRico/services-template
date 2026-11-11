@@ -221,10 +221,17 @@ class SchemaBuilder
     }
 
     /**
+     * @param  string|list<string>|null  $sameAs  The person's own profiles (LinkedIn, author pages...).
+     * @param  list<array{type?: string, url?: string, name?: string}>  $subjectOf  Interviews, podcasts or articles about the person.
      * @return array<string, mixed>
      */
-    public function person(string $name, ?string $jobTitle = null, ?string $image = null, ?string $sameAs = null): array
-    {
+    public function person(
+        string $name,
+        ?string $jobTitle = null,
+        ?string $image = null,
+        string|array|null $sameAs = null,
+        array $subjectOf = [],
+    ): array {
         $node = [
             '@type' => 'Person',
             'name' => $name,
@@ -239,10 +246,49 @@ class SchemaBuilder
             $node['image'] = $image;
         }
 
-        if ($sameAs !== null) {
-            $node['sameAs'] = [$sameAs];
+        $sameAs = array_values(array_unique(array_filter((array) $sameAs)));
+
+        if ($sameAs !== []) {
+            $node['sameAs'] = $sameAs;
+        }
+
+        $subjectOf = $this->subjectOf($subjectOf);
+
+        if ($subjectOf !== []) {
+            $node['subjectOf'] = $subjectOf;
         }
 
         return $node;
+    }
+
+    /**
+     * Pages about an entity, as CreativeWork nodes of the type each entry gives.
+     * An entry without a URL is dropped: it would point nowhere.
+     *
+     * @param  array<mixed>  $works
+     * @return list<array<string, string>>
+     */
+    public function subjectOf(array $works): array
+    {
+        $nodes = [];
+
+        foreach ($works as $work) {
+            if (! is_array($work) || ! is_string($work['url'] ?? null) || $work['url'] === '') {
+                continue;
+            }
+
+            $node = [
+                '@type' => is_string($work['type'] ?? null) && $work['type'] !== '' ? $work['type'] : 'CreativeWork',
+                'url' => $work['url'],
+            ];
+
+            if (is_string($work['name'] ?? null) && $work['name'] !== '') {
+                $node['name'] = $work['name'];
+            }
+
+            $nodes[] = $node;
+        }
+
+        return $nodes;
     }
 }
