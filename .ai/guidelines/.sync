@@ -6,7 +6,6 @@ bc14f21348c0 coderabbit.md
 86800fdfc9de git.md
 51a1339e81ee helpers.md
 cd818d26fb92 javascript.md
-9c74fa9c6fe7 livewire.md
 3297b02bf253 permissions.md
 f8f0aa65bb11 php.md
 d0da2bcc44b2 refactoring.md
@@ -16,3 +15,4 @@ d4e04fc355f4 ui.md
 5628f9c4f590 guias-comunes.md
 d4a38f5346dd mcp.md
 1a5e8826b37c gotchas.md
+ecfc82e494e3 livewire.md

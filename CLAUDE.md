@@ -46,6 +46,16 @@ Route::livewire('/posts/{post}/edit', 'pages::post.edit')
 ```
 - The route parameter name (e.g., `'post'`) must match the model variable in `->can()`
 
+## `wire:navigate` only behind the login
+- **The public site never uses `wire:navigate`**: no links, and no `navigate: true` in a
+  redirect (thank-you pages included). Every public page is a normal page load.
+- Use it in the admin and other logged-in areas, where it makes the app feel faster.
+- Why: with `wire:navigate` only the `<body>` changes, so whatever starts once per page
+  load stops on the second page. Third-party embeds go blank (rukops, 13/11/2026: the
+  TidyCal calendar on `/contacto` stayed empty when you came back to it), and GTM tags fired on
+  "All pages" (Meta, LinkedIn, a conversion on the thank-you page) count only the first page.
+  The speed gain does not make up for that on a marketing site.
+
 ## Deferred Loading (Skeleton Pattern)
 Use `wire:init` + `$loaded` flag to show skeletons while heavy data loads. This makes `wire:navigate` transitions feel instant.
 
