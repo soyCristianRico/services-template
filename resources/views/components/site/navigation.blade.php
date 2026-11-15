@@ -5,7 +5,7 @@
         @foreach ($items as $item)
             <div wire:key="nav-{{ $item->id }}" class="relative" @if ($item->children->isNotEmpty()) x-data="{ open: false }" x-on:mouseleave="open = false" @endif>
                 @if ($item->children->isEmpty())
-                    <a href="{{ $item->url }}" wire:navigate
+                    <a href="{{ $item->url }}"
                         class="text-muted-foreground transition hover:text-foreground">{{ $item->label }}</a>
                 @else
                     <button type="button" x-on:mouseenter="open = true" x-on:click="open = ! open"
@@ -18,12 +18,12 @@
                     <div x-cloak x-show="open" x-transition.opacity
                         class="absolute left-0 top-full z-20 mt-2 min-w-48 rounded-lg border border-border bg-surface py-2 shadow-lg">
                         @if ($item->url)
-                            <a href="{{ $item->url }}" wire:navigate
+                            <a href="{{ $item->url }}"
                                 class="block px-4 py-2 text-muted-foreground transition hover:bg-surface-muted hover:text-foreground">{{ $item->label }}</a>
                         @endif
 
                         @foreach ($item->children as $child)
-                            <a href="{{ $child->url }}" wire:navigate wire:key="nav-{{ $child->id }}"
+                            <a href="{{ $child->url }}" wire:key="nav-{{ $child->id }}"
                                 class="block px-4 py-2 text-muted-foreground transition hover:bg-surface-muted hover:text-foreground">{{ $child->label }}</a>
                         @endforeach
                     </div>

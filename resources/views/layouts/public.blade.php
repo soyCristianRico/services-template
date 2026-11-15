@@ -61,9 +61,9 @@
             {{-- The legal links stay written here on purpose. They are a legal
                  obligation, not editorial navigation, and an empty menu table
                  must never be able to take them off the page. --}}
-            <a href="{{ route('legal') }}#aviso-legal" wire:navigate class="transition hover:text-foreground">Aviso legal</a>
-            <a href="{{ route('legal') }}#privacidad" wire:navigate class="transition hover:text-foreground">Política de privacidad</a>
-            <a href="{{ route('legal') }}#cookies" wire:navigate class="transition hover:text-foreground">Política de cookies</a>
+            <a href="{{ route('legal') }}#aviso-legal" class="transition hover:text-foreground">Aviso legal</a>
+            <a href="{{ route('legal') }}#privacidad" class="transition hover:text-foreground">Política de privacidad</a>
+            <a href="{{ route('legal') }}#cookies" class="transition hover:text-foreground">Política de cookies</a>
             @if (config('services.google_tag_manager.id') && auth()->guest())
                 <button type="button"
                     x-data
