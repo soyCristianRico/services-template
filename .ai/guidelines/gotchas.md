@@ -28,6 +28,10 @@ Trampas que ya han costado tiempo. Antes de depurar algo raro, mira aquí.
   (`<section x-data="{ open: @js($x) }">`) sí funcionan.
 - **Un `#[Computed]` guarda su valor** durante la petición. Tras cambiar lo que lee, `unset($this->nombre)`; si
   no, la vista enseña el valor de antes.
+- **Comillas simples dentro de un atributo de una etiqueta de componente**, junto a un `{{ }}`
+  (`<flux:button x-on:click="$wire.set('campo.{{ $i }}', '', false)">`), rompen la compilación de la vista con
+  un error de sintaxis que no señala esa línea («unexpected token endif»). Usa un `<button>` HTML normal para
+  ese botón, o pasa el valor por `data-*`. Visto en gestiona-tu-restaurante, 14/11/2026.
 - **Probar la pantalla en el navegador**, no solo con tests: un test que comprueba el estado del servidor no
   demuestra que un botón, un copiar o un Alpine funcionen. Un fallo de atributo como el de arriba pasa los tests.
 - **Los componentes Livewire probados directamente se saltan el `->can()` de la ruta.** Para comprobar que un
@@ -39,5 +43,18 @@ Trampas que ya han costado tiempo. Antes de depurar algo raro, mira aquí.
   de la clase sobrevive a la segunda llamada. Reinicia el estado al principio de `handle()`.
 - **El guard de autenticación recuerda al usuario dentro de un test.** Tras revocar un token o cerrar sesión,
   `$this->app['auth']->forgetGuards()` antes de la siguiente petición, o el test ve un usuario que ya no existe.
+- **Tras un `->call()` de Livewire, la respuesta es JSON y las tildes salen escapadas** (`N\u00f3mina`):
+  `assertSee('Nómina')` o `assertSeeInOrder([...])` fallan aunque la pantalla esté bien. Comprueba el estado
+  (`->get('propiedad')`) o usa textos sin tilde en esa aserción. En la primera carga (`test()` o `get()`) sí se
+  ven tal cual.
 - **`Http::fake([...])` casa en orden de registro:** un patrón general puesto antes se come a los específicos de
   después. Y lo que no casa sale a internet de verdad: `Http::preventStrayRequests()` en todo test que toque la red.
+
+## Despliegue
+
+- **OPcache de producción y despliegue sin caída:** si el servidor tiene OPcache optimizado (no comprueba si los
+  ficheros cambian) y `storage` es compartido entre versiones, PHP-FPM sigue sirviendo la versión vieja de lo que
+  Livewire compila en `storage/framework/views/livewire/`, porque la ruta no cambia de una versión a otra. La
+  pantalla nueva no sale aunque el código esté desplegado. El script de despliegue recarga PHP-FPM al final:
+  `( flock -w 10 9 || exit 1; sudo -S service $FORGE_PHP_FPM reload ) 9>/tmp/fpmlock`. Visto en la demo de
+  gestiona-tu-restaurante, 14/11/2026.
