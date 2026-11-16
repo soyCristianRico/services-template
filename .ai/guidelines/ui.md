@@ -81,7 +81,8 @@ contrasta al repasar. Los componentes que las implementan viven en
   En el alta es un campo normal.
 - **Selectores:** el desplegable de Flux (`variant="listbox"`), nunca el `<select>`
   nativo; `searchable` si es una lista de personas o puestos, `clearable` si el valor
-  es opcional (en vez de una opción vacía). La fecha usa el campo nativo del navegador.
+  es opcional (en vez de una opción vacía). La fecha usa el calendario de Flux en español
+  (abajo, «Selectores y fechas»).
 - **Guardar y Cancelar:** barra fija abajo, con fondo sólido igual al de la página
   (`bg-background`), siempre visible.
 - **Anchos:** listados a ancho completo, con el buscador de ancho fijo. Fichas
@@ -104,4 +105,14 @@ contrasta al repasar. Los componentes que las implementan viven en
   `<select>` nativo (un `<flux:select>` a secas lo renderiza). `searchable` si la lista es
   de personas o puestos, `clearable` si el valor es opcional, nunca una opción vacía
   del tipo «Nadie».
-- La fecha usa el campo nativo del navegador (`<flux:input type="date">`).
+- La fecha usa el calendario de Flux con `locale="es-ES"`, y `clearable` si es opcional:
+  ```blade
+  <flux:date-picker wire:model="form.startsOn" locale="es-ES">
+      <x-slot name="trigger">
+          <flux:date-picker.input variant="custom" clearable />
+      </x-slot>
+  </flux:date-picker>
+  ```
+  Nunca `<flux:input type="date">` (ni `time` o `datetime-local`), ni un `flux:date-picker` sin
+  `locale`: los dos siguen el idioma del navegador, y en uno en inglés salen «mm/dd/yyyy» y
+  «October». Visto en gestiona-tu-restaurante, 16/11/2026.
