@@ -374,6 +374,11 @@ record survives when the outside service throws.
 - This includes Blade templates, Livewire components, and any text shown in the UI
 - The spec and the client speak Spanish, the code does not: translate every business term once, in the spec's glossary, and use only that English name in models, tables, columns, routes, enums (case names included) and tests. Never carry a Spanish word from the spec into an identifier.
 - Enum `label()` methods should return Spanish text (e.g., "Borrador" not "Draft")
+- Flux's own texts go through `__()` («No results found», «Previous month», «Remove file»…) and come
+  out in English unless `lang/es.json` translates them. Keep every one of them there, and keep
+  `tests/Unit/FluxTranslationsTest.php` (copy it from app-template): it reads Flux's texts and fails
+  when a Flux update brings a new one untranslated. Seen in gestiona-tu-restaurante, 16/11/2026: 80
+  of them were missing.
 
 === .ai/gotchas rules ===
 
@@ -486,6 +491,27 @@ contrasta al repasar. Los componentes que las implementan viven en
 - **Alertas derivadas, no estados:** «vencida», «sin plaza»... se calculan desde las
   fechas y el estado que ya existen. Se guarda un estado solo si es una acción del
   equipo.
+
+### Lo que va encima de la tabla
+
+- **Como mucho dos líneas de controles antes de la primera fila:** el buscador con «Filtros», y
+  el selector de vista. Si sale una tercera, algo está fuera de su sitio.
+- **Cada cosa se elige en un solo control.** El periodo, con «‹ Noviembre 2026 ▾ ›»: flechas
+  para el mes de al lado y un desplegable con pocos meses (3 antes, 2 después) y «Todos los
+  meses». Nada de botones sueltos de «Mes en curso» o «Todos». Las fechas del panel «Filtros»
+  quedan para los rangos raros.
+- **El contexto de la pantalla va con el título** («Cobros ‹ Noviembre 2026 ›»), no como un
+  filtro más.
+- **Lo que un valor por defecto deja fuera se ve con su número, donde ya se mira.** Si el mes en
+  curso esconde lo atrasado, «Atrasadas» es una vista más con el recuento en ámbar, no un banner.
+- **Un banner (`flux:callout`) solo para lo que pide actuar y no es un trozo del listado:** un
+  cobro que ha fallado, un error de una integración, algo por configurar. Uno por pantalla como
+  mucho: si todo avisa, nada avisa.
+- **La selección masiva vive en la tabla:** una casilla en la cabecera (`flux:checkbox.all`
+  dentro de un `flux:checkbox.group`) marca la página. «Seleccionar las N de todas las páginas»
+  y las acciones en bloque aparecen solo al marcar algo.
+- Caso: Cobros de cierzo-formacion, 16/11/2026. Encima de la tabla había cinco franjas (vistas,
+  mes con cuatro botones, aviso de meses anteriores, «Seleccionar las 2 cuotas…») y quedaron dos.
 
 ### Formularios y fichas
 

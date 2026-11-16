@@ -10,3 +10,8 @@
 - This includes Blade templates, Livewire components, and any text shown in the UI
 - The spec and the client speak Spanish, the code does not: translate every business term once, in the spec's glossary, and use only that English name in models, tables, columns, routes, enums (case names included) and tests. Never carry a Spanish word from the spec into an identifier.
 - Enum `label()` methods should return Spanish text (e.g., "Borrador" not "Draft")
+- Flux's own texts go through `__()` («No results found», «Previous month», «Remove file»…) and come
+  out in English unless `lang/es.json` translates them. Keep every one of them there, and keep
+  `tests/Unit/FluxTranslationsTest.php` (copy it from app-template): it reads Flux's texts and fails
+  when a Flux update brings a new one untranslated. Seen in gestiona-tu-restaurante, 16/11/2026: 80
+  of them were missing.

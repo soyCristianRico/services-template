@@ -2,7 +2,6 @@ c87a9198c596 blade.md
 fbce47a046f9 clean-code.md
 bc14f21348c0 coderabbit.md
 9df2066b1dd4 database.md
-4a4097b5e115 formatting.md
 86800fdfc9de git.md
 51a1339e81ee helpers.md
 cd818d26fb92 javascript.md
@@ -11,8 +10,9 @@ f8f0aa65bb11 php.md
 d0da2bcc44b2 refactoring.md
 3a7f1d8589fc styling.md
 eb83eac24fbe testing.md
-d4e04fc355f4 ui.md
 5628f9c4f590 guias-comunes.md
 d4a38f5346dd mcp.md
 1a5e8826b37c gotchas.md
 ecfc82e494e3 livewire.md
+d6ed859e22f1 formatting.md
+e063264b94a5 ui.md
