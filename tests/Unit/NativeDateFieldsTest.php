@@ -37,7 +37,7 @@ function viewsWithNativeDateFields(): array
         }
 
         $contents = (string) file_get_contents($file->getPathname());
-        $nativeField = preg_match('/type=["\'](date|time|datetime-local|month)["\']/', $contents) === 1;
+        $nativeField = preg_match('/(?<![\w:-])type=["\'](date|time|datetime-local|month)["\']/', $contents) === 1;
         $calendarWithoutLocale = preg_match('/<flux:date-picker(?=[\s>])(?![^>]*\blocale=)[^>]*>/', $contents) === 1;
 
         if ($nativeField || $calendarWithoutLocale) {
