@@ -116,3 +116,6 @@ contrasta al repasar. Los componentes que las implementan viven en
   Nunca `<flux:input type="date">` (ni `time` o `datetime-local`), ni un `flux:date-picker` sin
   `locale`: los dos siguen el idioma del navegador, y en uno en inglés salen «mm/dd/yyyy» y
   «October». Visto en gestiona-tu-restaurante, 16/11/2026.
+  `tests/Unit/NativeDateFieldsTest.php` lo vigila (cópialo de app-template): falla con un campo así
+  en una vista nueva, y su lista de vistas antiguas solo encoge. Al tocar una de esas vistas, pasa
+  sus fechas al calendario y quítala de la lista.
