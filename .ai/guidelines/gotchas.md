@@ -37,6 +37,31 @@ Trampas que ya han costado tiempo. Antes de depurar algo raro, mira aquí.
 - **Los componentes Livewire probados directamente se saltan el `->can()` de la ruta.** Para comprobar que un
   miembro no puede, llama a la acción (`->call('hacer')->assertForbidden()`) o pide la ruta con `get()`.
 
+- **Un `<script src="...">` dentro de `@script` no se descarga nunca.** `@script` solo ejecuta el JavaScript
+  escrito dentro; el navegador no pide el fichero y no hay ningún error. El script externo va en `@assets`
+  (Livewire lo carga una vez) y el código que lo usa, en `@script`, esperando a que exista. Visto en
+  gestiona-tu-restaurante, 17/11/2026: el Turnstile del formulario de candidatura no se pintaba y en producción
+  se rechazaban todas las candidaturas. Los tests pasaban porque simulaban el verificador.
+
+## Formularios públicos (candidaturas, contacto, reservas)
+
+Un fallo aquí no avisa: quien no puede enviar se va, y solo se nota porque no llega nada.
+
+- **Antes de anunciarlo, un envío de verdad en producción**, en el navegador y con la protección contra bots
+  activa: debe aparecer en la pantalla del equipo. Luego se borra. Los tests no lo sustituyen.
+- **En local, Turnstile con las claves de prueba de Cloudflare** (`TURNSTILE_SITE_KEY=1x00000000000000000000AA`,
+  `TURNSTILE_SECRET=1x0000000000000000000000000000000AA`, siempre pasan): sin claves el widget no sale y no
+  se prueba nada.
+- **El token de Turnstile vale una vez y caduca a los 300 s.** Se comprueba al final, cuando el resto del
+  formulario ya es válido: comprobarlo antes lo gasta en un envío con un error y el siguiente intento falla
+  siempre. Si Cloudflare lo rechaza, se reinicia el widget (`turnstile.reset`), y el widget renueva el token
+  solo al caducar (`refresh-expired: 'auto'`, con `expired-callback`).
+- **El límite de envíos por IP cuenta solo los que salen bien.** Si cuenta los intentos, quien corrige un
+  error y reintenta se queda bloqueado («demasiados envíos») sin haber enviado nada.
+- **Un fichero adjunto se comprueba en el navegador antes de subirlo** (tamaño y tipo): uno que pasa del
+  límite de nginx no llega a Livewire, que solo puede decir «no se pudo subir». El servidor lo vuelve a
+  comprobar igual, por el contenido.
+
 ## Tests
 
 - **`$this->artisan()` dos veces en el mismo test reutiliza la misma instancia del comando**: un array de estado
