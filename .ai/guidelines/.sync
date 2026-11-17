@@ -2,7 +2,6 @@ c87a9198c596 blade.md
 fbce47a046f9 clean-code.md
 bc14f21348c0 coderabbit.md
 9df2066b1dd4 database.md
-86800fdfc9de git.md
 51a1339e81ee helpers.md
 cd818d26fb92 javascript.md
 3297b02bf253 permissions.md
@@ -16,3 +15,4 @@ d4a38f5346dd mcp.md
 ecfc82e494e3 livewire.md
 d6ed859e22f1 formatting.md
 21be94d1f1d8 ui.md
+50d334af8ea0 git.md
