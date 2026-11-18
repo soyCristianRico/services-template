@@ -96,20 +96,20 @@ la ficha, la tarjeta del listado y el OG leen todos del mismo registro.
 **Si la imagen del origen es pequeña, se sube de resolución antes de guardarla —
 nunca se guarda pixelada tal cual.** Medir con `getimagesize` (o `identify`) antes de
 dar la descarga por buena: si el ancho real no llega al mínimo que pide su uso en la
-página (los mismos umbrales que usa `/content-images`: 1600px hero, 1200px foto de
-sección, 512px icono o recurso), pasarla por el modelo de upscaling de fal.ai
-(`fal-ai/esrgan`, la misma cuenta y `FAL_KEY` que ya usa `/content-images`, endpoint
-`https://fal.run/fal-ai/esrgan`) apuntando `image_url` a la **URL del origen**, no al
-fichero ya descargado, y guardar el resultado ya mejorado en su sitio final. Si ni el
-upscaling llega a un mínimo razonable, decirlo al presentar la página (paso 6) en vez
-de dejarla pixelada en silencio.
+página (los mismos umbrales que usa `/content-images`: 1536px hero, 1200px foto de
+sección, 512px icono o recurso), guardarla tal cual en su sitio final y apuntarla en
+`imagenes.md` (la tabla de `/content-images`) con su `Ruta` y `Estado = por mejorar`.
+Este repo no la mejora: se mejora con ChatGPT desde ruk-assistant. Al presentar la
+página (paso 6), decirlo así: «Hay fotos pequeñas por mejorar. Abre una sesión en
+ruk-assistant y pide: mejora las fotos de `<ruta absoluta del repo>/imagenes.md`».
+Si una ni así llega a un mínimo razonable, decirlo en vez de dejarla pixelada en
+silencio.
 
 **Si el nuevo diseño pide un elemento que el origen no tenía** —un recurso
 decorativo, un icono ilustrado que `DESIGN.md` incorpora y la web vieja no usaba—,
-generarlo con el mismo mecanismo que `/content-images` (FLUX Schnell vía fal.ai,
-mismo criterio de aceptación y máximo 3 intentos, ver esa skill para el detalle).
-Es contenido nuevo, no clonado: decirlo al presentar la página, no colarlo como si
-viniera del origen.
+se pide con el mismo mecanismo que `/content-images` (fila en `imagenes.md` con su
+prompt, se genera desde ruk-assistant). Es contenido nuevo, no clonado: decirlo al
+presentar la página, no colarlo como si viniera del origen.
 
 **`public/images/` es material del seeder, nunca una fuente en caliente.** Se escribe
 una vez al clonar y no se vuelve a leer: la plantilla lee **siempre** del registro. La
