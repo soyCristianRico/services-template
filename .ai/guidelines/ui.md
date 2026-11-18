@@ -42,6 +42,12 @@ contrasta al repasar. Los componentes que las implementan viven en
 
 - **Como mucho dos líneas de controles antes de la primera fila:** el buscador con «Filtros», y
   el selector de vista. Si sale una tercera, algo está fuera de su sitio.
+- **Las acciones de la cabecera del listado:** la principal («Nuevo recibo») siempre a la vista, como
+  botón. Si solo hay una acción secundaria, también a la vista; con dos o más (exportar, un ajuste
+  como el plazo de impago…), todas al menú de tres puntos (`x-admin.record-menu`). Cifras y desgloses
+  no van en ese menú: son información, no acciones, y escondidos no se leen. Van en una vista del
+  listado o al pie de la tabla. Caso: Cobros de cierzo-formacion, 18/11/2026, con «Exportar a Excel» y
+  «Plazo de impago» al lado del título.
 - **Cada cosa se elige en un solo control.** El periodo, con «‹ Noviembre 2026 ▾ ›»: flechas
   para el mes de al lado y un desplegable con pocos meses (3 antes, 2 después) y «Todos los
   meses». Nada de botones sueltos de «Mes en curso» o «Todos». Las fechas del panel «Filtros»
