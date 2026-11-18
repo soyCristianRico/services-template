@@ -23,7 +23,9 @@ pantalla que esta arrastra.
 
 Por cada parte:
 
-1. Montarla en local con datos que se parezcan a los reales.
+1. Montarla en local con datos que se parezcan a los reales. Si se copian datos de producción
+   (alumnas, clientes, DNI, cobros), se borran de local al terminar la revisión y se comprueba
+   que no queda ninguno.
 2. Abrirla en el navegador del dueño (Orca, en una pestaña propia y delante) en el punto exacto
    que hay que mirar: la URL con la pestaña, el filtro o el registro ya elegidos, y el bloque a la
    vista.
