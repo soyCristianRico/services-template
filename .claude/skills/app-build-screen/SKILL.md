@@ -14,6 +14,32 @@ servicio, ruta) para que el admin crezca pantalla a pantalla sin rehacer lo ante
 **Una pantalla por ejecución.** Si no cabe en un bloque de 2 horas, es demasiado
 grande: partirla en dos pantallas y ejecutar esta skill dos veces.
 
+## Revisión por partes con el dueño
+
+La pantalla no se enseña entera al final: se monta **por partes** y cada una se revisa con el
+dueño antes de empezar la siguiente. Una parte es lo que se puede mirar y opinar de una vez: la
+maqueta, un bloque del formulario, el listado con sus filtros, una acción, un cambio en otra
+pantalla que esta arrastra.
+
+Por cada parte:
+
+1. Montarla en local con datos que se parezcan a los reales.
+2. Abrirla en el navegador del dueño (Orca, en una pestaña propia y delante) en el punto exacto
+   que hay que mirar: la URL con la pestaña, el filtro o el registro ya elegidos, y el bloque a la
+   vista.
+3. Decirle qué mirar, en una lista corta y numerada: qué ha cambiado, dónde está y qué probar
+   («pulsa aquí y sale esto»). Una parte por mensaje.
+4. Esperar su comentario. Lo que pida se arregla en esa misma parte y se vuelve a enseñar; no se
+   pasa a la siguiente hasta que la dé por buena.
+
+Lo que no se ve en pantalla (un comando programado, una regla de cobro, un envío a una
+integración) también es una parte: se explica en dos líneas, con el test que lo demuestra, y se
+espera su visto bueno igual.
+
+Así se corrige el rumbo pronto: una parte que no le convence no arrastra a las que vienen
+detrás. Caso: la revisión de Cobros y el historial de AcadeSoft en cierzo-formacion, 18/11/2026,
+punto por punto en local, con tres cambios pedidos por el camino.
+
 ## Entrada
 
 Una de estas dos:
