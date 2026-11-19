@@ -47,7 +47,9 @@ return [
     | subject_of — pages ABOUT the brand: interviews, podcasts, press articles.
     |              SEO_ORG_SUBJECT_OF holds a JSON list of {type, url, name};
     |              each entry goes out as a CreativeWork of that type
-    |              (Article, PodcastEpisode, VideoObject...).
+    |              (Article, PodcastEpisode...). VideoObject and Event go out
+    |              as CreativeWork: Google takes them as a video or an event
+    |              on the page and asks for its thumbnail, date or place.
     |
     | Both live in .env so a new listing or interview is added without touching
     | code. Which URLs qualify is decided by Ruk Lab's process SEO289.

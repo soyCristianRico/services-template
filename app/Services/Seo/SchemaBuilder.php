@@ -11,6 +11,11 @@ use DateTimeInterface;
 
 class SchemaBuilder
 {
+    /**
+     * Types Google only accepts for content shown on the page itself.
+     */
+    protected const ON_PAGE_ONLY_TYPES = ['VideoObject', 'Event'];
+
     public readonly string $siteUrl;
 
     public readonly string $organizationId;
@@ -278,7 +283,7 @@ class SchemaBuilder
             }
 
             $node = [
-                '@type' => is_string($work['type'] ?? null) && $work['type'] !== '' ? $work['type'] : 'CreativeWork',
+                '@type' => $this->subjectOfType($work['type'] ?? null),
                 'url' => $work['url'],
             ];
 
@@ -290,5 +295,19 @@ class SchemaBuilder
         }
 
         return $nodes;
+    }
+
+    /**
+     * The type a page about the entity goes out as. A VideoObject or an Event
+     * would tell Google the video or the event is on this page, and it would ask
+     * for their thumbnail, upload date or place: those go out as CreativeWork.
+     */
+    protected function subjectOfType(mixed $type): string
+    {
+        if (! is_string($type) || $type === '' || in_array($type, self::ON_PAGE_ONLY_TYPES, true)) {
+            return 'CreativeWork';
+        }
+
+        return $type;
     }
 }

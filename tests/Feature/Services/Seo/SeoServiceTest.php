@@ -52,6 +52,19 @@ describe('SeoService', function (): void {
             ]);
         });
 
+        it('emits a VideoObject from SEO_ORG_SUBJECT_OF as a CreativeWork', function (): void {
+            config()->set('seo.organization.subject_of', [
+                ['type' => 'VideoObject', 'url' => 'https://www.youtube.com/watch?v=abc', 'name' => 'Entrevista en YouTube'],
+            ]);
+
+            $html = $this->get('/')->assertOk()->getContent();
+
+            expect(homeOrganizationNode($html)['subjectOf'])->toBe([
+                ['@type' => 'CreativeWork', 'url' => 'https://www.youtube.com/watch?v=abc', 'name' => 'Entrevista en YouTube'],
+            ]);
+            expect($html)->not->toContain('"@type":"VideoObject"');
+        });
+
         it('leaves sameAs and subjectOf out of the Organization when none are configured', function (): void {
             config()->set('seo.organization.same_as', []);
             config()->set('seo.organization.subject_of', []);
